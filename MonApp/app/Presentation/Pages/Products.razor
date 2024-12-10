@@ -1,0 +1,31 @@
+@page "/products"
+@inject Core.Interfaces.IProductService ProductService
+
+<h3>Liste des Produits</h3>
+
+@if (products == null)
+{
+    <p><em>Chargement...</em></p>
+}
+else if (!products.Any())
+{
+    <p>Aucun produit trouvé.</p>
+}
+else
+{
+    <ul>
+        @foreach (var product in products)
+        {
+            <li>@product.Name</li>
+        }
+    </ul>
+}
+
+@code {
+    private IEnumerable<Core.DTOs.ProductDto> products;
+
+    protected override async Task OnInitializedAsync()
+    {
+        products = await ProductService.GetAllProductsAsync();
+    }
+}

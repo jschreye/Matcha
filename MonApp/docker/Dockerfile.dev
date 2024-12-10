@@ -1,0 +1,24 @@
+# Utiliser l'image SDK pour le développement
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /app
+
+# Copier les fichiers csproj et restaurer les dépendances
+COPY ./app/Presentation/*.csproj ./Presentation/
+COPY ./app/Core/*.csproj ./Core/
+COPY ./app/Infrastructure/*.csproj ./Infrastructure/
+RUN dotnet restore ./Presentation/Presentation.csproj
+
+# Copier le reste du code source dans les répertoires appropriés
+COPY ./app/Presentation/ ./Presentation/
+COPY ./app/Core/ ./Core/
+COPY ./app/Infrastructure/ ./Infrastructure/
+COPY ./docker ./docker
+COPY ./caddy ./caddy
+
+# Construire l'application
+RUN dotnet build ./Presentation/Presentation.csproj -c Debug -o /app/build
+
+# Utiliser l'image runtime pour exécuter l'application
+FROM build AS development
+WORKDIR /app
+CMD ["dotnet", "watch", "run", "--project", "Presentation/Presentation.csproj", "--urls", "http://0.0.0.0:5000"]
