@@ -7,7 +7,7 @@
 
 <PageTitle>Users</PageTitle>
 
-<h1>Users</h1>
+<h1>Users23</h1>
 
 @if (users == null)
 {
@@ -40,10 +40,23 @@ else
 }
 
 @code {
-    private IEnumerable<Core.DTOs.UserDto> users;
+    private List<UserDto> ? users;
+    private bool isLoading = true;
+    private string ? errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
-        var users = await UserService.GetAllUsersAsync();
+        try
+        {
+            users = await UserService.GetAllUsersAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "An error occurred while loading users: " + ex.Message;
+        }
+        finally
+        {
+            isLoading = false;
+        }
     }
 }

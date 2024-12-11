@@ -16,9 +16,9 @@ public class UserService : IUserService
         _connectionString = configuration.GetConnectionString("DefaultConnection");
     }
 
-    public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
+    public async Task<List<UserDto>> GetAllUsersAsync()
     {
-        var users = new List<User>();
+        var users = new List<UserDto>();
 
         using var connection = new MySqlConnection(_connectionString);
         await connection.OpenAsync();
@@ -28,7 +28,7 @@ public class UserService : IUserService
 
         while (await reader.ReadAsync())
         {
-            users.Add(new User
+            users.Add(new UserDto
             {
                 Id = reader.GetInt32("id"),
                 Username = reader.GetString("username"),
@@ -37,6 +37,6 @@ public class UserService : IUserService
             });
         }
 
-        return (IEnumerable<UserDto>)users;
+        return users;
     }
 }
