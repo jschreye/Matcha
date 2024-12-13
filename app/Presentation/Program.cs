@@ -1,6 +1,6 @@
 using Core.Interfaces;
 using Infrastructure.Services;
-using Infrastructure.Model;
+using Infrastructure.Repository;
 using Core.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
