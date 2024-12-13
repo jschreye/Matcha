@@ -1,18 +1,13 @@
-using Core.Interfaces;
-using Core.Models;
 using Core.Repository;
-using System.Data;
 using MySql.Data.MySqlClient;
 using Microsoft.Extensions.Configuration;
 using Core.DTOs;
-using Org.BouncyCastle.Asn1.Cmp;
-using Microsoft.VisualBasic;
 
 namespace Infrastructure.Model
 {
     public class UserModel : IUserRepository
     {
-        private readonly string _connectionString;
+        private readonly string? _connectionString;
         public UserModel(IConfiguration configuration)
         {
             _connectionString = configuration.GetConnectionString("DefaultConnection");
