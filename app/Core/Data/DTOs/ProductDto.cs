@@ -1,4 +1,4 @@
-namespace Core.DTOs
+namespace Core.Data.DTOs
 {
     public class ProductDto
     {

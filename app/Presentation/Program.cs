@@ -14,7 +14,7 @@ builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IUserService, UserService>();
 
 // Ajouter les models personnalisés
-builder.Services.AddScoped<IUserRepository, UserModel>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 var app = builder.Build();
 
