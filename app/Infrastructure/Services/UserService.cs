@@ -4,13 +4,13 @@ using System.Data;
 using MySql.Data.MySqlClient;
 using Microsoft.Extensions.Configuration;
 using Core.DTOs;
+using Org.BouncyCastle.Asn1.Cmp;
 
 namespace Infrastructure.Services;
 
 public class UserService : IUserService
 {
     private readonly string _connectionString;
-
     public UserService(IConfiguration configuration)
     {
         _connectionString = configuration.GetConnectionString("DefaultConnection");
@@ -36,7 +36,6 @@ public class UserService : IUserService
                 CreatedAt = reader.GetDateTime("created_at")
             });
         }
-
         return users;
     }
 }
