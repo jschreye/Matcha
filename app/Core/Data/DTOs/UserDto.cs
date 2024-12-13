@@ -16,5 +16,6 @@ namespace Core.Data.DTOs
             Username = string.Empty;
             Email = string.Empty;
         }
+        
     }
 }
