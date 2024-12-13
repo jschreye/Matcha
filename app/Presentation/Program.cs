@@ -1,5 +1,7 @@
 using Core.Interfaces;
 using Infrastructure.Services;
+using Infrastructure.Model;
+using Core.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +12,9 @@ builder.Services.AddServerSideBlazor();
 // Ajouter les services personnalisés
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IUserService, UserService>();
+
+// Ajouter les models personnalisés
+builder.Services.AddScoped<IUserRepository, UserModel>();
 
 var app = builder.Build();
 

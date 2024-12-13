@@ -5,37 +5,20 @@ using MySql.Data.MySqlClient;
 using Microsoft.Extensions.Configuration;
 using Core.DTOs;
 using Org.BouncyCastle.Asn1.Cmp;
+using Core.Repository;
 
 namespace Infrastructure.Services;
 
 public class UserService : IUserService
 {
-    private readonly string _connectionString;
-    public UserService(IConfiguration configuration)
+    private readonly IUserRepository repository;
+    public UserService(IUserRepository _repository)
     {
-        _connectionString = configuration.GetConnectionString("DefaultConnection");
+        this.repository = _repository;
     }
 
     public async Task<List<UserDto>> GetAllUsersAsync()
     {
-        var users = new List<UserDto>();
-
-        using var connection = new MySqlConnection(_connectionString);
-        await connection.OpenAsync();
-
-        using var command = new MySqlCommand("SELECT id, username, email, created_at FROM users", connection);
-        using var reader = await command.ExecuteReaderAsync();
-
-        while (await reader.ReadAsync())
-        {
-            users.Add(new UserDto
-            {
-                Id = reader.GetInt32("id"),
-                Username = reader.GetString("username"),
-                Email = reader.GetString("email"),
-                CreatedAt = reader.GetDateTime("created_at")
-            });
-        }
-        return users;
+        return await repository.GetAllUserAsync();
     }
 }
