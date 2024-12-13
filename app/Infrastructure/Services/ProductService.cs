@@ -1,9 +1,6 @@
 using Core.Data.DTOs;
 using Core.Interfaces;
 using Core.Data.Entity;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Infrastructure.Services
 {
