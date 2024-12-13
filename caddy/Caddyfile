@@ -2,6 +2,6 @@
     auto_https off
 }
 
-http://localhost {
+http:// {
     reverse_proxy app:5000
 }

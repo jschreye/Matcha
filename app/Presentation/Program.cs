@@ -21,7 +21,7 @@ var app = builder.Build();
 // Configuration du pipeline HTTP
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("Error/Error");
+    app.UseExceptionHandler("/Error/Error");
     app.UseHsts();
 }
 
