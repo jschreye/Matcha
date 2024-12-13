@@ -9,7 +9,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Server=db;Database=${DB_NAME};User=${DB_USER};Password=${DB_PASSWORD};
     volumes:
-      - ./app:/app:cached
+      - ./app:/app:cachedq
       - data_protection_keys:/root/.aspnet/DataProtection-Keys
     depends_on:
       - db
