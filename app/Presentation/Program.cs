@@ -1,16 +1,17 @@
 using Core.Interfaces;
 using Infrastructure.Services;
-using Infrastructure.Model;
+using Infrastructure.Repository;
 using Core.Repository;
+using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Ajouter les services au conteneur.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
+builder.Services.AddMudServices();
 
 // Ajouter les services personnalisés
-builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IUserService, UserService>();
 
 // Ajouter les models personnalisés
