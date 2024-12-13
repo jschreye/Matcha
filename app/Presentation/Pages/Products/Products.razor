@@ -1,5 +1,6 @@
 @page "/products"
 @inject Core.Interfaces.IProductService ProductService
+@using Core.Data.DTOs
 
 <h3>Liste des Produits</h3>
 
@@ -22,7 +23,7 @@ else
 }
 
 @code {
-    private IEnumerable<Core.DTOs.ProductDto> products;
+    private IEnumerable<ProductDto>? products;
 
     protected override async Task OnInitializedAsync()
     {

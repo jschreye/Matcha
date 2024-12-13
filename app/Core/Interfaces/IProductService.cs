@@ -1,4 +1,4 @@
-using Core.DTOs;
+using Core.Data.DTOs;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
