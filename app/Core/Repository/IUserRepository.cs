@@ -1,7 +1,4 @@
-using Core.Interfaces;
-using Core.Models;
-using System.Data;
-using Core.DTOs;
+using Core.Data.DTOs;
 
 namespace Core.Repository
 {

@@ -1,7 +1,7 @@
 
 using System.ComponentModel;
 
-namespace Core.DTOs
+namespace Core.Data.DTOs
 {
     public class UserDto
     {

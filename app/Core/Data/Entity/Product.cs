@@ -1,4 +1,4 @@
-namespace Core.Models
+namespace Core.Data.Entity
 {
     public class Product
     {

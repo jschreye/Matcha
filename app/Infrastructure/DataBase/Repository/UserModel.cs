@@ -1,7 +1,7 @@
 using Core.Repository;
 using MySql.Data.MySqlClient;
 using Microsoft.Extensions.Configuration;
-using Core.DTOs;
+using Core.Data.DTOs;
 
 namespace Infrastructure.Model
 {
