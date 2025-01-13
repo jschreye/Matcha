@@ -1,6 +1,48 @@
 @page "/register"
+@using Core.Interfaces
+@using Core.Data.DTOs
 
-<PageTitle>Register</PageTitle>
-<h1>
-    Register
-</h1>
+@inject IUserService UserService
+@inject NavigationManager NavigationManager
+
+<h3>Inscription</h3>
+<EditForm Model="@registerModel" OnValidSubmit="RegisterUser">
+    <DataAnnotationsValidator />
+    <div>
+        <label>Nom d'utilisateur</label>
+        <InputText @bind-Value="registerModel.Username" />
+    </div>
+    <div>
+        <label>Email</label>
+        <InputText @bind-Value="registerModel.Email" />
+    </div>
+    <div>
+        <label>Mot de passe</label>
+        <InputText @bind-Value="registerModel.Password" type="password" />
+    </div>
+    <button type="submit">S'inscrire</button>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <p>@message</p>
+}
+
+@code {
+    private RegisterDto registerModel = new RegisterDto();
+    private string message;
+
+    private async Task RegisterUser()
+    {
+        try
+        {
+            await UserService.RegisterUser(registerModel);
+            message = "Inscription réussie!";
+            NavigationManager.NavigateTo("/");
+        }
+        catch (Exception ex)
+        {
+            message = ex.Message;
+        }
+    }
+}

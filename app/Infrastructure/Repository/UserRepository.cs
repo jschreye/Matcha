@@ -37,45 +37,38 @@ namespace Infrastructure.Repository
 
             return users;
         }
-        public async Task AddUserAsync(User user)
+        public async Task<User> GetByEmail(string email)
         {
             using var connection = new MySqlConnection(_connectionString);
             await connection.OpenAsync();
 
-            var query = "INSERT INTO users (username, email, created_at) VALUES (@username, @email, @created_at)";
-            using var command = new MySqlCommand(query, connection);
+            var command = new MySqlCommand("SELECT id, username, email, password_hash, created_at FROM users WHERE email = @Email", connection);
+            command.Parameters.AddWithValue("@Email", email);
 
-            command.Parameters.AddWithValue("@username", user.Username);
-            command.Parameters.AddWithValue("@email", user.Email);
-            command.Parameters.AddWithValue("@created_at", user.CreatedAt);
-
-            await command.ExecuteNonQueryAsync();
-        }
-        
-        public async Task DeleteUserAsync(int id)
-        {
-            using var connection = new MySqlConnection(_connectionString);
-            await connection.OpenAsync();
-
-            var query = "DELETE FROM users WHERE id = @id";
-            using var command = new MySqlCommand(query, connection);
-
-            command.Parameters.AddWithValue("@id", id);
-
-            await command.ExecuteNonQueryAsync();
+            using var reader = await command.ExecuteReaderAsync();
+            if (await reader.ReadAsync())
+            {
+                return new User
+                {
+                    Id = reader.GetInt32(reader.GetOrdinal("id")),
+                    Username = reader.GetString(reader.GetOrdinal("username")),
+                    Email = reader.GetString(reader.GetOrdinal("email")),
+                    PasswordHash = reader.GetString(reader.GetOrdinal("password_hash")),
+                    CreatedAt = reader.GetDateTime(reader.GetOrdinal("created_at"))
+                };
+            }
+            return null;
         }
 
-        public async Task UpdateUserAsync(User user)
+        public async Task Add(User user)
         {
             using var connection = new MySqlConnection(_connectionString);
             await connection.OpenAsync();
 
-            var query = "UPDATE users SET username = @username, email = @email WHERE id = @id";
-            using var command = new MySqlCommand(query, connection);
-
-            command.Parameters.AddWithValue("@id", user.Id);
-            command.Parameters.AddWithValue("@username", user.Username);
-            command.Parameters.AddWithValue("@email", user.Email);
+            var command = new MySqlCommand("INSERT INTO users (username, email, password_hash) VALUES (@Username, @Email, @PasswordHash)", connection);
+            command.Parameters.AddWithValue("@Username", user.Username);
+            command.Parameters.AddWithValue("@Email", user.Email);
+            command.Parameters.AddWithValue("@PasswordHash", user.PasswordHash);
 
             await command.ExecuteNonQueryAsync();
         }

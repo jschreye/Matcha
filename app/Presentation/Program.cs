@@ -5,18 +5,17 @@ using Core.Repository;
 using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
-
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 // Ajouter les services au conteneur.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddMudServices();
-
 // Ajouter les services personnalisés
 builder.Services.AddScoped<IUserService, UserService>();
 
 // Ajouter les models personnalisés
 builder.Services.AddScoped<IUserRepository, UserRepository>();
-
+builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 var app = builder.Build();
 
 // Configuration du pipeline HTTP

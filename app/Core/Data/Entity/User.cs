@@ -6,12 +6,7 @@ namespace Core.Data.Entity
         public int Id { get; set; }
         public string Username { get; set; }
         public string Email { get; set; }
-        public DateTime CreatedAt { get; set; }
-
-        public User()
-        {
-            Username = string.Empty;
-            Email = string.Empty;
-        }
+        public string PasswordHash { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
     }
 }
