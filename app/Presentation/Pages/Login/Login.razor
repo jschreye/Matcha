@@ -1,5 +1,54 @@
 @page "/login"
+@inject NavigationManager Navigation
+@inject HttpClient Http
 
-<PageTitle>Login</PageTitle>
+<h3>Connexion</h3>
 
-<h1>Login</h1>
+<EditForm Model="@loginDto" OnValidSubmit="HandleLogin">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    
+    <div>
+        <label>Nom d'utilisateur :</label>
+        <InputText @bind-Value="loginDto.Username" />
+    </div>
+    <div>
+        <label>Mot de passe :</label>
+        <InputText @bind-Value="loginDto.Password" type="password" />
+    </div>
+    <button type="submit">Se connecter</button>
+</EditForm>
+
+@code {
+    private LoginDto loginDto = new LoginDto();
+
+    private async Task HandleLogin()
+    {
+        var content = new FormUrlEncodedContent(new[]
+        {
+            new KeyValuePair<string, string>("username", loginDto.Username),
+            new KeyValuePair<string, string>("password", loginDto.Password)
+        });
+
+        try
+        {
+            // Utilisation du port correct en fonction de l'environnement
+            //Http.BaseAddress = new Uri(Navigation.BaseUri);
+            Http.BaseAddress = new Uri("http://localhost:5000/");
+            var response = await Http.PostAsync("auth/login", content);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                Navigation.NavigateTo("/");
+            }
+            else
+            {
+                Console.WriteLine("Identifiants incorrects.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erreur : {ex.Message}");
+        }
+    }
+}
