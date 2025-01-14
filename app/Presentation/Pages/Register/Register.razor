@@ -2,7 +2,7 @@
 @using Core.Interfaces
 @using Core.Data.DTOs
 
-@inject IUserService UserService
+@inject IRegisterService RegisterService
 @inject NavigationManager NavigationManager
 
 <h3>Inscription</h3>
@@ -36,7 +36,7 @@
     {
         try
         {
-            await UserService.RegisterUser(registerModel);
+            await RegisterService.RegisterUser(registerModel);
             message = "Inscription réussie!";
             NavigationManager.NavigateTo("/");
         }

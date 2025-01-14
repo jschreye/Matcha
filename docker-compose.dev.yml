@@ -8,6 +8,13 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Server=db;Database=${DB_NAME};User=${DB_USER};Password=${DB_PASSWORD};
+      - SmtpSettings__Host=${SMTP_HOST}
+      - SmtpSettings__Port=${SMTP_PORT}
+      - SmtpSettings__EnableSsl=${SMTP_ENABLESSL}
+      - SmtpSettings__UserName=${SMTP_USERNAME}
+      - SmtpSettings__Password=${SMTP_PASSWORD}
+      - SmtpSettings__FromEmail=${SMTP_FROMEMAIL}
+      - SmtpSettings__FromName=${SMTP_FROMNAME}
     volumes:
       - ./app:/app:cachedq
       - data_protection_keys:/root/.aspnet/DataProtection-Keys
@@ -44,6 +51,16 @@ services:
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile
       - caddy_data:/data
       - caddy_config:/config
+    networks:
+      - app-network
+      
+  mailpit:
+    image: axllent/mailpit
+    container_name: mailpit
+    ports:
+      - "1025:1025"  # Port SMTP
+      - "8025:8025"  # Interface web
+    restart: unless-stopped
     networks:
       - app-network
 
