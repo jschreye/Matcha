@@ -1,4 +1,4 @@
-namespace Core.Data.Entity
+namespace Core.Data.Mail
 {
     public class SmtpSettings
     {

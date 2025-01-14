@@ -3,7 +3,7 @@ using Infrastructure.Services;
 using Infrastructure.Repository;
 using Core.Repository;
 using MudBlazor.Services;
-using Core.Data.Entity;
+using Core.Data.Mail;
 
 var builder = WebApplication.CreateBuilder(args);
 

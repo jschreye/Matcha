@@ -1,6 +1,4 @@
 @page "/register"
-@using Core.Interfaces
-@using Core.Data.DTOs
 
 @inject IRegisterService RegisterService
 @inject NavigationManager NavigationManager
@@ -30,7 +28,7 @@
 
 @code {
     private RegisterDto registerModel = new RegisterDto();
-    private string message;
+    private string message = string.Empty;
 
     private async Task RegisterUser()
     {

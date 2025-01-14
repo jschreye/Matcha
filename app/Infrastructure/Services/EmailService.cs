@@ -1,5 +1,6 @@
 using Core.Interfaces;
-using Core.Data.Entity;
+using Core.Data.Mail;
+
 using System.Net;
 using System.Net.Mail;
 using Microsoft.Extensions.Options;
