@@ -1,6 +1,7 @@
 @page "/login"
+@inject IJSRuntime JS
 @inject NavigationManager Navigation
-@inject HttpClient Http
+@using Core.Data.DTOs
 
 <h3>Connexion</h3>
 
@@ -24,31 +25,14 @@
 
     private async Task HandleLogin()
     {
-        var content = new FormUrlEncodedContent(new[]
+        bool success = await JS.InvokeAsync<bool>("login", loginDto.Username, loginDto.Password);
+        if (success)
         {
-            new KeyValuePair<string, string>("username", loginDto.Username),
-            new KeyValuePair<string, string>("password", loginDto.Password)
-        });
-
-        try
-        {
-            // Utilisation du port correct en fonction de l'environnement
-            //Http.BaseAddress = new Uri(Navigation.BaseUri);
-            Http.BaseAddress = new Uri("http://localhost:5000/");
-            var response = await Http.PostAsync("auth/login", content);
-            
-            if (response.IsSuccessStatusCode)
-            {
-                Navigation.NavigateTo("/");
-            }
-            else
-            {
-                Console.WriteLine("Identifiants incorrects.");
-            }
+            Navigation.NavigateTo("/", true);
         }
-        catch (Exception ex)
+        else
         {
-            Console.WriteLine($"Erreur : {ex.Message}");
+            Console.WriteLine("Identifiants incorrects.");
         }
     }
 }

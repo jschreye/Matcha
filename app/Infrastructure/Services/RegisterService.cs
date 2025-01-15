@@ -26,17 +26,19 @@ namespace Infrastructure.Services
             var passwordHash = _passwordHasher.HashPassword(registerDto.Password);
             var user = new User
             {
+                Firstname = registerDto.Firstname,
+                Lastname = registerDto.Lastname,
                 Username = registerDto.Username,
                 Email = registerDto.Email,
                 PasswordHash = passwordHash
             };
             
+            await _userRepository.Add(user);
             // Envoyer l'e-mail de confirmation
             var subject = "Confirmation de votre inscription";
             var body = $"<p>Bonjour {user.Username},</p><p>Merci de vous être inscrit. Veuillez confirmer votre compte en cliquant sur le lien suivant :</p><p><a href='https://votre-site.com/confirmation?email={user.Email}'>Confirmer mon compte</a></p>";
             await _emailService.SendEmailAsync(user.Email, subject, body);
 
-            await _userRepository.Add(user);
             return true;
         }
     }

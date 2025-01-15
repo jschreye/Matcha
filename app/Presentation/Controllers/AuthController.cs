@@ -30,16 +30,19 @@ namespace Presentation.Controllers // Remplacez par votre espace de noms appropr
                 var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
                 var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
 
-                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal, 
-                    new AuthenticationProperties
-                    {
-                        IsPersistent = true, 
-                        ExpiresUtc = DateTime.UtcNow.AddHours(1)
-                    });
+                // ✅ Ajout de logs pour confirmer que le code passe bien ici
+                Console.WriteLine("Utilisateur validé. Tentative de création du cookie.");
 
-                return Ok(); // Connexion réussie
+                // ✅ Test sans options pour limiter les restrictions
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal);
+
+                Console.WriteLine("Cookie d'authentification créé.");
+
+                return Ok(new { Message = "Login réussi" });
             }
-            return Unauthorized(); // Identifiants incorrects
+
+            Console.WriteLine("Identifiants incorrects");
+            return Unauthorized("Identifiants incorrects");
         }
 
         [HttpPost("logout")]

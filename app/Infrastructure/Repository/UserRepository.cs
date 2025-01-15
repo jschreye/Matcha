@@ -42,7 +42,7 @@ namespace Infrastructure.Repository
             using var connection = new MySqlConnection(_connectionString);
             await connection.OpenAsync();
 
-            var command = new MySqlCommand("SELECT id, username, email, password_hash, created_at FROM users WHERE email = @Email", connection);
+            var command = new MySqlCommand("SELECT id, firstname, lastname, username, email, password_hash, created_at FROM users WHERE email = @Email", connection);
             command.Parameters.AddWithValue("@Email", email);
 
             using var reader = await command.ExecuteReaderAsync();
@@ -51,6 +51,8 @@ namespace Infrastructure.Repository
                 return new User
                 {
                     Id = reader.GetInt32(reader.GetOrdinal("id")),
+                    Firstname = reader.GetString(reader.GetOrdinal("firstname")),
+                    Lastname = reader.GetString(reader.GetOrdinal("lastname")),                   
                     Username = reader.GetString(reader.GetOrdinal("username")),
                     Email = reader.GetString(reader.GetOrdinal("email")),
                     PasswordHash = reader.GetString(reader.GetOrdinal("password_hash")),
@@ -65,7 +67,9 @@ namespace Infrastructure.Repository
             using var connection = new MySqlConnection(_connectionString);
             await connection.OpenAsync();
 
-            var command = new MySqlCommand("INSERT INTO users (username, email, password_hash) VALUES (@Username, @Email, @PasswordHash)", connection);
+            var command = new MySqlCommand("INSERT INTO users (firstname, lastname, username, email, password_hash) VALUES (@Firstname, @Lastname, @Username, @Email, @PasswordHash)", connection);
+            command.Parameters.AddWithValue("@Firstname", user.Firstname); 
+            command.Parameters.AddWithValue("@Lastname", user.Lastname);
             command.Parameters.AddWithValue("@Username", user.Username);
             command.Parameters.AddWithValue("@Email", user.Email);
             command.Parameters.AddWithValue("@PasswordHash", user.PasswordHash);

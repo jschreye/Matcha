@@ -7,6 +7,14 @@
 <EditForm Model="@registerModel" OnValidSubmit="RegisterUser">
     <DataAnnotationsValidator />
     <div>
+        <label>Nom</label>
+        <InputText @bind-Value="registerModel.Lastname" />
+    </div>
+    <div>
+        <label>Prénom</label>
+        <InputText @bind-Value="registerModel.Firstname" />
+    </div>
+    <div>
         <label>Nom d'utilisateur</label>
         <InputText @bind-Value="registerModel.Username" />
     </div>
