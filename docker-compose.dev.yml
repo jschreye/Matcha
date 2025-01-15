@@ -14,7 +14,7 @@ services:
       - SmtpSettings__FromEmail=${SMTP_FROMEMAIL}
       - SmtpSettings__FromName=${SMTP_FROMNAME}
     volumes:
-      - ./app:/app:cachedq
+      - ./app:/app:cached
       - data_protection_keys:/root/.aspnet/DataProtection-Keys
     depends_on:
       - db

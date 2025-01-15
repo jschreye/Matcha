@@ -52,6 +52,7 @@
 
     private async Task Logout()
     {
+        // Définir la base d'adresse à partir du NavigationManager
         await Http.PostAsync("auth/logout", null);
         Navigation.NavigateTo("/", true); // Recharge la page après déconnexion
     }
