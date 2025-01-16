@@ -42,7 +42,12 @@ namespace Infrastructure.Repository
             using var connection = new MySqlConnection(_connectionString);
             await connection.OpenAsync();
 
-            var command = new MySqlCommand("SELECT id, firstname, lastname, username, email, password_hash, created_at FROM users WHERE email = @Email", connection);
+            var command = new MySqlCommand(@"
+                SELECT 
+                    id, firstname, lastname, username, email, 
+                    password_hash, isactive, activationtoken, created_at 
+                FROM users 
+                WHERE email = @Email", connection);
             command.Parameters.AddWithValue("@Email", email);
 
             using var reader = await command.ExecuteReaderAsync();
@@ -52,27 +57,102 @@ namespace Infrastructure.Repository
                 {
                     Id = reader.GetInt32(reader.GetOrdinal("id")),
                     Firstname = reader.GetString(reader.GetOrdinal("firstname")),
-                    Lastname = reader.GetString(reader.GetOrdinal("lastname")),                   
+                    Lastname = reader.GetString(reader.GetOrdinal("lastname")),
                     Username = reader.GetString(reader.GetOrdinal("username")),
                     Email = reader.GetString(reader.GetOrdinal("email")),
                     PasswordHash = reader.GetString(reader.GetOrdinal("password_hash")),
+                    IsActive = reader.GetBoolean(reader.GetOrdinal("isactive")),
+                    ActivationToken = reader.IsDBNull(reader.GetOrdinal("activationtoken"))
+                                    ? null 
+                                    : reader.GetString(reader.GetOrdinal("activationtoken")),
                     CreatedAt = reader.GetDateTime(reader.GetOrdinal("created_at"))
                 };
             }
             return null;
         }
+        public async Task<User> FindByUsernameAsync(string username)
+        {
+            using var connection = new MySqlConnection(_connectionString);
+            await connection.OpenAsync();
 
+            var command = new MySqlCommand(@"
+                SELECT 
+                    id, firstname, lastname, username, email, 
+                    password_hash, isactive, activationtoken, created_at 
+                FROM users 
+                WHERE username = @Username", connection);
+            command.Parameters.AddWithValue("@Username", username);
+
+            using var reader = await command.ExecuteReaderAsync();
+            if (await reader.ReadAsync())
+            {
+                return new User
+                {
+                    Id = reader.GetInt32(reader.GetOrdinal("id")),
+                    Firstname = reader.GetString(reader.GetOrdinal("firstname")),
+                    Lastname = reader.GetString(reader.GetOrdinal("lastname")),
+                    Username = reader.GetString(reader.GetOrdinal("username")),
+                    Email = reader.GetString(reader.GetOrdinal("email")),
+                    PasswordHash = reader.GetString(reader.GetOrdinal("password_hash")),
+                    IsActive = reader.GetBoolean(reader.GetOrdinal("isactive")),
+                    ActivationToken = reader.IsDBNull(reader.GetOrdinal("activationtoken")) 
+                                    ? null 
+                                    : reader.GetString(reader.GetOrdinal("activationtoken")),
+                    CreatedAt = reader.GetDateTime(reader.GetOrdinal("created_at"))
+                };
+            }
+            return null;
+        }
         public async Task Add(User user)
         {
             using var connection = new MySqlConnection(_connectionString);
             await connection.OpenAsync();
 
-            var command = new MySqlCommand("INSERT INTO users (firstname, lastname, username, email, password_hash) VALUES (@Firstname, @Lastname, @Username, @Email, @PasswordHash)", connection);
+            var query = @"
+                INSERT INTO users 
+                    (firstname, lastname, username, email, password_hash, isactive, activationtoken, created_at) 
+                VALUES 
+                    (@Firstname, @Lastname, @Username, @Email, @PasswordHash, @IsActive, @ActivationToken, @CreatedAt)";
+
+            using var command = new MySqlCommand(query, connection);
             command.Parameters.AddWithValue("@Firstname", user.Firstname); 
             command.Parameters.AddWithValue("@Lastname", user.Lastname);
             command.Parameters.AddWithValue("@Username", user.Username);
             command.Parameters.AddWithValue("@Email", user.Email);
             command.Parameters.AddWithValue("@PasswordHash", user.PasswordHash);
+            command.Parameters.AddWithValue("@IsActive", user.IsActive);  // false par défaut pour un nouvel utilisateur
+            command.Parameters.AddWithValue("@ActivationToken", user.ActivationToken ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@CreatedAt", user.CreatedAt);
+
+            await command.ExecuteNonQueryAsync();
+        }
+
+        public async Task Update(User user)
+        {
+            using var connection = new MySqlConnection(_connectionString);
+            await connection.OpenAsync();
+
+            var query = @"
+                UPDATE users 
+                SET 
+                    firstname = @Firstname,
+                    lastname = @Lastname,
+                    username = @Username,
+                    email = @Email,
+                    password_hash = @PasswordHash,
+                    isactive = @IsActive,
+                    activationtoken = @ActivationToken
+                WHERE id = @Id";
+
+            using var command = new MySqlCommand(query, connection);
+            command.Parameters.AddWithValue("@Firstname", user.Firstname);
+            command.Parameters.AddWithValue("@Lastname", user.Lastname);
+            command.Parameters.AddWithValue("@Username", user.Username);
+            command.Parameters.AddWithValue("@Email", user.Email);
+            command.Parameters.AddWithValue("@PasswordHash", user.PasswordHash);
+            command.Parameters.AddWithValue("@IsActive", user.IsActive);
+            command.Parameters.AddWithValue("@ActivationToken", (object)user.ActivationToken ?? DBNull.Value);
+            command.Parameters.AddWithValue("@Id", user.Id);
 
             await command.ExecuteNonQueryAsync();
         }
