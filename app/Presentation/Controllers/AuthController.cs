@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Core.Interfaces;
+using Core.Repository;
 
 namespace Presentation.Controllers // Remplacez par votre espace de noms approprié
 {
@@ -11,10 +12,12 @@ namespace Presentation.Controllers // Remplacez par votre espace de noms appropr
     public class AuthController : Controller
     {
         private readonly IUserService _userService;
+        private readonly IUserRepository _userRepository;
 
-        public AuthController(IUserService userService)
+        public AuthController(IUserService userService, IUserRepository userRepository)
         {
             _userService = userService;
+            _userRepository = userRepository;
         }
 
         [HttpPost("login")]
@@ -22,6 +25,14 @@ namespace Presentation.Controllers // Remplacez par votre espace de noms appropr
         {
             if (await _userService.ValidateUser(username, password))
             {
+                var user = await _userRepository.FindByUsernameAsync(username);
+                Console.WriteLine(user.IsActive);
+                if (user.IsActive != true)
+                {
+                    Console.WriteLine("Compte non validé");
+                    return Unauthorized("Compte non validé");
+                }
+
                 var claims = new List<Claim>
                 {
                     new Claim(ClaimTypes.Name, username)
@@ -40,9 +51,9 @@ namespace Presentation.Controllers // Remplacez par votre espace de noms appropr
 
                 return Ok(new { Message = "Login réussi" });
             }
-
             Console.WriteLine("Identifiants incorrects");
             return Unauthorized("Identifiants incorrects");
+
         }
 
         [HttpPost("logout")]
@@ -50,6 +61,31 @@ namespace Presentation.Controllers // Remplacez par votre espace de noms appropr
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return Ok("Déconnecté");
+        }
+
+        [HttpGet("confirmation")]
+        public async Task<IActionResult> ConfirmEmail(string email, string token)
+        {
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(token))
+                return BadRequest("Paramètres manquants.");
+
+            var user = await _userRepository.GetByEmail(email);
+            if (user == null)
+                return NotFound("Utilisateur non trouvé.");
+
+            // Journaliser les valeurs pour le débogage
+            Console.WriteLine($"Email reçu : {email}");
+            Console.WriteLine($"Token reçu : {token}");
+            Console.WriteLine($"Token en DB : {user.ActivationToken}");
+
+            if (user.ActivationToken != token)
+                return BadRequest("Jeton invalide.");
+
+            user.IsActive = true;
+            user.ActivationToken = null;
+            await _userRepository.Update(user);
+
+            return Redirect("/login");
         }
     }
 }

@@ -30,13 +30,20 @@ namespace Infrastructure.Services
                 Lastname = registerDto.Lastname,
                 Username = registerDto.Username,
                 Email = registerDto.Email,
-                PasswordHash = passwordHash
+                PasswordHash = passwordHash,
+                ActivationToken = Guid.NewGuid().ToString()  // Génère un token unique
             };
-            
+
             await _userRepository.Add(user);
-            // Envoyer l'e-mail de confirmation
+
+            // Construire le lien de confirmation avec l'email et le token
+            var activationLink = $"http://localhost:80/auth/confirmation?email={Uri.EscapeDataString(user.Email)}&token={Uri.EscapeDataString(user.ActivationToken)}";
+
             var subject = "Confirmation de votre inscription";
-            var body = $"<p>Bonjour {user.Username},</p><p>Merci de vous être inscrit. Veuillez confirmer votre compte en cliquant sur le lien suivant :</p><p><a href='https://votre-site.com/confirmation?email={user.Email}'>Confirmer mon compte</a></p>";
+            var body = $"<p>Bonjour {user.Username},</p>" +
+                    $"<p>Merci de vous être inscrit. Veuillez confirmer votre compte en cliquant sur le lien suivant :</p>" +
+                    $"<p><a href='{activationLink}'>Confirmer mon compte</a></p>";
+
             await _emailService.SendEmailAsync(user.Email, subject, body);
 
             return true;

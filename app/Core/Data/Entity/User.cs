@@ -10,5 +10,7 @@ namespace Core.Data.Entity
         public string Email { get; set; }
         public string PasswordHash { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public bool IsActive { get; set; } = false;
+        public string ActivationToken { get; set; }
     }
 }
