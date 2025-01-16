@@ -45,7 +45,7 @@ namespace Infrastructure.Repository
             var command = new MySqlCommand(@"
                 SELECT 
                     id, firstname, lastname, username, email, 
-                    password_hash, isactive, activationtoken, created_at 
+                    password_hash, isactive, activationtoken, passwordresettoken, created_at 
                 FROM users 
                 WHERE email = @Email", connection);
             command.Parameters.AddWithValue("@Email", email);
@@ -63,8 +63,11 @@ namespace Infrastructure.Repository
                     PasswordHash = reader.GetString(reader.GetOrdinal("password_hash")),
                     IsActive = reader.GetBoolean(reader.GetOrdinal("isactive")),
                     ActivationToken = reader.IsDBNull(reader.GetOrdinal("activationtoken"))
-                                    ? null 
-                                    : reader.GetString(reader.GetOrdinal("activationtoken")),
+                                            ? null 
+                                            : reader.GetString(reader.GetOrdinal("activationtoken")),
+                    PasswordResetToken = reader.IsDBNull(reader.GetOrdinal("passwordresettoken"))
+                                            ? null 
+                                            : reader.GetString(reader.GetOrdinal("passwordresettoken")),
                     CreatedAt = reader.GetDateTime(reader.GetOrdinal("created_at"))
                 };
             }
@@ -141,17 +144,19 @@ namespace Infrastructure.Repository
                     email = @Email,
                     password_hash = @PasswordHash,
                     isactive = @IsActive,
-                    activationtoken = @ActivationToken
+                    activationtoken = @ActivationToken,
+                    passwordresettoken = @PasswordResetToken
                 WHERE id = @Id";
 
             using var command = new MySqlCommand(query, connection);
-            command.Parameters.AddWithValue("@Firstname", user.Firstname);
-            command.Parameters.AddWithValue("@Lastname", user.Lastname);
-            command.Parameters.AddWithValue("@Username", user.Username);
-            command.Parameters.AddWithValue("@Email", user.Email);
-            command.Parameters.AddWithValue("@PasswordHash", user.PasswordHash);
+            command.Parameters.AddWithValue("@Firstname", user.Firstname ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@Lastname", user.Lastname ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@Username", user.Username ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@Email", user.Email ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@PasswordHash", user.PasswordHash ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@IsActive", user.IsActive);
             command.Parameters.AddWithValue("@ActivationToken", (object)user.ActivationToken ?? DBNull.Value);
+            command.Parameters.AddWithValue("@PasswordResetToken", (object)user.PasswordResetToken ?? DBNull.Value);
             command.Parameters.AddWithValue("@Id", user.Id);
 
             await command.ExecuteNonQueryAsync();

@@ -1,0 +1,34 @@
+
+@page "/request-reset"
+@inject HttpClient Http
+
+<h3>Réinitialiser le mot de passe</h3>
+<InputText @bind-Value="email" placeholder="Entrez votre email" />
+<button @onclick="SendResetEmail">Envoyer</button>
+
+<p>@message</p>
+
+@code {
+    private string email;
+    private string message;
+
+    protected override void OnInitialized()
+    {
+        // Définir l'adresse de base selon votre configuration
+        Http.BaseAddress = new Uri("http://localhost:5000/");
+    }
+
+    private async Task SendResetEmail()
+    {
+        var content = new FormUrlEncodedContent(new[]
+        {
+            new KeyValuePair<string, string>("email", email)
+        });
+
+        var response = await Http.PostAsync("auth/request-password-reset", content);
+        if(response.IsSuccessStatusCode)
+            message = "Email de réinitialisation envoyé. Veuillez vérifier votre boîte de réception.";
+        else
+            message = "Erreur lors de la demande.";
+    }
+}

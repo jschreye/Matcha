@@ -12,5 +12,6 @@ namespace Core.Data.Entity
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public bool IsActive { get; set; } = false;
         public string ActivationToken { get; set; }
+        public string PasswordResetToken { get; set; }
     }
 }

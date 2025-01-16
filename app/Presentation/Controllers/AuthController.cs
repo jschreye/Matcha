@@ -13,11 +13,15 @@ namespace Presentation.Controllers // Remplacez par votre espace de noms appropr
     {
         private readonly IUserService _userService;
         private readonly IUserRepository _userRepository;
+        private readonly IEmailService _emailService;
+        private readonly IPasswordHasher _passWordHasher;
 
-        public AuthController(IUserService userService, IUserRepository userRepository)
+        public AuthController(IUserService userService, IUserRepository userRepository, IEmailService emailService, IPasswordHasher passWordHasher)
         {
             _userService = userService;
             _userRepository = userRepository;
+            _emailService = emailService;
+            _passWordHasher = passWordHasher;
         }
 
         [HttpPost("login")]
@@ -86,6 +90,41 @@ namespace Presentation.Controllers // Remplacez par votre espace de noms appropr
             await _userRepository.Update(user);
 
             return Redirect("/login");
+        }
+
+        [HttpPost("request-password-reset")]
+        public async Task<IActionResult> RequestPasswordReset([FromForm] string email)
+        {
+            var user = await _userRepository.GetByEmail(email);
+            if (user == null) return NotFound("Utilisateur non trouvé.");
+
+            // Générer un token de réinitialisation
+            user.PasswordResetToken = Guid.NewGuid().ToString();
+            await _userRepository.Update(user);
+
+            var resetLink = $"http://localhost:80/reset-password?email={Uri.EscapeDataString(user.Email)}&token={Uri.EscapeDataString(user.PasswordResetToken)}";
+            var subject = "Réinitialisation de votre mot de passe";
+            var body = $"<p>Bonjour {user.Username},</p>" +
+                    $"<p>Pour réinitialiser votre mot de passe, cliquez sur le lien suivant :</p>" +
+                    $"<p><a href='{resetLink}'>Réinitialiser mon mot de passe</a></p>";
+
+            await _emailService.SendEmailAsync(user.Email, subject, body);
+
+            return Ok("Email de réinitialisation envoyé.");
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromForm] string email, [FromForm] string token, [FromForm] string newPassword)
+        {
+            var user = await _userRepository.GetByEmail(email);
+            if (user == null) return NotFound("Utilisateur non trouvé.");
+            if (user.PasswordResetToken != token) return BadRequest("Jeton invalide.");
+
+            user.PasswordHash = _passWordHasher.HashPassword(newPassword);
+            user.PasswordResetToken = null;
+            await _userRepository.Update(user);
+
+            return Ok("Mot de passe réinitialisé avec succès.");
         }
     }
 }

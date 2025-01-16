@@ -20,6 +20,11 @@
     <button type="submit">Se connecter</button>
 </EditForm>
 
+<!-- Nouveau bouton pour la réinitialisation du mot de passe -->
+<button @onclick="GoToRequestReset" style="margin-top:1rem;">
+    Mot de passe oublié ?
+</button>
+
 @code {
     private LoginDto loginDto = new LoginDto();
 
@@ -34,5 +39,10 @@
         {
             Console.WriteLine("Identifiants incorrects.");
         }
+    }
+
+    private void GoToRequestReset()
+    {
+        Navigation.NavigateTo("/request-reset");
     }
 }
