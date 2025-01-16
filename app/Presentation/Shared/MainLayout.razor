@@ -9,7 +9,23 @@
 
     <main>
         <div class="top-row px-4">
-            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
+            <MudButtonGroup Color="Color.Primary" Variant="Variant.Text">
+                @if (!isAuthenticated)
+                {
+                    @if (!isOnLoginPage)
+                    {
+                        <MudButton OnClick="NavigateToLogin">Login</MudButton>
+                    }
+                    if (!isOnRegisterPage)
+                    {
+                        <MudButton OnClick="NavigateToRegister">Register</MudButton>
+                    }
+                }
+                else
+                {
+                    <MudButton OnClick="Logout">Logout</MudButton>
+                }
+            </MudButtonGroup>
         </div>
 
         <article class="content px-4">
@@ -17,3 +33,45 @@
         </article>
     </main>
 </div>
+@code {
+    private bool isAuthenticated;
+    private bool isOnLoginPage;
+    private bool isOnRegisterPage;
+
+    [Inject] private AuthenticationStateProvider AuthenticationStateProvider { get; set; }
+    [Inject] private NavigationManager NavigationManager { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Vérifie l'état d'authentification
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        isAuthenticated = authState.User.Identity?.IsAuthenticated ?? false;
+
+        // Vérifie la page actuelle
+        UpdateCurrentPage();
+        NavigationManager.LocationChanged += (s, e) => UpdateCurrentPage();
+    }
+
+    private void UpdateCurrentPage()
+    {
+        var currentUri = NavigationManager.Uri.ToLower();
+        isOnLoginPage = currentUri.EndsWith("/login");
+        isOnRegisterPage = currentUri.EndsWith("/register");
+        StateHasChanged(); // Forcer la mise à jour de l'UI si nécessaire
+    }
+
+    private void NavigateToLogin()
+    {
+        NavigationManager.NavigateTo("/login");
+    }
+
+    private void NavigateToRegister()
+    {
+        NavigationManager.NavigateTo("/register");
+    }
+
+    private void Logout()
+    {
+        NavigationManager.NavigateTo("/logout", true);
+    }
+}
