@@ -21,7 +21,9 @@
             <Authorized>
                 <div class="nav-item px-3">
                     ✅ Connecté en tant que : @username
-                    <button class="nav-link btn btn-link" @onclick="Logout">Se déconnecter</button>
+                    <button class="nav-link btn btn-link" @onclick='() => Navigation.NavigateTo("/logout", true)'>
+                        Se déconnecter
+                    </button>
                 </div>
             </Authorized>
             <NotAuthorized>
@@ -52,8 +54,7 @@
 
     private async Task Logout()
     {
-        // Définir la base d'adresse à partir du NavigationManager
-        await Http.PostAsync("auth/logout", null);
-        Navigation.NavigateTo("/", true); // Recharge la page après déconnexion
+        // Cette méthode n'est plus utilisée avec la nouvelle approche de navigation vers "/logout"
+        // Si nécessaire, vous pouvez la supprimer ou la laisser en réserve.
     }
 }

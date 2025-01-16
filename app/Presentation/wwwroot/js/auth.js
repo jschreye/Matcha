@@ -12,11 +12,3 @@ async function login(username, password) {
     });
     return response.ok;
 }
-
-async function logout() {
-    const response = await fetch('/auth/logout', {
-        method: 'POST',
-        credentials: 'include'
-    });
-    return response.ok;
-}

@@ -52,9 +52,9 @@ services:
     networks:
       - app-network
       
-  mailpit_matcha:
+  mailpit:
     image: axllent/mailpit
-    container_name: mailpit
+    container_name: mailpit_matcha
     ports:
       - "1025:1025"  # Port SMTP
       - "8025:8025"  # Interface web
