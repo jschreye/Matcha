@@ -7,7 +7,7 @@ COPY ./app/Presentation/*.csproj ./Presentation/
 COPY ./app/Core/*.csproj ./Core/
 COPY ./app/Infrastructure/*.csproj ./Infrastructure/
 RUN dotnet restore ./Presentation/Presentation.csproj
-
+RUN dotnet clean ./Presentation/Presentation.csproj
 # Copier le reste du code source dans les répertoires appropriés
 COPY ./app/Presentation/ ./Presentation/
 COPY ./app/Core/ ./Core/
