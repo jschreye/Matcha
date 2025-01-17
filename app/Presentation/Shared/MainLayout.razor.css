@@ -21,27 +21,53 @@ main {
     align-items: center;
 }
 
-    .top-row ::deep a, .top-row .btn-link {
-        white-space: nowrap;
-        margin-left: 1.5rem;
-    }
+.top-row ::deep a, .top-row .btn-link {
+    white-space: nowrap;
+    margin-left: 1.5rem;
+}
 
-    .top-row a:first-child {
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
+.top-row a:first-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 
+.full-width-container {
+    width: 100%; /* Occupe toute la largeur */
+    max-width: 100%; /* Supprime la largeur max de Bootstrap */
+    padding-left: 1rem; /* Optionnel : ajoute une marge intérieure */
+    padding-right: 1rem; /* Optionnel : ajoute une marge intérieure */
+}
+
+/* Section pour vue mobile */
 @media (max-width: 640.98px) {
-    .top-row:not(.auth) {
-        display: none;
+    .top-row {
+        display: flex; /* Toujours afficher la barre en mobile */
+        justify-content: space-between; /* Séparer burger et boutons */
+        padding: 0 1rem; /* Ajouter de l'espace des deux côtés */
     }
 
     .top-row.auth {
         justify-content: space-between;
     }
 
-    .top-row a, .top-row .btn-link {
-        margin-left: 0;
+    .top-row a, .top-row .btn-link, .top-row .MudButtonGroup {
+        margin-left: 0; /* Réduction des marges pour espace limité */
+    }
+
+    .navbar-toggler {
+        margin-right: 1rem;
+    }
+
+    .MudButtonGroup {
+        display: flex; /* Alignement horizontal des boutons */
+        flex-wrap: nowrap; /* Empêche les boutons de passer à la ligne */
+        justify-content: flex-end;
+    }
+
+    .MudButton {
+        font-size: 0.85rem; /* Taille ajustée pour mobile */
+        padding: 0.3rem 0.6rem; /* Espacement interne réduit */
+        margin: 0 0.2rem; /* Espacement entre les boutons */
     }
 }
 

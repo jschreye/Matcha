@@ -1,5 +1,10 @@
 ﻿@inherits LayoutComponentBase
 
+<MudThemeProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+<MudPopoverProvider />
+
 <PageTitle>Presentation</PageTitle>
 
 <div class="page">
@@ -8,24 +13,64 @@
     </div>
 
     <main>
-        <div class="top-row px-4">
-            <MudButtonGroup Color="Color.Primary" Variant="Variant.Text">
-                @if (!isAuthenticated)
+        <div class="top-row px-4 d-flex align-items-center justify-content-end">
+            <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <AuthorizeView>
+                <Authorized>
+                    <MudBadge Color="Color.Success" Overlap="true" Bordered="true">
+                        <MudAvatar Size="Size.Medium">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icon-tabler-user">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                    <circle cx="12" cy="7" r="4"/>
+                                    <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
+                                </svg>
+                        </MudAvatar>
+                    </MudBadge>
+                </Authorized>
+            </AuthorizeView>
+            @if (!isAuthenticated)
+            {
+                @if (!isOnLoginPage)
                 {
-                    @if (!isOnLoginPage)
-                    {
-                        <MudButton OnClick="NavigateToLogin">Login</MudButton>
-                    }
-                    if (!isOnRegisterPage)
-                    {
-                        <MudButton OnClick="NavigateToRegister">Register</MudButton>
-                    }
+                    <MudButton OnClick="NavigateToLogin" Class="mx-1 ms-2">
+                        <div>
+                            <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-login-2">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                <path d="M9 8v-2a2 2 0 0 1 2 -2h7a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-7a2 2 0 0 1 -2 -2v-2" />
+                                <path d="M3 12h13l-3 -3" />
+                                <path d="M13 15l3 -3" />
+                            </svg>
+                            <MudText style="font-size: small;">Login</MudText>
+                        </div>
+                    </MudButton>
                 }
-                else
+                if (!isOnRegisterPage)
                 {
-                    <MudButton OnClick="Logout">Logout</MudButton>
+                    <MudButton OnClick="NavigateToRegister" Class="mx-1 ms-2">
+                        <div>
+                            <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-user-plus">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                <path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0" />
+                                <path d="M16 19h6" />
+                                <path d="M19 16v6" />
+                                <path d="M6 21v-2a4 4 0 0 1 4 -4h4" />
+                            </svg>
+                            <MudText style="font-size: small;">Register</MudText>
+                        </div>
+                    </MudButton>
                 }
-            </MudButtonGroup>
+            }
+            else
+            {
+                <MudButton OnClick="Logout" Class="mx-1 ms-2">
+                    <div>
+                        <MudIcon Icon="@Icons.Material.Filled.Logout" />
+                        <MudText style="font-size: small;">Logout</MudText>
+                    </div>
+                </MudButton>
+            }
         </div>
 
         <article class="content px-4">
@@ -33,13 +78,14 @@
         </article>
     </main>
 </div>
+
 @code {
     private bool isAuthenticated;
     private bool isOnLoginPage;
     private bool isOnRegisterPage;
-
-    [Inject] private AuthenticationStateProvider AuthenticationStateProvider { get; set; }
-    [Inject] private NavigationManager NavigationManager { get; set; }
+    private bool isNavMenuCollapsed = true;
+    [Inject] private AuthenticationStateProvider? AuthenticationStateProvider { get; set; }
+    [Inject] private NavigationManager? NavigationManager { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -73,5 +119,10 @@
     private void Logout()
     {
         NavigationManager.NavigateTo("/logout", true);
+    }
+
+    private void ToggleNavMenu()
+    {
+        isNavMenuCollapsed = !isNavMenuCollapsed;
     }
 }
