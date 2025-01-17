@@ -19,6 +19,13 @@ namespace Infrastructure.Services
         }
         public async Task<bool> RegisterUser(RegisterDto registerDto)
         {
+            // Vérifications nulles pour les propriétés critiques
+            if (string.IsNullOrWhiteSpace(registerDto.Email))
+                throw new ArgumentException("L'e-mail est requis.", nameof(registerDto.Email));
+
+            if (string.IsNullOrWhiteSpace(registerDto.Password))
+                throw new ArgumentException("Le mot de passe est requis.", nameof(registerDto.Password));
+
             var existingUser = await _userRepository.GetByEmail(registerDto.Email);
             if (existingUser != null)
                 throw new Exception("Cet e-mail est déjà utilisé.");

@@ -16,7 +16,8 @@ public class UserService : IUserService
     private readonly IPasswordHasher _passwordHasher;
     public UserService(IConfiguration config, IUserRepository userRepository, IPasswordHasher passwordHasher)
     {
-         _connectionString = config.GetConnectionString("DefaultConnection");
+        _connectionString = config.GetConnectionString("DefaultConnection")
+                            ?? throw new InvalidOperationException("La chaîne de connexion 'DefaultConnection' est introuvable.");
         _userRepository = userRepository;
         _passwordHasher = passwordHasher;
     }
