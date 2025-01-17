@@ -1,54 +1,105 @@
 @page "/register"
 
+@using System.Text.RegularExpressions
+@using System.ComponentModel.DataAnnotations
+
 @inject IRegisterService RegisterService
 @inject NavigationManager NavigationManager
 
-<h3>Inscription</h3>
-<EditForm Model="@registerModel" OnValidSubmit="RegisterUser">
-    <DataAnnotationsValidator />
-    <div>
-        <label>Nom</label>
-        <InputText @bind-Value="registerModel.Lastname" />
+
+<MudText Typo="Typo.h3">Inscription</MudText>
+
+<MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors" Outlined="true">
+    <!-- Nom -->
+    <MudTextField T="string" Label="Nom" Variant="Variant.Outlined" Required="true" RequiredError="Le nom est requis" @bind-Value="registerModel.Lastname"/>
+    
+    <!-- Prénom -->
+    <MudTextField T="string" Label="Prénom" Variant="Variant.Outlined" Required="true" RequiredError="Le prénom est requis" @bind-Value="registerModel.Firstname"/>
+    
+    <!-- Nom d'utilisateur -->
+    <MudTextField T="string" Label="Nom d'utilisateur" Variant="Variant.Outlined" Required="true" RequiredError="Le nom d'utilisateur est requis" @bind-Value="registerModel.Username" />
+    
+    <!-- Email -->
+    <MudTextField T="string" Label="Email" Variant="Variant.Outlined" Required="true" RequiredError="L'email est requis"
+                    Validation="@(new EmailAddressAttribute() { ErrorMessage = "L'adresse email est invalide" })" 
+                    @bind-Value="registerModel.Email" />
+    
+    <!-- Mot de passe -->
+    <MudTextField T="string" Label="Mot de passe" Variant="Variant.Outlined" HelperText="Choisissez un mot de passe fort"
+                    InputType="InputType.Password" @ref="pwField1" 
+                    Validation="@(new Func<string, IEnumerable<string>>(PasswordStrength))" 
+                    Required="true" RequiredError="Le mot de passe est requis" 
+                    @bind-Value="registerModel.Password" />
+
+    <!-- Confirmation du mot de passe -->
+    <MudTextField T="string" Label="Confirmer le mot de passe" Variant="Variant.Outlined"
+                    InputType="InputType.Password" 
+                    Validation="@(new Func<string, string>(PasswordMatch))" />
+    
+    <!-- Bouton d'inscription -->
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <MudButton Variant="Variant.Text" Color="Color.Primary" DropShadow="false" OnClick="@(() => form.Validate())">Valider</MudButton>
+            <MudButton Variant="Variant.Text" Color="Color.Secondary" DropShadow="false" OnClick="@(() => form.ResetAsync())" Class="mx-2">Réinitialiser</MudButton>
+            <MudButton Variant="Variant.Text" DropShadow="false" OnClick="@(() => form.ResetValidation())">Réinitialiser la validation</MudButton>
+        </div>
+        <div>
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary" Disabled="@(!success)" Type="submit" OnClick="RegisterUser">S'inscrire</MudButton>
+        </div>
     </div>
-    <div>
-        <label>Prénom</label>
-        <InputText @bind-Value="registerModel.Firstname" />
-    </div>
-    <div>
-        <label>Nom d'utilisateur</label>
-        <InputText @bind-Value="registerModel.Username" />
-    </div>
-    <div>
-        <label>Email</label>
-        <InputText @bind-Value="registerModel.Email" />
-    </div>
-    <div>
-        <label>Mot de passe</label>
-        <InputText @bind-Value="registerModel.Password" type="password" />
-    </div>
-    <button type="submit">S'inscrire</button>
-</EditForm>
+</MudForm>   
 
 @if (!string.IsNullOrEmpty(message))
 {
-    <p>@message</p>
+    <MudAlert Severity="Severity.Success">@message</MudAlert>
 }
 
 @code {
     private RegisterDto registerModel = new RegisterDto();
     private string message = string.Empty;
+    private bool success;
+    private string[] errors = { };
+    private MudTextField<string> pwField1;
+    private MudForm form;
 
     private async Task RegisterUser()
     {
+        Console.WriteLine("RegisterUser called");
         try
         {
             await RegisterService.RegisterUser(registerModel);
-            message = "Inscription réussie!";
-            NavigationManager.NavigateTo("/");
+            success = true; // Indique que l'inscription est réussie
+            message = "Inscription réussie !";
+            NavigationManager.NavigateTo("/"); // Redirige après l'inscription (si nécessaire)
         }
         catch (Exception ex)
         {
-            message = ex.Message;
+            success = false; // Indique un échec
+            message = ex.Message; // Affiche le message d'erreur
         }
+    }
+
+    private IEnumerable<string> PasswordStrength(string pw)
+    {
+        if (string.IsNullOrWhiteSpace(pw))
+        {
+            yield return "Le mot de passe est requis !";
+            yield break;
+        }
+        if (pw.Length < 8)
+            yield return "Le mot de passe doit contenir au moins 8 caractères.";
+        if (!Regex.IsMatch(pw, @"[A-Z]"))
+            yield return "Le mot de passe doit contenir au moins une majuscule.";
+        if (!Regex.IsMatch(pw, @"[a-z]"))
+            yield return "Le mot de passe doit contenir au moins une minuscule.";
+        if (!Regex.IsMatch(pw, @"[0-9]"))
+            yield return "Le mot de passe doit contenir au moins un chiffre.";
+    }
+
+    private string PasswordMatch(string arg)
+    {
+        if (pwField1.Value != arg)
+            return "Les mots de passe ne correspondent pas.";
+        return null;
     }
 }
