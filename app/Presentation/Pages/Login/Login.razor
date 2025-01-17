@@ -3,27 +3,23 @@
 @inject NavigationManager Navigation
 @using Core.Data.DTOs
 
-<h3>Connexion</h3>
+<MudText Typo="Typo.h3">Connexion</MudText>
 
 <EditForm Model="@loginDto" OnValidSubmit="HandleLogin">
     <DataAnnotationsValidator />
-    <ValidationSummary />
-    
-    <div>
-        <label>Nom d'utilisateur :</label>
-        <InputText @bind-Value="loginDto.Username" />
-    </div>
-    <div>
-        <label>Mot de passe :</label>
-        <InputText @bind-Value="loginDto.Password" type="password" />
-    </div>
-    <button type="submit">Se connecter</button>
+    <MudCard Outlined="true" Class=" border-solid mud-border-primary pa-4">
+        <MudCardContent>
+            <MudTextField Label="Nom d'utilisateur :" Variant="Variant.Outlined"
+                        @bind-Value="loginDto.Username" For="@(() => loginDto.Username)"/>
+            <MudTextField Label="Mot de passe :" Class="mt-3" Variant="Variant.Outlined"
+                        @bind-Value="loginDto.Password" For="@(() => loginDto.Password)" InputType="InputType.Password"/>
+        </MudCardContent>
+        <MudCardActions>
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Outlined" Color="Color.Primary" Class="ml-auto">Se connecter</MudButton>
+        </MudCardActions>
+    </MudCard>
 </EditForm>
-
-<!-- Nouveau bouton pour la réinitialisation du mot de passe -->
-<button @onclick="GoToRequestReset" style="margin-top:1rem;">
-    Mot de passe oublié ?
-</button>
+<MudButton Variant="Variant.Text" Color="Color.Primary" @onclick="GoToRequestReset">Mot de passe oublié ?</MudButton>
 
 @code {
     private LoginDto loginDto = new LoginDto();
