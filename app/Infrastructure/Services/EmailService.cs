@@ -18,6 +18,14 @@ namespace Infrastructure.Services
 
         public async Task SendEmailAsync(string toEmail, string subject, string body)
         {
+            // Vérification des paramètres d'entrée
+            if (string.IsNullOrWhiteSpace(toEmail))
+                throw new ArgumentNullException(nameof(toEmail), "L'adresse e-mail de destination ne doit pas être vide.");
+
+            // Vérification et récupération sécurisée des paramètres SMTP
+            string fromEmail = _smtpSettings.FromEmail 
+                            ?? throw new InvalidOperationException("L'adresse e-mail de l'expéditeur est introuvable dans la configuration.");
+            string fromName = _smtpSettings.FromName ?? string.Empty;    
             try
             {
                 var fromAddress = new MailAddress(_smtpSettings.FromEmail, _smtpSettings.FromName);

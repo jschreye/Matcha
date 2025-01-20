@@ -8,10 +8,12 @@ namespace Infrastructure.Repository
 {
     public class UserRepository : IUserRepository
     {
-        private readonly string? _connectionString;
+        private readonly string _connectionString;
+
         public UserRepository(IConfiguration configuration)
         {
-            _connectionString = configuration.GetConnectionString("DefaultConnection");
+            _connectionString = configuration.GetConnectionString("DefaultConnection")
+                               ?? throw new InvalidOperationException("La chaîne de connexion 'DefaultConnection' est introuvable.");
         }
 
         public async Task<List<UserDto>> GetAllUserAsync()
@@ -37,7 +39,8 @@ namespace Infrastructure.Repository
 
             return users;
         }
-        public async Task<User> GetByEmail(string email)
+
+        public async Task<User?> GetByEmail(string email)
         {
             using var connection = new MySqlConnection(_connectionString);
             await connection.OpenAsync();
@@ -60,20 +63,24 @@ namespace Infrastructure.Repository
                     Lastname = reader.GetString(reader.GetOrdinal("lastname")),
                     Username = reader.GetString(reader.GetOrdinal("username")),
                     Email = reader.GetString(reader.GetOrdinal("email")),
-                    PasswordHash = reader.GetString(reader.GetOrdinal("password_hash")),
-                    IsActive = reader.GetBoolean(reader.GetOrdinal("isactive")),
+                    PasswordHash = reader.IsDBNull(reader.GetOrdinal("password_hash"))
+                                    ? null 
+                                    : reader.GetString(reader.GetOrdinal("password_hash")),
+                    IsActive = !reader.IsDBNull(reader.GetOrdinal("isactive")) 
+                                    && reader.GetBoolean(reader.GetOrdinal("isactive")),
                     ActivationToken = reader.IsDBNull(reader.GetOrdinal("activationtoken"))
-                                            ? null 
-                                            : reader.GetString(reader.GetOrdinal("activationtoken")),
+                                    ? null 
+                                    : reader.GetString(reader.GetOrdinal("activationtoken")),
                     PasswordResetToken = reader.IsDBNull(reader.GetOrdinal("passwordresettoken"))
-                                            ? null 
-                                            : reader.GetString(reader.GetOrdinal("passwordresettoken")),
+                                    ? null 
+                                    : reader.GetString(reader.GetOrdinal("passwordresettoken")),
                     CreatedAt = reader.GetDateTime(reader.GetOrdinal("created_at"))
                 };
             }
             return null;
         }
-        public async Task<User> FindByUsernameAsync(string username)
+
+        public async Task<User?> FindByUsernameAsync(string username)
         {
             using var connection = new MySqlConnection(_connectionString);
             await connection.OpenAsync();
@@ -96,8 +103,11 @@ namespace Infrastructure.Repository
                     Lastname = reader.GetString(reader.GetOrdinal("lastname")),
                     Username = reader.GetString(reader.GetOrdinal("username")),
                     Email = reader.GetString(reader.GetOrdinal("email")),
-                    PasswordHash = reader.GetString(reader.GetOrdinal("password_hash")),
-                    IsActive = reader.GetBoolean(reader.GetOrdinal("isactive")),
+                    PasswordHash = reader.IsDBNull(reader.GetOrdinal("password_hash"))
+                                    ? null 
+                                    : reader.GetString(reader.GetOrdinal("password_hash")),
+                    IsActive = !reader.IsDBNull(reader.GetOrdinal("isactive"))
+                                    && reader.GetBoolean(reader.GetOrdinal("isactive")),
                     ActivationToken = reader.IsDBNull(reader.GetOrdinal("activationtoken")) 
                                     ? null 
                                     : reader.GetString(reader.GetOrdinal("activationtoken")),
@@ -106,6 +116,7 @@ namespace Infrastructure.Repository
             }
             return null;
         }
+
         public async Task Add(User user)
         {
             using var connection = new MySqlConnection(_connectionString);
@@ -118,12 +129,12 @@ namespace Infrastructure.Repository
                     (@Firstname, @Lastname, @Username, @Email, @PasswordHash, @IsActive, @ActivationToken, @CreatedAt)";
 
             using var command = new MySqlCommand(query, connection);
-            command.Parameters.AddWithValue("@Firstname", user.Firstname); 
-            command.Parameters.AddWithValue("@Lastname", user.Lastname);
-            command.Parameters.AddWithValue("@Username", user.Username);
-            command.Parameters.AddWithValue("@Email", user.Email);
-            command.Parameters.AddWithValue("@PasswordHash", user.PasswordHash);
-            command.Parameters.AddWithValue("@IsActive", user.IsActive);  // false par défaut pour un nouvel utilisateur
+            command.Parameters.AddWithValue("@Firstname", user.Firstname ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@Lastname", user.Lastname ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@Username", user.Username ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@Email", user.Email ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@PasswordHash", user.PasswordHash ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@IsActive", user.IsActive);
             command.Parameters.AddWithValue("@ActivationToken", user.ActivationToken ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@CreatedAt", user.CreatedAt);
 
@@ -155,8 +166,8 @@ namespace Infrastructure.Repository
             command.Parameters.AddWithValue("@Email", user.Email ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@PasswordHash", user.PasswordHash ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@IsActive", user.IsActive);
-            command.Parameters.AddWithValue("@ActivationToken", (object)user.ActivationToken ?? DBNull.Value);
-            command.Parameters.AddWithValue("@PasswordResetToken", (object)user.PasswordResetToken ?? DBNull.Value);
+            command.Parameters.AddWithValue("@ActivationToken", user.ActivationToken ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@PasswordResetToken", user.PasswordResetToken ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@Id", user.Id);
 
             await command.ExecuteNonQueryAsync();

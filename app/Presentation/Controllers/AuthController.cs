@@ -30,7 +30,12 @@ namespace Presentation.Controllers // Remplacez par votre espace de noms appropr
             if (await _userService.ValidateUser(username, password))
             {
                 var user = await _userRepository.FindByUsernameAsync(username);
-                Console.WriteLine(user.IsActive);
+                if(user == null)
+                {
+                    Console.WriteLine("Utilisateur non trouvé.");
+                    return Unauthorized("Utilisateur non trouvé.");
+                }
+
                 if (user.IsActive != true)
                 {
                     Console.WriteLine("Compte non validé");
@@ -102,13 +107,17 @@ namespace Presentation.Controllers // Remplacez par votre espace de noms appropr
             user.PasswordResetToken = Guid.NewGuid().ToString();
             await _userRepository.Update(user);
 
-            var resetLink = $"http://localhost:80/reset-password?email={Uri.EscapeDataString(user.Email)}&token={Uri.EscapeDataString(user.PasswordResetToken)}";
+            // Utilisation de l'opérateur de null-forgiveness car nous sommes sûrs que ces valeurs ne sont pas nulles
+            var escapedEmail = Uri.EscapeDataString(user.Email!);
+            var escapedToken = Uri.EscapeDataString(user.PasswordResetToken!);
+
+            var resetLink = $"http://localhost:80/reset-password?email={escapedEmail}&token={escapedToken}";
             var subject = "Réinitialisation de votre mot de passe";
             var body = $"<p>Bonjour {user.Username},</p>" +
-                    $"<p>Pour réinitialiser votre mot de passe, cliquez sur le lien suivant :</p>" +
-                    $"<p><a href='{resetLink}'>Réinitialiser mon mot de passe</a></p>";
+                       $"<p>Pour réinitialiser votre mot de passe, cliquez sur le lien suivant :</p>" +
+                       $"<p><a href='{resetLink}'>Réinitialiser mon mot de passe</a></p>";
 
-            await _emailService.SendEmailAsync(user.Email, subject, body);
+            await _emailService.SendEmailAsync(user.Email!, subject, body);
 
             return Ok("Email de réinitialisation envoyé.");
         }
