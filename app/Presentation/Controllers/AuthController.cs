@@ -24,51 +24,66 @@ namespace Presentation.Controllers // Remplacez par votre espace de noms appropr
             _passWordHasher = passWordHasher;
         }
 
+
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromForm] string username, [FromForm] string password)
         {
             if (await _userService.ValidateUser(username, password))
             {
                 var user = await _userRepository.FindByUsernameAsync(username);
-                if(user == null)
-                {
-                    Console.WriteLine("Utilisateur non trouvé.");
-                    return Unauthorized("Utilisateur non trouvé.");
-                }
+                if(user == null || !user.IsActive) 
+                    return Unauthorized("Identifiants incorrects ou compte non actif.");
 
-                if (user.IsActive != true)
-                {
-                    Console.WriteLine("Compte non validé");
-                    return Unauthorized("Compte non validé");
-                }
-
+                // Créer les claims et l'identité pour le cookie d'authentification
                 var claims = new List<Claim>
                 {
                     new Claim(ClaimTypes.Name, username)
+                    // Ajoutez d'autres claims si nécessaire
                 };
-                
                 var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
                 var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
 
-                // ✅ Ajout de logs pour confirmer que le code passe bien ici
-                Console.WriteLine("Utilisateur validé. Tentative de création du cookie.");
+                Console.WriteLine("Utilisateur validé. Tentative de création du cookie d'authentification.");
 
-                // ✅ Test sans options pour limiter les restrictions
+                // Créer le cookie d'authentification
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal);
-
                 Console.WriteLine("Cookie d'authentification créé.");
 
-                return Ok(new { Message = "Login réussi" });
-            }
-            Console.WriteLine("Identifiants incorrects");
-            return Unauthorized("Identifiants incorrects");
+                // Gérer la session
+                var sessionToken = Guid.NewGuid().ToString();
+                var expiresAt = DateTime.UtcNow.AddHours(4);
 
+                // Stocker la session en base
+                await _userService.CreateSessionAsync(user.Id, sessionToken, expiresAt);
+
+                // Créer le cookie de session
+                Response.Cookies.Append("SessionToken", sessionToken, new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.Strict,
+                    Expires = expiresAt
+                });
+
+                return Ok(new { Message = "Connexion réussie" });
+            }
+
+            Console.WriteLine("Identifiants incorrects");
+            return Unauthorized("Nom d'utilisateur ou mot de passe incorrect.");
         }
 
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
         {
+            if (Request.Cookies.TryGetValue("SessionToken", out var sessionToken))
+            {
+                await _userService.DeleteSessionAsync(sessionToken);
+                Response.Cookies.Delete("SessionToken");
+            }
+            
+            // Déconnexion de l'authentification
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
             return Ok("Déconnecté");
         }
 
