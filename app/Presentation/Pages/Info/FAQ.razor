@@ -1,14 +1,21 @@
 @page "/faq"
 
-
 <MudText Typo="Typo.h3" Class="mb-10">FAQ - Foire Aux Questions</MudText>
 
-<MudText Typo="Typo.h4" Class="mb-5">Introduction</MudText>
+<!-- Introduction -->
+<MudText Typo="Typo.h4" Class="mb-5">
+    <MudIcon Icon="@Icons.Material.Filled.Info" Class="mr-2" Style="@($"color:{Colors.DeepPurple.Accent4};")" />
+    Introduction
+</MudText>
+<MudText Class="mb-5">
+    Vous avez des questions ? Nous avons les réponses ! Consultez notre FAQ pour obtenir des informations rapides sur l’utilisation de Matcha Web.
+</MudText>
 
-<MudText Class="mb-5">Vous avez des questions ? Nous avons les réponses ! Consultez notre FAQ pour obtenir des informations rapides sur l’utilisation de Matcha Web.</MudText>
-
-<MudText Typo="Typo.h4" Class="mb-5">Questions Générales</MudText>
-
+<!-- Questions Générales -->
+<MudText Typo="Typo.h4" Class="mb-5 mt-5">
+    <MudIcon Icon="@Icons.Material.Filled.QuestionAnswer" Class="mr-2" Style="@($"color:{Colors.DeepPurple.Accent4};")" />
+    Questions Générales
+</MudText>
 <MudExpansionPanels>
     <MudExpansionPanel Text="1. Qu’est-ce que Matcha Web ?" MaxHeight="500" Style="@($"color:{Colors.DeepPurple.Accent4};")">
         <MudText Style="color: black;">
@@ -27,8 +34,11 @@
     </MudExpansionPanel>
 </MudExpansionPanels>
 
-<MudText Typo="Typo.h4" Class="mb-5 mt-5">Questions sur le Compte</MudText>
-
+<!-- Questions sur le Compte -->
+<MudText Typo="Typo.h4" Class="mb-5 mt-5">
+    <MudIcon Icon="@Icons.Material.Filled.AccountCircle" Class="mr-2" Style="@($"color:{Colors.DeepPurple.Accent4};")" />
+    Questions sur le Compte
+</MudText>
 <MudExpansionPanels>
     <MudExpansionPanel Text="4. Comment réinitialiser mon mot de passe ?" MaxHeight="500" Style="@($"color:{Colors.DeepPurple.Accent4};")">
         <MudText Style="color: black;">
@@ -47,8 +57,11 @@
     </MudExpansionPanel>
 </MudExpansionPanels>
 
-<MudText Typo="Typo.h4" Class="mb-5 mt-5">Questions sur la Sécurité et la Confidentialité</MudText>
-
+<!-- Questions sur la Sécurité et la Confidentialité -->
+<MudText Typo="Typo.h4" Class="mb-5 mt-5">
+    <MudIcon Icon="@Icons.Material.Filled.Security" Class="mr-2" Style="@($"color:{Colors.DeepPurple.Accent4};")" />
+    Questions sur la Sécurité et la Confidentialité
+</MudText>
 <MudExpansionPanels>
     <MudExpansionPanel Text="7. Mes données personnelles sont-elles sécurisées ?" MaxHeight="500" Style="@($"color:{Colors.DeepPurple.Accent4};")">
         <MudText Style="color: black;">
@@ -62,8 +75,11 @@
     </MudExpansionPanel>
 </MudExpansionPanels>
 
-<MudText Typo="Typo.h4" Class="mb-5 mt-5">Questions sur les Fonctionnalités</MudText>
-
+<!-- Questions sur les Fonctionnalités -->
+<MudText Typo="Typo.h4" Class="mb-5 mt-5">
+    <MudIcon Icon="@Icons.Material.Filled.Build" Class="mr-2" Style="@($"color:{Colors.DeepPurple.Accent4};")" />
+    Questions sur les Fonctionnalités
+</MudText>
 <MudExpansionPanels>
     <MudExpansionPanel Text="9. Comment fonctionne le système de “Like” ?" MaxHeight="500" Style="@($"color:{Colors.DeepPurple.Accent4};")">
         <MudText Style="color: black;">
@@ -82,8 +98,11 @@
     </MudExpansionPanel>
 </MudExpansionPanels>
 
-<MudText Typo="Typo.h4" Class="mb-5 mt-5">Questions Techniques</MudText>
-
+<!-- Questions Techniques -->
+<MudText Typo="Typo.h4" Class="mb-5 mt-5">
+    <MudIcon Icon="@Icons.Material.Filled.Devices" Class="mr-2" Style="@($"color:{Colors.DeepPurple.Accent4};")" />
+    Questions Techniques
+</MudText>
 <MudExpansionPanels>
     <MudExpansionPanel Text="12. Le site est-il compatible avec les appareils mobiles ?" MaxHeight="500" Style="@($"color:{Colors.DeepPurple.Accent4};")">
         <MudText Style="color: black;">
@@ -97,25 +116,12 @@
     </MudExpansionPanel>
 </MudExpansionPanels>
 
-
-<MudText Typo="Typo.h4" Class="mb-5 mt-5">Autres Questions</MudText>
-
-<MudExpansionPanels>
-    <MudExpansionPanel Text="14. Comment contacter le support client ?" MaxHeight="500" Style="@($"color:{Colors.DeepPurple.Accent4};")">
-        <MudText Style="color: black;">
-            Vous pouvez nous contacter via la page Contactez-nous ou envoyer un email à support@matchaweb.com. Notre équipe est disponible du lundi au vendredi, de 9h à 18h.
-        </MudText>
-    </MudExpansionPanel>
-    <MudExpansionPanel Text="15. Quels types de photos puis-je télécharger sur mon profil ?" MaxHeight="500" Style="@($"color:{Colors.DeepPurple.Accent4};")">
-        <MudText Style="color: black;">
-            Vous pouvez télécharger jusqu’à 5 photos, dont une doit être utilisée comme photo de profil. Assurez-vous que vos photos respectent nos Conditions d’Utilisation et ne contiennent pas de contenu inapproprié.
-        </MudText>
-    </MudExpansionPanel>
-</MudExpansionPanels>
-
-<MudText Typo="Typo.h4" Class="mt-5">Suggestions et Retours</MudText>
-
-<MudExpansionPanels Class="mb-10">
+<!-- Suggestions et Retours -->
+<MudText Typo="Typo.h4" Class="mt-5">
+    <MudIcon Icon="@Icons.Material.Filled.Feedback" Class="mr-2" Style="@($"color:{Colors.DeepPurple.Accent4};")" />
+    Suggestions et Retours
+</MudText>
+<MudExpansionPanels Class="mb-15">
     <MudExpansionPanel Text="16. Comment puis-je suggérer une nouvelle fonctionnalité ?" MaxHeight="500" Style="@($"color:{Colors.DeepPurple.Accent4};")">
         <MudText Style="color: black;">
             Nous apprécions vos suggestions ! Rendez-vous sur la page Contactez-nous et envoyez-nous vos idées. Nous les examinerons attentivement pour améliorer continuellement Matcha Web.
