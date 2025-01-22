@@ -2,37 +2,14 @@
 @inject HttpClient Http
 @inject NavigationManager Navigation
 
-<div class="top-row ps-1 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="/">Matcha</a>
-        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-    </div>
-</div>
-
-<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
-    <nav class="flex-column">
-        <NavLink class="nav-link" href="/">Home</NavLink>
-        <NavLink class="nav-link" href="/login">Login</NavLink>
-        <NavLink class="nav-link" href="/register">Register</NavLink>
-    </nav>
-</div>
+<MudNavMenu Color="Color.Inherit">
+    <MudNavLink Href="/" Match="NavLinkMatch.All">Home</MudNavLink>
+    <MudNavLink Href="/login">Login</MudNavLink>
+    <MudNavLink Href="/register">Register</MudNavLink>
+    <!-- Ajoutez d'autres liens de navigation ici -->
+</MudNavMenu>
 
 @code {
-    private bool collapseNavMenu = true;
-    private string username = string.Empty;
-
-    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
-
-    private void ToggleNavMenu()
-    {
-        collapseNavMenu = !collapseNavMenu;
-    }
-
-    protected override async Task OnInitializedAsync()
-    {
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        username = authState.User.Identity?.Name ?? "Inconnu";
-    }
+    // Si vous souhaitez afficher le nom de l'utilisateur ou d'autres informations,
+    // vous pouvez les ajouter ici ou dans un autre composant.
 }
