@@ -73,8 +73,6 @@
             await RegisterService.RegisterUser(registerModel);
             operationSuccess = true; // Indique que l'inscription est réussie
             message = "Inscription réussie ! Un email vous a été envoyé";
-            // Optionnel : Rediriger après l'inscription
-            // NavigationManager.NavigateTo("/");
         }
         catch (Exception ex)
         {
