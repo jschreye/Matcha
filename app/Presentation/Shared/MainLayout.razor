@@ -73,8 +73,16 @@
             }
         </div>
 
-        <article class="content px-4">
+        <article class="content px-4" id="unique_id_scroll_section" style="height: 100vh; overflow: auto; scrollbar-width: none; -ms-overflow-style: none;">
             @Body
+            <MudScrollToTop TopOffset="100"
+                    Selector="#unique_id_scroll_section"
+                    VisibleCssClass="visible absolute"
+                    HiddenCssClass="invisible">
+                <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.ArrowUpward" Style="@($"color:{Colors.DeepPurple.Lighten5}; background:{Colors.DeepPurple.Accent3};")">
+                    Go to top
+                </MudButton>
+            </MudScrollToTop>
         </article>
     </main>
 </div>
