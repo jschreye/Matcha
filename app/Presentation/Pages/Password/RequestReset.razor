@@ -1,16 +1,36 @@
-
 @page "/request-reset"
 @inject HttpClient Http
 
-<h3>Réinitialiser le mot de passe</h3>
-<InputText @bind-Value="email" placeholder="Entrez votre email" />
-<button @onclick="SendResetEmail">Envoyer</button>
+<MudText Typo="Typo.h3">Réinitialiser le mot de passe</MudText>
 
-<p>@message</p>
+<MudForm @ref="form" @bind-IsValid="@isFormValid" @bind-Errors="@errors" Outlined="true">
+    <!-- Email -->
+    <MudTextField T="string" Label="Email" Variant="Variant.Outlined" Required="true"
+                  RequiredError="L'email est requis" Validation="@(new EmailAddressAttribute())" 
+                  @bind-Value="email" />
+
+    <!-- Boutons -->
+    <div class="d-flex justify-content-end">
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Disabled="@(!isFormValid)" OnClick="SendResetEmail">
+            Envoyer
+        </MudButton>
+    </div>
+</MudForm>
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <MudAlert Severity="@(operationSuccess ? Severity.Success : Severity.Error)" Elevation="2">
+        @message
+    </MudAlert>
+}
 
 @code {
     private string email;
-    private string message;
+    private string message = string.Empty;
+    private bool isFormValid;
+    private bool operationSuccess;
+    private string[] errors = { };
+    private MudForm form;
 
     protected override void OnInitialized()
     {
@@ -20,15 +40,28 @@
 
     private async Task SendResetEmail()
     {
+        if (!isFormValid)
+        {
+            message = "Veuillez remplir correctement le formulaire.";
+            operationSuccess = false;
+            return;
+        }
+
         var content = new FormUrlEncodedContent(new[]
         {
             new KeyValuePair<string, string>("email", email)
         });
 
         var response = await Http.PostAsync("auth/request-password-reset", content);
-        if(response.IsSuccessStatusCode)
+        if (response.IsSuccessStatusCode)
+        {
             message = "Email de réinitialisation envoyé. Veuillez vérifier votre boîte de réception.";
+            operationSuccess = true;
+        }
         else
+        {
             message = "Erreur lors de la demande.";
+            operationSuccess = false;
+        }
     }
 }
