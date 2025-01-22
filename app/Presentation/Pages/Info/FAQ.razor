@@ -1,128 +1,141 @@
 @page "/faq"
 
-<MudText Typo="Typo.h3" Class="mb-10">FAQ - Foire Aux Questions</MudText>
+<div id="unique_id_scroll_section" class="ma-0" style="height: 100vh; overflow: auto; scrollbar-width: none; -ms-overflow-style: none;">
 
-<MudText Typo="Typo.h4" Class="mb-5">Introduction</MudText>
+    <MudText Typo="Typo.h3" Class="mb-10">FAQ - Foire Aux Questions</MudText>
 
-<MudText Class="mb-5">Vous avez des questions ? Nous avons les réponses ! Consultez notre FAQ pour obtenir des informations rapides sur l’utilisation de Matcha Web.</MudText>
+    <MudText Typo="Typo.h4" Class="mb-5">Introduction</MudText>
 
-<MudText Typo="Typo.h4" Class="mb-5">Questions Générales</MudText>
+    <MudText Class="mb-5">Vous avez des questions ? Nous avons les réponses ! Consultez notre FAQ pour obtenir des informations rapides sur l’utilisation de Matcha Web.</MudText>
 
-<MudExpansionPanels>
-    <MudExpansionPanel Text="1. Qu’est-ce que Matcha Web ?" MaxHeight="500" Style="@($"color:{Colors.DeepPurple.Accent4};")">
-        <MudText Style="color: black;">
-            Matcha Web est une plateforme de rencontres en ligne qui utilise des algorithmes intelligents pour vous aider à trouver des correspondances compatibles en fonction de vos préférences et intérêts.
-        </MudText>
-    </MudExpansionPanel>
-    <MudExpansionPanel Text="2. Comment m’inscrire sur Matcha Web ?" MaxHeight="500" Style="@($"color:{Colors.DeepPurple.Accent4};")">
-        <MudText Style="color: black;">
-            Cliquez sur le bouton “S’inscrire” en haut à droite de la page d’accueil et remplissez le formulaire d’inscription avec vos informations personnelles. Un email de vérification vous sera envoyé pour activer votre compte.
-        </MudText>
-    </MudExpansionPanel>
-    <MudExpansionPanel Text="3. Puis-je utiliser Matcha Web gratuitement ?" MaxHeight="500" Style="@($"color:{Colors.DeepPurple.Accent4};")">
-        <MudText Style="color: black;">
-            Oui, l’inscription et l’utilisation de base de Matcha Web sont gratuites. Des fonctionnalités premium peuvent être disponibles via des abonnements payants.
-        </MudText>
-    </MudExpansionPanel>
-</MudExpansionPanels>
+    <MudText Typo="Typo.h4" Class="mb-5">Questions Générales</MudText>
 
-<MudText Typo="Typo.h4" Class="mb-5 mt-5">Questions sur le Compte</MudText>
+    <MudExpansionPanels>
+        <MudExpansionPanel Text="1. Qu’est-ce que Matcha Web ?" MaxHeight="500" Style="@($"color:{Colors.DeepPurple.Accent4};")">
+            <MudText Style="color: black;">
+                Matcha Web est une plateforme de rencontres en ligne qui utilise des algorithmes intelligents pour vous aider à trouver des correspondances compatibles en fonction de vos préférences et intérêts.
+            </MudText>
+        </MudExpansionPanel>
+        <MudExpansionPanel Text="2. Comment m’inscrire sur Matcha Web ?" MaxHeight="500" Style="@($"color:{Colors.DeepPurple.Accent4};")">
+            <MudText Style="color: black;">
+                Cliquez sur le bouton “S’inscrire” en haut à droite de la page d’accueil et remplissez le formulaire d’inscription avec vos informations personnelles. Un email de vérification vous sera envoyé pour activer votre compte.
+            </MudText>
+        </MudExpansionPanel>
+        <MudExpansionPanel Text="3. Puis-je utiliser Matcha Web gratuitement ?" MaxHeight="500" Style="@($"color:{Colors.DeepPurple.Accent4};")">
+            <MudText Style="color: black;">
+                Oui, l’inscription et l’utilisation de base de Matcha Web sont gratuites. Des fonctionnalités premium peuvent être disponibles via des abonnements payants.
+            </MudText>
+        </MudExpansionPanel>
+    </MudExpansionPanels>
 
-<MudExpansionPanels>
-    <MudExpansionPanel Text="4. Comment réinitialiser mon mot de passe ?" MaxHeight="500" Style="@($"color:{Colors.DeepPurple.Accent4};")">
-        <MudText Style="color: black;">
-            Cliquez sur “Mot de Passe Oublié ?” sur la page de connexion et suivez les instructions pour recevoir un lien de réinitialisation par email.
-        </MudText>
-    </MudExpansionPanel>
-    <MudExpansionPanel Text="5. Comment modifier mes informations de profil ?" MaxHeight="500" Style="@($"color:{Colors.DeepPurple.Accent4};")">
-        <MudText Style="color: black;">
-            Connectez-vous à votre compte, allez dans “Paramètres” puis “Informations Personnelles”. Vous pouvez y modifier votre nom, prénom, adresse email, et autres détails de votre profil.
-        </MudText>
-    </MudExpansionPanel>
-    <MudExpansionPanel Text="6. Comment supprimer mon compte ?" MaxHeight="500" Style="@($"color:{Colors.DeepPurple.Accent4};")">
-        <MudText Style="color: black;">
-            Allez dans “Paramètres” puis “Gestion des Comptes” et sélectionnez “Supprimer mon compte”. Veuillez noter que cette action est irréversible.
-        </MudText>
-    </MudExpansionPanel>
-</MudExpansionPanels>
+    <MudText Typo="Typo.h4" Class="mb-5 mt-5">Questions sur le Compte</MudText>
 
-<MudText Typo="Typo.h4" Class="mb-5 mt-5">Questions sur la Sécurité et la Confidentialité</MudText>
+    <MudExpansionPanels>
+        <MudExpansionPanel Text="4. Comment réinitialiser mon mot de passe ?" MaxHeight="500" Style="@($"color:{Colors.DeepPurple.Accent4};")">
+            <MudText Style="color: black;">
+                Cliquez sur “Mot de Passe Oublié ?” sur la page de connexion et suivez les instructions pour recevoir un lien de réinitialisation par email.
+            </MudText>
+        </MudExpansionPanel>
+        <MudExpansionPanel Text="5. Comment modifier mes informations de profil ?" MaxHeight="500" Style="@($"color:{Colors.DeepPurple.Accent4};")">
+            <MudText Style="color: black;">
+                Connectez-vous à votre compte, allez dans “Paramètres” puis “Informations Personnelles”. Vous pouvez y modifier votre nom, prénom, adresse email, et autres détails de votre profil.
+            </MudText>
+        </MudExpansionPanel>
+        <MudExpansionPanel Text="6. Comment supprimer mon compte ?" MaxHeight="500" Style="@($"color:{Colors.DeepPurple.Accent4};")">
+            <MudText Style="color: black;">
+                Allez dans “Paramètres” puis “Gestion des Comptes” et sélectionnez “Supprimer mon compte”. Veuillez noter que cette action est irréversible.
+            </MudText>
+        </MudExpansionPanel>
+    </MudExpansionPanels>
 
-<MudExpansionPanels>
-    <MudExpansionPanel Text="7. Mes données personnelles sont-elles sécurisées ?" MaxHeight="500" Style="@($"color:{Colors.DeepPurple.Accent4};")">
-        <MudText Style="color: black;">
-            Absolument. Nous utilisons des mesures de sécurité avancées pour protéger vos données personnelles et garantir leur confidentialité.
-        </MudText>
-    </MudExpansionPanel>
-    <MudExpansionPanel Text="8. Puis-je rester anonyme sur Matcha Web ?" MaxHeight="500" Style="@($"color:{Colors.DeepPurple.Accent4};")">
-        <MudText Style="color: black;">
-            Votre anonymat est respecté. Seules les informations que vous choisissez de partager sont visibles par les autres utilisateurs. Vous pouvez contrôler la visibilité de vos informations via les paramètres de confidentialité.
-        </MudText>
-    </MudExpansionPanel>
-</MudExpansionPanels>
+    <MudText Typo="Typo.h4" Class="mb-5 mt-5">Questions sur la Sécurité et la Confidentialité</MudText>
 
-<MudText Typo="Typo.h4" Class="mb-5 mt-5">Questions sur les Fonctionnalités</MudText>
+    <MudExpansionPanels>
+        <MudExpansionPanel Text="7. Mes données personnelles sont-elles sécurisées ?" MaxHeight="500" Style="@($"color:{Colors.DeepPurple.Accent4};")">
+            <MudText Style="color: black;">
+                Absolument. Nous utilisons des mesures de sécurité avancées pour protéger vos données personnelles et garantir leur confidentialité.
+            </MudText>
+        </MudExpansionPanel>
+        <MudExpansionPanel Text="8. Puis-je rester anonyme sur Matcha Web ?" MaxHeight="500" Style="@($"color:{Colors.DeepPurple.Accent4};")">
+            <MudText Style="color: black;">
+                Votre anonymat est respecté. Seules les informations que vous choisissez de partager sont visibles par les autres utilisateurs. Vous pouvez contrôler la visibilité de vos informations via les paramètres de confidentialité.
+            </MudText>
+        </MudExpansionPanel>
+    </MudExpansionPanels>
 
-<MudExpansionPanels>
-    <MudExpansionPanel Text="9. Comment fonctionne le système de “Like” ?" MaxHeight="500" Style="@($"color:{Colors.DeepPurple.Accent4};")">
-        <MudText Style="color: black;">
-            Au lieu de “Like”, vous pouvez utiliser le terme “Intéressé(e)”. Lorsque vous manifestez de l’intérêt pour un profil et que l’autre utilisateur fait de même, vous êtes considérés comme “Connectés” et pouvez commencer à discuter.
-        </MudText>
-    </MudExpansionPanel>
-    <MudExpansionPanel Text="10. Comment trouver des correspondances compatibles ?" MaxHeight="500" Style="@($"color:{Colors.DeepPurple.Accent4};")">
-        <MudText Style="color: black;">
-            Notre algorithme de recherche avancée et nos suggestions intelligentes analysent vos préférences, intérêts et localisation pour vous proposer des profils compatibles qui maximisent vos chances de trouver la bonne personne.
-        </MudText>
-    </MudExpansionPanel>
-    <MudExpansionPanel Text="11. Puis-je bloquer ou signaler un utilisateur ?" MaxHeight="500" Style="@($"color:{Colors.DeepPurple.Accent4};")">
-        <MudText Style="color: black;">
-            Oui, vous pouvez bloquer un utilisateur pour empêcher toute interaction future. Vous pouvez également signaler un profil suspect ou inapproprié via les options disponibles sur la page du profil de l’utilisateur concerné.
-        </MudText>
-    </MudExpansionPanel>
-</MudExpansionPanels>
+    <MudText Typo="Typo.h4" Class="mb-5 mt-5">Questions sur les Fonctionnalités</MudText>
 
-<MudText Typo="Typo.h4" Class="mb-5 mt-5">Questions Techniques</MudText>
+    <MudExpansionPanels>
+        <MudExpansionPanel Text="9. Comment fonctionne le système de “Like” ?" MaxHeight="500" Style="@($"color:{Colors.DeepPurple.Accent4};")">
+            <MudText Style="color: black;">
+                Au lieu de “Like”, vous pouvez utiliser le terme “Intéressé(e)”. Lorsque vous manifestez de l’intérêt pour un profil et que l’autre utilisateur fait de même, vous êtes considérés comme “Connectés” et pouvez commencer à discuter.
+            </MudText>
+        </MudExpansionPanel>
+        <MudExpansionPanel Text="10. Comment trouver des correspondances compatibles ?" MaxHeight="500" Style="@($"color:{Colors.DeepPurple.Accent4};")">
+            <MudText Style="color: black;">
+                Notre algorithme de recherche avancée et nos suggestions intelligentes analysent vos préférences, intérêts et localisation pour vous proposer des profils compatibles qui maximisent vos chances de trouver la bonne personne.
+            </MudText>
+        </MudExpansionPanel>
+        <MudExpansionPanel Text="11. Puis-je bloquer ou signaler un utilisateur ?" MaxHeight="500" Style="@($"color:{Colors.DeepPurple.Accent4};")">
+            <MudText Style="color: black;">
+                Oui, vous pouvez bloquer un utilisateur pour empêcher toute interaction future. Vous pouvez également signaler un profil suspect ou inapproprié via les options disponibles sur la page du profil de l’utilisateur concerné.
+            </MudText>
+        </MudExpansionPanel>
+    </MudExpansionPanels>
 
-<MudExpansionPanels>
-    <MudExpansionPanel Text="12. Le site est-il compatible avec les appareils mobiles ?" MaxHeight="500" Style="@($"color:{Colors.DeepPurple.Accent4};")">
-        <MudText Style="color: black;">
-            Oui, Matcha Web est entièrement responsive et optimisé pour une utilisation fluide sur tous les types d’appareils, y compris les smartphones et les tablettes.
-        </MudText>
-    </MudExpansionPanel>
-    <MudExpansionPanel Text="13. Quels navigateurs sont compatibles avec Matcha Web ?" MaxHeight="500" Style="@($"color:{Colors.DeepPurple.Accent4};")">
-        <MudText Style="color: black;">
-            Notre application est compatible avec les dernières versions de Firefox et Chrome. Nous recommandons d’utiliser un navigateur à jour pour une meilleure expérience utilisateur.
-        </MudText>
-    </MudExpansionPanel>
-</MudExpansionPanels>
+    <MudText Typo="Typo.h4" Class="mb-5 mt-5">Questions Techniques</MudText>
+
+    <MudExpansionPanels>
+        <MudExpansionPanel Text="12. Le site est-il compatible avec les appareils mobiles ?" MaxHeight="500" Style="@($"color:{Colors.DeepPurple.Accent4};")">
+            <MudText Style="color: black;">
+                Oui, Matcha Web est entièrement responsive et optimisé pour une utilisation fluide sur tous les types d’appareils, y compris les smartphones et les tablettes.
+            </MudText>
+        </MudExpansionPanel>
+        <MudExpansionPanel Text="13. Quels navigateurs sont compatibles avec Matcha Web ?" MaxHeight="500" Style="@($"color:{Colors.DeepPurple.Accent4};")">
+            <MudText Style="color: black;">
+                Notre application est compatible avec les dernières versions de Firefox et Chrome. Nous recommandons d’utiliser un navigateur à jour pour une meilleure expérience utilisateur.
+            </MudText>
+        </MudExpansionPanel>
+    </MudExpansionPanels>
 
 
-<MudText Typo="Typo.h4" Class="mb-5 mt-5">Autres Questions</MudText>
+    <MudText Typo="Typo.h4" Class="mb-5 mt-5">Autres Questions</MudText>
 
-<MudExpansionPanels>
-    <MudExpansionPanel Text="14. Comment contacter le support client ?" MaxHeight="500" Style="@($"color:{Colors.DeepPurple.Accent4};")">
-        <MudText Style="color: black;">
-            Vous pouvez nous contacter via la page Contactez-nous ou envoyer un email à support@matchaweb.com. Notre équipe est disponible du lundi au vendredi, de 9h à 18h.
-        </MudText>
-    </MudExpansionPanel>
-    <MudExpansionPanel Text="15. Quels types de photos puis-je télécharger sur mon profil ?" MaxHeight="500" Style="@($"color:{Colors.DeepPurple.Accent4};")">
-        <MudText Style="color: black;">
-            Vous pouvez télécharger jusqu’à 5 photos, dont une doit être utilisée comme photo de profil. Assurez-vous que vos photos respectent nos Conditions d’Utilisation et ne contiennent pas de contenu inapproprié.
-        </MudText>
-    </MudExpansionPanel>
-</MudExpansionPanels>
+    <MudExpansionPanels>
+        <MudExpansionPanel Text="14. Comment contacter le support client ?" MaxHeight="500" Style="@($"color:{Colors.DeepPurple.Accent4};")">
+            <MudText Style="color: black;">
+                Vous pouvez nous contacter via la page Contactez-nous ou envoyer un email à support@matchaweb.com. Notre équipe est disponible du lundi au vendredi, de 9h à 18h.
+            </MudText>
+        </MudExpansionPanel>
+        <MudExpansionPanel Text="15. Quels types de photos puis-je télécharger sur mon profil ?" MaxHeight="500" Style="@($"color:{Colors.DeepPurple.Accent4};")">
+            <MudText Style="color: black;">
+                Vous pouvez télécharger jusqu’à 5 photos, dont une doit être utilisée comme photo de profil. Assurez-vous que vos photos respectent nos Conditions d’Utilisation et ne contiennent pas de contenu inapproprié.
+            </MudText>
+        </MudExpansionPanel>
+    </MudExpansionPanels>
 
-<MudText Typo="Typo.h4" Class="mt-5">Suggestions et Retours</MudText>
+    <MudText Typo="Typo.h4" Class="mt-5">Suggestions et Retours</MudText>
 
-<MudExpansionPanels>
-    <MudExpansionPanel Text="16. Comment puis-je suggérer une nouvelle fonctionnalité ?" MaxHeight="500" Style="@($"color:{Colors.DeepPurple.Accent4};")">
-        <MudText Style="color: black;">
-            Nous apprécions vos suggestions ! Rendez-vous sur la page Contactez-nous et envoyez-nous vos idées. Nous les examinerons attentivement pour améliorer continuellement Matcha Web.
-        </MudText>
-    </MudExpansionPanel>
-    <MudExpansionPanel Text="17. Comment puis-je donner mon avis sur Matcha Web ?" MaxHeight="500" Style="@($"color:{Colors.DeepPurple.Accent4};")">
-        <MudText Style="color: black;">
-            Votre avis est important pour nous. Vous pouvez laisser vos commentaires sur notre page Contactez-nous ou via nos réseaux sociaux.
-        </MudText>
-    </MudExpansionPanel>
-</MudExpansionPanels>
+    <MudExpansionPanels Class="mb-10">
+        <MudExpansionPanel Text="16. Comment puis-je suggérer une nouvelle fonctionnalité ?" MaxHeight="500" Style="@($"color:{Colors.DeepPurple.Accent4};")">
+            <MudText Style="color: black;">
+                Nous apprécions vos suggestions ! Rendez-vous sur la page Contactez-nous et envoyez-nous vos idées. Nous les examinerons attentivement pour améliorer continuellement Matcha Web.
+            </MudText>
+        </MudExpansionPanel>
+        <MudExpansionPanel Text="17. Comment puis-je donner mon avis sur Matcha Web ?" MaxHeight="500" Style="@($"color:{Colors.DeepPurple.Accent4};")">
+            <MudText Style="color: black;">
+                Votre avis est important pour nous. Vous pouvez laisser vos commentaires sur notre page Contactez-nous ou via nos réseaux sociaux.
+            </MudText>
+        </MudExpansionPanel>
+    </MudExpansionPanels>
+
+    <MudScrollToTop TopOffset="100"
+                    Selector="#unique_id_scroll_section"
+                    VisibleCssClass="visible absolute"
+                    HiddenCssClass="invisible">
+        <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.ArrowUpward" Style="@($"color:{Colors.DeepPurple.Lighten5}; background:{Colors.DeepPurple.Accent3};")">
+            Go to top
+        </MudButton>
+    </MudScrollToTop>
+
+</div>
