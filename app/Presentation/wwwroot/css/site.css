@@ -67,3 +67,20 @@ a, .btn-link {
     content: "An error has occurred."
 }
 
+@media (max-width: 600px) {
+    .responsive-h3 {
+        margin: 0 !important;
+        text-align: center!important;
+        font-size: 1.5rem!important;
+    }
+    .responsive-href{
+        margin: auto !important;
+    }
+    .mud-timeline-item-content {
+        max-width: calc(100% - 48px)!important;
+    }
+
+    .mud-timeline-vertical.mud-timeline-position-alternate::before{
+        right: calc(100% - 48px)!important;
+    }
+}

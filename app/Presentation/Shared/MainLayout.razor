@@ -4,10 +4,9 @@
 <MudDialogProvider />
 <MudSnackbarProvider />
 <MudPopoverProvider />
+@* <MudBreakpointProvider /> *@
 
-<PageTitle>Presentation</PageTitle>
-
-<MudLayout>
+<MudLayout id="unique_id_scroll_section" Style="height: 100vh; overflow-y: auto;">
     <!-- AppBar en haut de l'application -->
     <UserMenu ShowLogin="true" ShowRegister="true" OnToggleDrawer="ToggleDrawer" />
 
@@ -22,7 +21,7 @@
             @Body
             <MudScrollToTop TopOffset="100"
                             Selector="#unique_id_scroll_section"
-                            VisibleCssClass="visible absolute"
+                            VisibleCssClass="visible fixed bottom-4 right-4"
                             HiddenCssClass="invisible">
                 <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.ArrowUpward" Style="@($"color:{Colors.DeepPurple.Lighten5}; background:{Colors.DeepPurple.Accent3};")">
                     Go to top
