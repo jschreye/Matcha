@@ -1,6 +1,11 @@
 ﻿@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject HttpClient Http
-@inject NavigationManager Navigation
+@inject NavigationManager NavigationManager
+
+
+<MudDrawerHeader Style="@($"color:{Colors.Gray.Lighten5}; background:{Colors.DeepPurple.Accent4};")">
+    <MudText Typo="Typo.h6" @onclick="NavigateHome" Style="cursor: pointer;">Matcha</MudText>
+</MudDrawerHeader>
 
 <MudNavMenu Color="Color.Inherit">
     <MudNavLink Href="/" Match="NavLinkMatch.All">Home</MudNavLink>
@@ -10,6 +15,8 @@
 </MudNavMenu>
 
 @code {
-    // Si vous souhaitez afficher le nom de l'utilisateur ou d'autres informations,
-    // vous pouvez les ajouter ici ou dans un autre composant.
+    private void NavigateHome()
+    {
+        NavigationManager.NavigateTo("/");
+    }
 }

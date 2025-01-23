@@ -9,19 +9,10 @@
 
 <MudLayout>
     <!-- AppBar en haut de l'application -->
-    <MudAppBar Elevation="1" Style="@($"background:{Colors.Gray.Lighten3};")">
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" Edge="Edge.Start" OnClick="@ToggleDrawer" Style="@($"color:{Colors.DeepPurple.Accent4};")"/>
-        <MudSpacer />
-        <!-- Intégration du composant UserMenu dans l'AppBar -->
-        <UserMenu ShowLogin="true" ShowRegister="true" />
-    </MudAppBar>
+    <UserMenu ShowLogin="true" ShowRegister="true" OnToggleDrawer="ToggleDrawer" />
 
     <!-- Drawer latéral pour la navigation -->
     <MudDrawer @bind-Open="_drawerOpen" Elevation="1" Variant="DrawerVariant.Persistent" Style="@($"color:{Colors.Gray.Lighten5}; background:{Colors.DeepPurple.Accent3};")">
-        <MudDrawerHeader @onclick="NavigateHome" Style="@($"color:{Colors.Gray.Lighten5}; background:{Colors.DeepPurple.Accent4};")">
-            <MudText Typo="Typo.h6" @onclick="NavigateHome" Style="cursor: pointer;">Matcha</MudText>
-        </MudDrawerHeader>
-        <!-- Intégration du composant NavMenu dans le Drawer -->
         <NavMenu />
     </MudDrawer>
 
@@ -49,10 +40,5 @@
     private void ToggleDrawer()
     {
         _drawerOpen = !_drawerOpen;
-    }
-
-    private void NavigateHome()
-    {
-        NavigationManager.NavigateTo("/");
     }
 }

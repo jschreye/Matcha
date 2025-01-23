@@ -2,61 +2,72 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 
-<AuthorizeView>
-    <Authorized>
-        <MudBadge Color="Color.Success" Overlap="true" Bordered="true">
-            <MudAvatar Size="Size.Medium">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icon-tabler-user">
-                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                    <circle cx="12" cy="7" r="4"/>
-                    <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
-                </svg>
-            </MudAvatar>
-        </MudBadge>
-    </Authorized>
-</AuthorizeView>
-
-@if (!isAuthenticated)
-{
-    @if (!isOnLoginPage && ShowLogin)
-    {
-        <MudButton OnClick="NavigateToLogin" Style="@($"color:{Colors.DeepPurple.Accent4};")">
-            <div>
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-login-2">
-                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                    <path d="M9 8v-2a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-7a2 2 0 0 1-2-2v-2" />
-                    <path d="M3 12h13l-3-3" />
-                    <path d="M13 15l3-3" />
-                </svg>
-                <MudText style="font-size: small;">Login</MudText>
-            </div>
-        </MudButton>
-    }
-    @if (!isOnRegisterPage && ShowRegister)
-    {
-        <MudButton OnClick="NavigateToRegister" Class="mx-1" Style="@($"color:{Colors.DeepPurple.Accent4};")">
-            <div>
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-user-plus">
-                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                    <path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0-8 0" />
-                    <path d="M16 19h6" />
-                    <path d="M19 16v6" />
-                    <path d="M6 21v-2a4 4 0 0 1 4-4h4" />
-                </svg>
-                <MudText style="font-size: small;">Register</MudText>
-            </div>
-        </MudButton>
-    }
-}
-else
-{
-    <MudButton OnClick="Logout" Class="mx-1 ms-2" Style="@($"color:{Colors.DeepPurple.Accent4};")">
-        <div>
-            <MudIcon Icon="@Icons.Material.Filled.Logout" />
-            <MudText style="font-size: small;">Logout</MudText>
-        </div>
-    </MudButton>
-}
+<MudAppBar Elevation="1" Style="@($"background:{Colors.Gray.Lighten3};")">
+    <MudIconButton Icon="@Icons.Material.Filled.Menu" Edge="Edge.Start" OnClick="@ToggleDrawerAsync" Style="@($"color:{Colors.DeepPurple.Accent4};")"/>
+    <MudSpacer />
+    <!-- Contenu du User Menu -->
+    <AuthorizeView>
+        <Authorized>
+            <!-- Menu de Navigation pour les Utilisateurs Authentifiés -->
+            <MudMenu>
+                <ActivatorContent>
+                    <MudBadge class="mr-3" Color="Color.Success" Overlap="true" Bordered="true">
+                        <MudAvatar Size="Size.Medium">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icon-tabler-user">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                <circle cx="12" cy="7" r="4"/>
+                                <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
+                            </svg>
+                        </MudAvatar>
+                    </MudBadge>
+                </ActivatorContent>
+                <ChildContent>
+                    @* <MudNavLink Href="/dashboard" Icon="@Icons.Material.Filled.Dashboard" Class="mud-menu-item">Dashboard</MudNavLink>
+                    <MudNavLink Href="/servers" Icon="@Icons.Material.Filled.Storage" Class="mud-menu-item">Servers</MudNavLink>
+                    <MudNavLink Href="/billing" Icon="@Icons.Material.Filled.Receipt" Disabled="true" Class="mud-menu-item">Billing</MudNavLink>
+                    <MudNavGroup Title="Settings" Icon="@Icons.Material.Filled.Settings" Expanded="true">
+                        <MudNavLink Href="/users" Icon="@Icons.Material.Filled.People" IconColor="Color.Success" Class="mud-menu-item">Users</MudNavLink>
+                        <MudNavLink Href="/security" Icon="@Icons.Material.Filled.Security" IconColor="Color.Info" Class="mud-menu-item">Security</MudNavLink>
+                    </MudNavGroup>
+                    <MudDivider Class="my-2" /> *@
+                    <MudMenuItem OnClick="Logout" Icon="@Icons.Material.Filled.Logout">Logout</MudMenuItem>
+                </ChildContent>
+            </MudMenu>
+        </Authorized>
+        <NotAuthorized>
+            <!-- Boutons Login et Register pour les Utilisateurs Non Authentifiés -->
+            @if (ShowLogin)
+            {
+                <MudButton OnClick="@NavigateToLogin" Style="@($"color:{Colors.DeepPurple.Accent4};")">
+                    <div>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-login-2">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                            <path d="M9 8v-2a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-7a2 2 0 0 1-2-2v-2" />
+                            <path d="M3 12h13l-3-3" />
+                            <path d="M13 15l3-3" />
+                        </svg>
+                        <MudText style="font-size: small;" Class="ml-2">Login</MudText>
+                    </div>
+                </MudButton>
+            }
+            @if (ShowRegister)
+            {
+                <MudButton OnClick="@NavigateToRegister" Class="mx-1" Style="@($"color:{Colors.DeepPurple.Accent4};")">
+                    <div>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-user-plus">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                            <path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0-8 0" />
+                            <path d="M16 19h6" />
+                            <path d="M19 16v6" />
+                            <path d="M6 21v-2a4 4 0 0 1 4-4h4" />
+                        </svg>
+                        <MudText style="font-size: small;" Class="ml-2">Register</MudText>
+                    </div>
+                </MudButton>
+            }
+        </NotAuthorized>
+    </AuthorizeView>
+</MudAppBar>
 
 @code {
     [Parameter]
@@ -64,6 +75,9 @@ else
 
     [Parameter]
     public bool ShowRegister { get; set; } = true;
+
+    [Parameter]
+    public EventCallback OnToggleDrawer { get; set; }
 
     private bool isAuthenticated;
     private bool isOnLoginPage;
@@ -98,6 +112,16 @@ else
 
     private void Logout()
     {
+        // Implémentez votre logique de déconnexion ici
+        // Par exemple, appeler une API de déconnexion ou utiliser un service d'authentification
         NavigationManager.NavigateTo("/logout", true);
+    }
+
+    private async Task ToggleDrawerAsync()
+    {
+        if (OnToggleDrawer.HasDelegate)
+        {
+            await OnToggleDrawer.InvokeAsync(null);
+        }
     }
 }
