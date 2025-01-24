@@ -1,0 +1,114 @@
+@page "/contact"
+
+<!-- Titre principal -->
+<MudText Typo="Typo.h3" Class="mb-10">
+    Contactez-nous
+</MudText>
+
+<!-- Introduction -->
+<MudText Typo="Typo.h4" Class="mb-3 mt-5">
+    <MudIcon Icon="@Icons.Material.Filled.Info" Class="mr-2" Style="@($"color:{Colors.DeepPurple.Accent4};")" />
+    Introduction
+</MudText>
+<MudText Class="mb-5">
+    Nous sommes ravis de vous aider ! Que vous ayez une question, une suggestion ou besoin d’assistance, notre équipe est là pour vous. N’hésitez pas à nous contacter via l’un des moyens ci-dessous.
+</MudText>
+
+<MudDivider Class="mb-5 mt-5" />
+
+    <!-- Formulaire -->
+    <MudPaper Class="pa-4 mb-5" Elevation="2">
+        <MudForm @ref="form" OnValidSubmit="HandleSubmit">
+            <MudTextField Label="Nom Complet" Variant="Variant.Outlined" Class="mb-4" FullWidth="true" @bind-Value="FullName" />
+            <MudTextField Label="Adresse Email" Variant="Variant.Outlined" Class="mb-4" FullWidth="true" @bind-Value="Email" />
+            <MudSelect Label="Sujet" Variant="Variant.Outlined" Class="mb-4" FullWidth="true" @bind-Value="Subject">
+                <MudSelectItem Value="@("Assistance Technique")">Assistance Technique</MudSelectItem>
+                <MudSelectItem Value="@("Suggestions")">Suggestions</MudSelectItem>
+                <MudSelectItem Value="@("Problème de Compte")">Problème de Compte</MudSelectItem>
+                <MudSelectItem Value="@("Autre")">Autre</MudSelectItem>
+            </MudSelect>
+            <MudTextField Label="Message" Variant="Variant.Outlined" Class="mb-4" FullWidth="true" Rows="5" Textarea="true" @bind-Value="Message" />
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" ButtonType="ButtonType.Submit">
+                Envoyer le Message
+            </MudButton>
+        </MudForm>
+    </MudPaper>
+
+    <!-- Simulation de l'envoi -->
+    @if (FormSubmitted)
+    {
+        <MudPaper Class="pa-4 mb-5" Elevation="2">
+            <MudText Typo="Typo.h5" Class="mb-4">Vos informations :</MudText>
+            <MudText>Nom : @FullName</MudText>
+            <MudText>Email : @Email</MudText>
+            <MudText>Sujet : @Subject</MudText>
+            <MudText>Message : @Message</MudText>
+        </MudPaper>
+    }
+
+<MudDivider Class="mb-5 mt-5" />
+
+<!-- Informations de Contact Direct -->
+<MudText Typo="Typo.h4" Class="mb-3 mt-5">
+    <MudIcon Icon="@Icons.Material.Filled.Phone" Class="mr-2" Style="@($"color:{Colors.DeepPurple.Accent4};")" />
+    Informations de Contact Direct
+</MudText>
+
+<MudText Typo="Typo.h5" Class="mb-3">Adresse Email</MudText>
+<MudText Class="mb-4">
+    Pour toute assistance, écrivez-nous à : 
+    <a href="mailto:support@matchaweb.com">support@matchaweb.com</a>
+</MudText>
+
+<MudText Typo="Typo.h5" Class="mb-3">Numéro de Téléphone</MudText>
+<MudText Class="mb-4">
+    Appelez-nous au : <a href="tel:+33123456789">+33 1 23 45 67 89</a><br />
+    Disponible du lundi au vendredi, de 9h à 18h.
+</MudText>
+
+<MudText Typo="Typo.h5" Class="mb-3">Adresse Physique</MudText>
+<MudText Class="mb-5">
+    Visitez-nous à : <br />
+    Matcha Web<br />
+    123 Rue de l’Amour,<br />
+    75000 Paris, France
+</MudText>
+
+<MudDivider Class="mb-5 mt-5" />
+
+<!-- Carte Google -->
+<MudText Typo="Typo.h4" Class="mb-3 mt-5">
+    <MudIcon Icon="@Icons.Material.Filled.LocationOn" Class="mr-2" Style="@($"color:{Colors.DeepPurple.Accent4};")" />
+    Localisation
+</MudText>
+<MudPaper Class="pa-4 mb-15" Elevation="1">
+    <iframe
+        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2624.9995988520673!2d2.292292615674253!3d48.85884407928795!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47e66efce8d47bdf%3A0x1d8a0d287cf8d12d!2sEiffel%20Tower!5e0!3m2!1sen!2sfr!4v1616413212567!5m2!1sen!2sfr"
+        width="100%"
+        height="450"
+        style="border:0;"
+        allowfullscreen=""
+        loading="lazy"
+    ></iframe>
+</MudPaper>
+
+
+@code {
+    private MudForm form;
+    private string FullName;
+    private string Email;
+    private string Subject;
+    private string Message;
+    private bool FormSubmitted = false;
+
+    private async Task HandleSubmit()
+    {
+        FormSubmitted = true; // Simule l'envoi du formulaire
+
+        // Réinitialise les champs du formulaire
+        FullName = string.Empty;
+        Email = string.Empty;
+        Subject = string.Empty;
+        Message = string.Empty;
+    }
+}

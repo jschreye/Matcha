@@ -6,7 +6,7 @@
 
 <MudText Typo="Typo.h3">Connexion</MudText>
 
-<MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors" Outlined="true">
+<MudForm @ref="form" @bind-IsValid="@isFormValid" @bind-Errors="@errors" Outlined="true">
     <!-- Nom d'utilisateur -->
     <MudTextField T="string" Label="Nom d'utilisateur" Variant="Variant.Outlined" Required="true"
                   RequiredError="Le nom d'utilisateur est requis" @bind-Value="loginDto.Username" />
@@ -24,7 +24,7 @@
 
         <!-- Bouton de connexion -->
         <div>
-            <MudButton Variant="Variant.Outlined" Color="Color.Primary" Disabled="@(!success)" Type="submit" OnClick="HandleLogin">
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary" Disabled="@(!isFormValid)" Type="submit" OnClick="HandleLogin">
                 Se connecter
             </MudButton>
         </div>
@@ -34,7 +34,7 @@
 
 @if (!string.IsNullOrEmpty(message))
 {
-    <MudAlert Severity="@(success ? Severity.Success : Severity.Error)" Elevation="2">
+    <MudAlert Severity="@(operationSuccess ? Severity.Success : Severity.Error)" Elevation="2">
         @message
     </MudAlert>
 }
@@ -43,23 +43,23 @@
     private LoginDto loginDto = new LoginDto();
     private MudForm form;
     private string message = string.Empty;
-    private bool success;
+    private bool isFormValid;
+    private bool operationSuccess;
     private string[] errors = { };
-    
+
     private async Task HandleLogin()
     {
-        bool success = await JS.InvokeAsync<bool>("login", loginDto.Username, loginDto.Password);
-        if (success)
+        // Utilisez directement la variable de classe 'operationSuccess'
+        operationSuccess = await JS.InvokeAsync<bool>("login", loginDto.Username, loginDto.Password);
+        if (operationSuccess)
         {
-            success = true;
             message = "Connexion réussie !";
             Navigation.NavigateTo("/", true);
         }
         else
         {
-            success = false;
             message = "Nom d'utilisateur ou mot de passe incorrect.";
-       }
+        }
     }
 
     private void GoToRequestReset()

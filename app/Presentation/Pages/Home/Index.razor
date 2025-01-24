@@ -1,9 +1,95 @@
 ﻿@page "/"
 
-<PageTitle>Index</PageTitle>
+<MudGrid class="d-flex flex-column mt-4">
+    <MudText Typo="Typo.h3" Class="text-center responsive-h3">BIENVENU SUR MATCHA</MudText>
+    <MudGrid class="d-flex flex-column align-items-center justify-content-center mt-4" style="width: auto;">
+        <MudText Typo="Typo.h4" Class="text-center">Viens trouver l'amour</MudText>
+        <MudLink Href="/register" Typo="Typo.body2" class="ml-auto">Rejoins-nous</MudLink>
+    </MudGrid>
+</MudGrid>
 
-<h1>Hello, world!</h1>
+<MudTimeline class="mt-20">
+    <MudTimelineItem Color="Color.Primary">
+        <MudText Typo="Typo.h5" Style="@($"color:{Colors.DeepPurple.Accent4};")">Inscription et Connexion Simplifiées</MudText>
+        <MudText class="mt-5">Rejoignez-nous en un clin d’œil ! Créez votre compte rapidement et connectez-vous en toute simplicité pour commencer votre aventure amoureuse sans tracas.</MudText>
+    </MudTimelineItem>
+    <MudTimelineItem Color="Color.Primary" TimelineAlign="@(isMobile ? TimelineAlign.End : TimelineAlign.Start)">
+        <MudText Align="@(isMobile ? Align.Inherit : Align.End)" Typo="Typo.h5" Style="@($"color:{Colors.DeepPurple.Accent4};")">Profils Riches et Personnalisés</MudText>
+        <MudText Align="@(isMobile ? Align.Inherit : Align.End)" class="mt-5">Exprimez votre unicité ! Construisez un profil détaillé et authentique qui reflète qui vous êtes vraiment, attirant ainsi des correspondances qui vous correspondent parfaitement.</MudText>
+    </MudTimelineItem>
+    <MudTimelineItem Color="Color.Primary">
+        <MudText Typo="Typo.h5" Style="@($"color:{Colors.DeepPurple.Accent4};")">Discussion Instantanée en Temps Réel</MudText>
+        <MudText class="mt-5">Connectez-vous en un instant ! Engagez des conversations fluides et immédiates avec vos matchs grâce à notre système de chat en temps réel, pour mieux connaître vos potentiels partenaires.</MudText>
+    </MudTimelineItem>
+    <MudTimelineItem Color="Color.Primary" TimelineAlign="@(isMobile ? TimelineAlign.End : TimelineAlign.Start)">
+        <MudText Align="@(isMobile ? Align.Inherit : Align.End)" Typo="Typo.h5" Style="@($"color:{Colors.DeepPurple.Accent4};")">Recherche Avancée et Suggestions Intelligentes</MudText>
+        <MudText Align="@(isMobile ? Align.Inherit : Align.End)" class="mt-5">Trouver l’amour devient intelligent ! Utilisez nos outils de recherche sophistiqués et nos suggestions basées sur vos préférences pour découvrir des profils compatibles en un instant.</MudText>
+    </MudTimelineItem>
+</MudTimeline>
 
-Welcome to your new app.
+<MudCarousel Class="mt-15 mb-20 w-50 mx-auto" Style="height:300px;" TData="object" ShowArrows="@false" ShowBullets="@false">
+    <MudCarouselItem Transition="Transition.Slide">
+        <MudCard>
+            <MudCardMedia Image="images/demon1.png" Style="height:200px; object-fit: cover;"/>
+            <MudCardContent Style="height:100px; overflow-y: auto;" >
+                <MudText Typo="Typo.h5">Natcha</MudText>
+                <MudText Typo="Typo.body2">“Grâce à Matcha Web, j’ai enfin trouvé quelqu’un qui me comprend vraiment.”</MudText>
+            </MudCardContent>
+        </MudCard>
+    </MudCarouselItem>
+    <MudCarouselItem Transition="Transition.Slide" Color="@Color.Secondary">
+        <MudCard>
+            <MudCardMedia Image="images/demon1.png" Style="height:200px; object-fit: cover;"/>
+            <MudCardContent Style="height:100px;overflow-y: auto;">
+                <MudText Typo="Typo.h5">Sophia</MudText>
+                <MudText Typo="Typo.body2">“Matcha Web transforme les rencontres en une expérience authentique et enrichissante.”</MudText>
+            </MudCardContent>
+        </MudCard>
+    </MudCarouselItem>
+    <MudCarouselItem Transition="Transition.Slide">
+        <MudCard>
+            <MudCardMedia Image="images/demon1.png" Style="height:200px; object-fit: cover;"/>
+            <MudCardContent Style="height:100px;overflow-y: auto;">
+                <MudText Typo="Typo.h5">Erga</MudText>
+                <MudText Typo="Typo.body2">“Avec Matcha Web, trouver l’amour est devenu simple et intuitif.”</MudText>
+            </MudCardContent>
+        </MudCard>
+    </MudCarouselItem>
+</MudCarousel>
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+@implements IAsyncDisposable
+
+@code {
+    private bool isMobile;
+    private string currentBreakpoint;
+
+    [Inject] private IJSRuntime JSRuntime { get; set; }
+    private DotNetObjectReference<Index>? dotNetRef;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            dotNetRef = DotNetObjectReference.Create(this);
+            await JSRuntime.InvokeVoidAsync("addResizeListener", dotNetRef);
+        }
+    }
+
+    [JSInvokable("OnResize")]
+    public void OnResize(string breakpoint)
+    {
+        currentBreakpoint = breakpoint;
+        isMobile = currentBreakpoint is "Xs";
+
+        StateHasChanged();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (dotNetRef != null)
+        {
+            await JSRuntime.InvokeVoidAsync("removeResizeListener");
+            dotNetRef.Dispose();
+        }
+    }
+}
