@@ -1,11 +1,9 @@
-using Core.Data.DTOs;
+using Core.Data.Entity;
 
-namespace Core.Interfaces
+namespace Core.Repository
 {
-    public interface IUserService
+    public interface ISessionRepository
     {
-        Task<List<UserDto>> GetAllUsersAsync();
-        Task<bool> ValidateUser(string username, string password);
         Task CreateSessionAsync(int userId, string sessionToken, DateTime expiresAt);
         Task<bool> ValidateSessionAsync(string sessionToken);
         Task DeleteSessionAsync(string sessionToken);

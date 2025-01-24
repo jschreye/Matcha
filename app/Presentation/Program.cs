@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Server;
 using Microsoft.AspNetCore.Components.Authorization;
-
+using Presentation.Middlewares;
 var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -46,8 +46,11 @@ builder.Services.AddScoped<AuthenticationStateProvider, ServerAuthenticationStat
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IRegisterService, RegisterService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+
+// Ajouter les repository
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<ISessionRepository>(sp => new SessionRepository(connectionString));
 
 var app = builder.Build();
 
@@ -64,6 +67,8 @@ app.UseStaticFiles();
 app.UseRouting();
 
 // Positionner les middlewares d'authentification et d'autorisation après UseRouting
+app.UseMiddleware<Presentation.Middlewares.SessionValidationMiddleware>();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
