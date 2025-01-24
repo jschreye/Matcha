@@ -9,7 +9,7 @@
 <MudForm @ref="form" @bind-IsValid="@isFormValid" @bind-Errors="@errors" Outlined="true">
     <!-- Nom d'utilisateur -->
     <MudTextField T="string" Label="Nom d'utilisateur" Variant="Variant.Outlined" Required="true"
-                  RequiredError="Le nom d'utilisateur est requis" @bind-Value="loginDto.Username" />
+                  RequiredError="Le nom d'utilisateur est requis" @bind-Value="loginDto.Username"/>
     
     <!-- Mot de passe -->
     <MudTextField T="string" Label="Mot de passe" Variant="Variant.Outlined" InputType="InputType.Password"
