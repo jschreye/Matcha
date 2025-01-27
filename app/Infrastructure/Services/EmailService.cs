@@ -1,4 +1,4 @@
-using Core.Interfaces;
+using Core.Interfaces.Services;
 using Core.Data.Mail;
 
 using System.Net;

@@ -1,4 +1,4 @@
-using Core.Interfaces;
+using Core.Interfaces.Services;
 using BCrypt.Net;
 
 namespace Infrastructure.Services

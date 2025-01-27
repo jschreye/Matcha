@@ -7,6 +7,6 @@ namespace Core.Data.Entity
         public byte[] ImageData { get; set; } = Array.Empty<byte>(); 
         public bool EstProfil { get; set; }
 
-        public virtual User User { get; set; }
+        public virtual  User User { get; set; } = new User();
     }
 }

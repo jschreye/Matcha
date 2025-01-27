@@ -1,7 +1,7 @@
 using Core.Data.DTOs;
 using Core.Data.Entity;
 
-namespace Core.Repository
+namespace Core.Interfaces.Repository
 {
     public interface IUserRepository
     {
@@ -10,5 +10,6 @@ namespace Core.Repository
         Task Add(User user);
         Task Update(User user);
         Task<User?> FindByUsernameAsync(string username);
+        Task<string?> GetPasswordHashByUsernameAsync(string username);
     }
 }

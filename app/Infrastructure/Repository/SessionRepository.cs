@@ -1,6 +1,6 @@
-using Core.Interfaces;
 using MySql.Data.MySqlClient;
-using Core.Repository;
+using Core.Interfaces.Services;
+using Core.Interfaces.Repository;
 
 namespace Infrastructure.Repository
 {
