@@ -37,7 +37,8 @@ namespace Presentation.Controllers // Remplacez par votre espace de noms appropr
                 // Créer les claims et l'identité pour le cookie d'authentification
                 var claims = new List<Claim>
                 {
-                    new Claim(ClaimTypes.Name, username)
+                    new Claim(ClaimTypes.Name, username),
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
                     // Ajoutez d'autres claims si nécessaire
                 };
                 var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);

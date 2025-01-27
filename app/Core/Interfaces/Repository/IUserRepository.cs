@@ -11,5 +11,7 @@ namespace Core.Interfaces.Repository
         Task Update(User user);
         Task<User?> FindByUsernameAsync(string username);
         Task<string?> GetPasswordHashByUsernameAsync(string username);
+        Task<User?> GetByIdAsync(int id);
+        Task UpdateUserAsync(User user);
     }
 }

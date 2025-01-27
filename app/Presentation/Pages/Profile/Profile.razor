@@ -1,0 +1,125 @@
+@page "/profile"
+@using Core.Data.DTOs
+@using Core.Interfaces.Services
+@using System.Security.Claims
+@inject IUserService UserService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+
+<h3>Profil</h3>
+
+@if (isLoading)
+{
+    <p>Chargement...</p>
+}
+else if (errorMessage != null)
+{
+    <p class="text-danger">@errorMessage</p>
+}
+else if (userProfile != null)
+{
+    <EditForm Model="@userProfile" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="form-group">
+            <label for="firstname">Prénom</label>
+            <InputText id="firstname" class="form-control" @bind-Value="userProfile.Firstname" />
+        </div>
+        <div class="form-group">
+            <label for="lastname">Nom</label>
+            <InputText id="lastname" class="form-control" @bind-Value="userProfile.Lastname" />
+        </div>
+        <div class="form-group">
+            <label for="username">Nom d'utilisateur</label>
+            <InputText id="username" class="form-control" @bind-Value="userProfile.Username" />
+        </div>
+        <div class="form-group">
+            <label for="email">Email</label>
+            <InputText id="email" type="email" class="form-control" @bind-Value="userProfile.Email" />
+        </div>
+        <div class="form-group">
+            <label for="gender">Genre</label>
+            <InputSelect id="gender" class="form-control" @bind-Value="userProfile.Gender">
+                <option value="">Sélectionnez le genre</option>
+                <option value="Male">Masculin</option>
+                <option value="Female">Féminin</option>
+                <option value="Other">Autre</option>
+            </InputSelect>
+        </div>
+        <div class="form-group">
+            <label for="sexualPreferences">Préférences sexuelles</label>
+            <InputText id="sexualPreferences" class="form-control" @bind-Value="userProfile.SexualPreferences" />
+        </div>
+        <div class="form-group">
+            <label for="biography">Biographie</label>
+            <InputTextArea id="biography" class="form-control" @bind-Value="userProfile.Biography" />
+        </div>
+        <div class="form-group">
+            <label for="latitude">Latitude</label>
+            <InputNumber id="latitude" class="form-control" @bind-Value="userProfile.Latitude" />
+        </div>
+        <div class="form-group">
+            <label for="longitude">Longitude</label>
+            <InputNumber id="longitude" class="form-control" @bind-Value="userProfile.Longitude" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Enregistrer</button>
+    </EditForm>
+}
+
+@code {
+    private UserProfileDto? userProfile;
+    private bool isLoading = true;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity == null || !user.Identity.IsAuthenticated)
+        {
+            NavigationManager.NavigateTo("/login");
+            return;
+        }
+
+        // Récupérer l'ID utilisateur depuis les claims
+        var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null)
+        {
+            errorMessage = "Utilisateur non authentifié.";
+            isLoading = false;
+            return;
+        }
+
+        if (!int.TryParse(userIdClaim.Value, out var userId))
+        {
+            errorMessage = "Identifiant utilisateur invalide.";
+            isLoading = false;
+            return;
+        }
+
+        userProfile = await UserService.GetUserProfileAsync(userId);
+        if (userProfile == null)
+        {
+            errorMessage = "Impossible de charger le profil.";
+        }
+
+        isLoading = false;
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        var result = await UserService.UpdateUserProfileAsync(userProfile!);
+        if (result)
+        {
+            // Afficher un message de succès
+            errorMessage = "Profil mis à jour avec succès.";
+        }
+        else
+        {
+            errorMessage = "Échec de la mise à jour du profil.";
+        }
+    }
+}

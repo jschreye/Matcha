@@ -10,5 +10,7 @@ namespace Core.Interfaces.Services
         Task CreateSessionAsync(int userId, string sessionToken, DateTime expiresAt);
         Task<bool> ValidateSessionAsync(string sessionToken);
         Task DeleteSessionAsync(string sessionToken);
+        Task<UserProfileDto?> GetUserProfileAsync(int userId);
+        Task<bool> UpdateUserProfileAsync(UserProfileDto profileDto);
     }
 }
