@@ -1,9 +1,9 @@
 @page "/register"
-
+@using Core.Interfaces.Services;
 @using System.Text.RegularExpressions
 @using System.ComponentModel.DataAnnotations
 
-@inject IRegisterService RegisterService
+@inject IUserService UserService
 @inject NavigationManager NavigationManager
 
 
@@ -70,7 +70,7 @@
         Console.WriteLine("RegisterUser called");
         try
         {
-            await RegisterService.RegisterUser(registerModel);
+            await UserService.RegisterUser(registerModel);
             operationSuccess = true; // Indique que l'inscription est réussie
             message = "Inscription réussie ! Un email vous a été envoyé";
         }
@@ -97,7 +97,6 @@
         if (!Regex.IsMatch(pw, @"[0-9]"))
             yield return "Le mot de passe doit contenir au moins un chiffre.";
     }
-
     private string PasswordMatch(string confirmPassword)
     {
         if (registerModel.Password != confirmPassword)

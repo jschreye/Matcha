@@ -1,8 +1,8 @@
-using Core.Repository;
 using MySql.Data.MySqlClient;
 using Microsoft.Extensions.Configuration;
 using Core.Data.DTOs;
 using Core.Data.Entity;
+using Core.Interfaces.Repository;
 
 namespace Infrastructure.Repository
 {
@@ -171,6 +171,18 @@ namespace Infrastructure.Repository
             command.Parameters.AddWithValue("@Id", user.Id);
 
             await command.ExecuteNonQueryAsync();
+        }
+        public async Task<string?> GetPasswordHashByUsernameAsync(string username)
+        {
+            using var connection = new MySqlConnection(_connectionString);
+            await connection.OpenAsync();
+
+            var query = "SELECT password_hash FROM users WHERE username=@username";
+            using var command = new MySqlCommand(query, connection);
+            command.Parameters.AddWithValue("@username", username);
+
+            var dbPasswordHash = await command.ExecuteScalarAsync() as string;
+            return dbPasswordHash;
         }
     }
 }

@@ -1,7 +1,7 @@
-using Core.Interfaces;
+using Core.Interfaces.Services;
+using Core.Interfaces.Repository;
 using Infrastructure.Services;
 using Infrastructure.Repository;
-using Core.Repository;
 using MudBlazor.Services;
 using Core.Data.Mail;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -44,7 +44,6 @@ builder.Services.AddScoped<AuthenticationStateProvider, ServerAuthenticationStat
 
 // Ajouter les services personnalisés
 builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IRegisterService, RegisterService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 

@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Core.Interfaces;
-using Core.Repository;
+using Core.Interfaces.Services;
+using Core.Interfaces.Repository;
 
 namespace Presentation.Controllers // Remplacez par votre espace de noms approprié
 {
