@@ -184,5 +184,103 @@ namespace Infrastructure.Repository
             var dbPasswordHash = await command.ExecuteScalarAsync() as string;
             return dbPasswordHash;
         }
+        public async Task<User?> GetByIdAsync(int id)
+        {
+            using var connection = new MySqlConnection(_connectionString);
+            await connection.OpenAsync();
+
+            var command = new MySqlCommand(@"
+                SELECT 
+                    id, firstname, lastname, username, email, 
+                    password_hash, isactive, activationtoken, passwordresettoken, 
+                    gender, sexual_preferences, biography, 
+                    ST_AsText(gps_location) as gps_location,
+                    popularity_score,
+                    created_at 
+                FROM users 
+                WHERE id = @Id", connection);
+            command.Parameters.AddWithValue("@Id", id);
+
+            using var reader = await command.ExecuteReaderAsync();
+            if (await reader.ReadAsync())
+            {
+                var user = new User
+                {
+                    Id = reader.GetInt32(reader.GetOrdinal("id")),
+                    Firstname = reader.GetString(reader.GetOrdinal("firstname")),
+                    Lastname = reader.GetString(reader.GetOrdinal("lastname")),
+                    Username = reader.GetString(reader.GetOrdinal("username")),
+                    Email = reader.GetString(reader.GetOrdinal("email")),
+                    PasswordHash = reader.IsDBNull(reader.GetOrdinal("password_hash")) ? null : reader.GetString(reader.GetOrdinal("password_hash")),
+                    IsActive = !reader.IsDBNull(reader.GetOrdinal("isactive")) && reader.GetBoolean(reader.GetOrdinal("isactive")),
+                    ActivationToken = reader.IsDBNull(reader.GetOrdinal("activationtoken")) ? null : reader.GetString(reader.GetOrdinal("activationtoken")),
+                    PasswordResetToken = reader.IsDBNull(reader.GetOrdinal("passwordresettoken")) ? null : reader.GetString(reader.GetOrdinal("passwordresettoken")),
+                    Gender = reader.IsDBNull(reader.GetOrdinal("gender")) ? null : reader.GetString(reader.GetOrdinal("gender")),
+                    SexualPreferences = reader.IsDBNull(reader.GetOrdinal("sexual_preferences")) ? null : reader.GetString(reader.GetOrdinal("sexual_preferences")),
+                    Biography = reader.IsDBNull(reader.GetOrdinal("biography")) ? null : reader.GetString(reader.GetOrdinal("biography")),
+                    Latitude = reader.IsDBNull(reader.GetOrdinal("gps_location")) ? (double?)null : ParseLatitude(reader.GetString(reader.GetOrdinal("gps_location"))),
+                    Longitude = reader.IsDBNull(reader.GetOrdinal("gps_location")) ? (double?)null : ParseLongitude(reader.GetString(reader.GetOrdinal("gps_location"))),
+                    PopularityScore = reader.GetInt32(reader.GetOrdinal("popularity_score")),
+                    CreatedAt = reader.GetDateTime(reader.GetOrdinal("created_at"))
+                };
+                return user;
+            }
+            return null;
+        }
+
+        private double ParseLatitude(string point)
+        {
+            var parts = point.Replace("POINT(", "").Replace(")", "").Split(' ');
+            if (parts.Length == 2 && double.TryParse(parts[1], out var lat))
+                return lat;
+            return 0.0;
+        }
+
+        private double ParseLongitude(string point)
+        {
+            var parts = point.Replace("POINT(", "").Replace(")", "").Split(' ');
+            if (parts.Length == 2 && double.TryParse(parts[0], out var lon))
+                return lon;
+            return 0.0;
+        }
+
+        public async Task UpdateUserAsync(User user)
+        {
+            using var connection = new MySqlConnection(_connectionString);
+            await connection.OpenAsync();
+
+            var query = @"
+                UPDATE users 
+                SET 
+                    firstname = @Firstname,
+                    lastname = @Lastname,
+                    username = @Username,
+                    email = @Email,
+                    gender = @Gender,
+                    sexual_preferences = @SexualPreferences,
+                    biography = @Biography,
+                    gps_location = ST_GeomFromText(@GpsLocation)
+                WHERE id = @Id";
+
+            using var command = new MySqlCommand(query, connection);
+            command.Parameters.AddWithValue("@Firstname", user.Firstname ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@Lastname", user.Lastname ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@Username", user.Username ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@Email", user.Email ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@Gender", user.Gender ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@SexualPreferences", user.SexualPreferences ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@Biography", user.Biography ?? (object)DBNull.Value);
+            if (user.Latitude.HasValue && user.Longitude.HasValue)
+            {
+                command.Parameters.AddWithValue("@GpsLocation", $"POINT({user.Longitude.Value} {user.Latitude.Value})");
+            }
+            else
+            {
+                command.Parameters.AddWithValue("@GpsLocation", DBNull.Value);
+            }
+            command.Parameters.AddWithValue("@Id", user.Id);
+
+            await command.ExecuteNonQueryAsync();
+        }
     }
 }

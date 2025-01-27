@@ -96,4 +96,47 @@ public class UserService : IUserService
     {
         await _sessionRepository.DeleteSessionAsync(sessionToken);
     }
+    public async Task<UserProfileDto?> GetUserProfileAsync(int userId)
+    {
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null)
+            return null;
+
+        return new UserProfileDto
+        {
+            Id = user.Id,
+            Email = user.Email,
+            Username = user.Username,
+            Lastname = user.Lastname,
+            Firstname = user.Firstname,
+            Gender = user.Gender,
+            SexualPreferences = user.SexualPreferences,
+            Biography = user.Biography,
+            Latitude = user.Latitude,
+            Longitude = user.Longitude,
+            PopularityScore = user.PopularityScore
+        };
+    }
+
+    public async Task<bool> UpdateUserProfileAsync(UserProfileDto profileDto)
+    {
+        var user = await _userRepository.GetByIdAsync(profileDto.Id);
+        if (user == null)
+            return false;
+
+        // Mise à jour des champs autorisés
+        user.Firstname = profileDto.Firstname;
+        user.Lastname = profileDto.Lastname;
+        user.Username = profileDto.Username;
+        user.Email = profileDto.Email;
+        user.Gender = profileDto.Gender;
+        user.SexualPreferences = profileDto.SexualPreferences;
+        user.Biography = profileDto.Biography;
+        user.Latitude = profileDto.Latitude;
+        user.Longitude = profileDto.Longitude;
+
+        await _userRepository.UpdateUserAsync(user);
+
+        return true;
+    }
 }
