@@ -1,3 +1,25 @@
+CREATE TABLE IF NOT EXISTS genre (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    libelle VARCHAR(20) NOT NULL UNIQUE
+) ENGINE=InnoDB;
+
+-- 2. Insérer les données dans la table genre
+INSERT INTO genre (libelle) VALUES
+('Homme'),
+('Femme'),
+('Autre');
+
+
+CREATE TABLE IF NOT EXISTS prefsex (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    libelle VARCHAR(20) NOT NULL UNIQUE
+) ENGINE=InnoDB;
+
+INSERT INTO prefsex (libelle) VALUES
+('Hetero'),
+('Gay'),
+('Bisexual');
+
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     email VARCHAR(100) NOT NULL UNIQUE,
@@ -5,15 +27,17 @@ CREATE TABLE IF NOT EXISTS users (
     lastname VARCHAR(50) NOT NULL,
     firstname VARCHAR(50) NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
-    gender VARCHAR(20),                -- Genre de l'utilisateur
-    sexual_preferences VARCHAR(100),   -- Préférences sexuelles
+    genre_id INT,                -- Genre de l'utilisateur
+    sexual_preferences_id INT,   -- Préférences sexuelles
     biography TEXT,                    -- Biographie
     gps_location POINT,                -- Localisation GPS (optionnel, peut utiliser lat/long séparément)
     popularity_score INT DEFAULT 0,    -- Score de popularité
     isactive BOOLEAN DEFAULT FALSE,
     activationtoken VARCHAR(255),
     passwordresettoken VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (genre_id) REFERENCES genre(id),
+    FOREIGN KEY (sexual_preferences_id) REFERENCES prefsex(id)
 ) ENGINE=InnoDB;
 
 -- Table Photos

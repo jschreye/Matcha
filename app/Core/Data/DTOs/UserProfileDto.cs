@@ -20,9 +20,9 @@ public class UserProfileDto
     [StringLength(50, MinimumLength = 1)]
     public string Firstname { get; set; } = string.Empty;
 
-    public string? Gender { get; set; }
+    public int? Gender { get; set; }
 
-    public string? SexualPreferences { get; set; }
+    public int? SexualPreferences { get; set; }
 
     public string? Biography { get; set; }
 
