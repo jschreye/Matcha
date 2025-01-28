@@ -8,10 +8,30 @@
 </MudDrawerHeader>
 
 <MudNavMenu Color="Color.Inherit" class="d-flex flex-column h-100">
-    <MudNavLink Href="/about">A propos</MudNavLink>
-    <MudNavLink Href="/contact">Contact</MudNavLink>
-    <MudNavLink Href="/features">Fonctionnalités</MudNavLink>
-    <div class="mt-auto mb-5">
+    @if (!isAuthenticated)
+    {
+        <!-- About, Contact, Features placés en bas pour les utilisateurs connectés -->
+        <MudNavLink Href="/about">A propos</MudNavLink>
+        <MudNavLink Href="/contact">Contact</MudNavLink>
+        <MudNavLink Href="/features">Fonctionnalités</MudNavLink>
+    }
+    @if (isAuthenticated)
+    {
+        <!-- Liens spécifiques pour les utilisateurs connectés -->
+        <MudNavLink Href="/dashboard">Dashboard</MudNavLink>
+        <MudNavLink Href="/search">Recherche</MudNavLink>
+        <MudNavLink Href="/notification">Notifications</MudNavLink>
+    }
+    
+    <!-- Section de bas de navigation -->
+    <div class="mt-auto mb-4">
+        @if (isAuthenticated)
+        {
+            <!-- About, Contact, Features placés en bas pour les utilisateurs connectés -->
+            <MudNavLink Href="/about">A propos</MudNavLink>
+            <MudNavLink Href="/contact">Contact</MudNavLink>
+            <MudNavLink Href="/features">Fonctionnalités</MudNavLink>
+        }
         <MudNavLink Href="/privacy-policy">Politique de Confidentialité</MudNavLink>
         <MudNavLink Href="/terms-of-use">Mentions Légales</MudNavLink>
         <MudNavLink Href="/faq">FAQ</MudNavLink>
@@ -73,6 +93,13 @@
 </MudNavMenu>
 
 @code {
+    private bool isAuthenticated;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        isAuthenticated = authState.User.Identity != null && authState.User.Identity.IsAuthenticated;
+    }
     private void NavigateHome()
     {
         NavigationManager.NavigateTo("/");
