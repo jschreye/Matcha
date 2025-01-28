@@ -117,7 +117,7 @@ namespace Presentation.Controllers // Remplacez par votre espace de noms appropr
         public async Task<IActionResult> RequestPasswordReset([FromForm] string email)
         {
             var user = await _userRepository.GetByEmail(email);
-            if (user == null) return NotFound("Utilisateur non trouvé.");
+            if (user == null) return NotFound(new { Message = "Utilisateur non trouvé." });
 
             // Générer un token de réinitialisation
             user.PasswordResetToken = Guid.NewGuid().ToString();
@@ -135,7 +135,7 @@ namespace Presentation.Controllers // Remplacez par votre espace de noms appropr
 
             await _emailService.SendEmailAsync(user.Email!, subject, body);
 
-            return Ok("Email de réinitialisation envoyé.");
+            return Ok(new { Message = "Email de réinitialisation envoyé." });
         }
 
         [HttpPost("reset-password")]

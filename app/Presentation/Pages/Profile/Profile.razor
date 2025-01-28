@@ -6,6 +6,7 @@
 @inject IUserService UserService
 @inject IGenreService GenreService
 @inject IPrefSexService PrefSexService
+@inject IAlertService AlertService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 
@@ -17,7 +18,7 @@
 }
 else if (userProfile != null)
 {
-    <MudForm @ref="form" @bind-IsValid="isFormValid" @bind-Errors="errors" Outlined="true">
+    <MudForm @ref="form" @bind-IsValid="isFormValid" Outlined="true">
         <!-- Prénom -->
         <MudTextField T="string" Label="Prénom" Variant="Variant.Outlined" @bind-Value="userProfile.Firstname" Required="true" RequiredError="Le prénom est requis" />
         
@@ -75,20 +76,10 @@ else if (userProfile != null)
     </MudForm>
 }
 
-@if (!string.IsNullOrEmpty(message))
-{
-    <MudAlert class="mt-5" Severity="@(operationSuccess ? Severity.Success : Severity.Error)" Elevation="2">
-        @message
-    </MudAlert>
-}
-
 @code {
     private UserProfileDto? userProfile;
-    private string message = string.Empty; // Message d'erreur ou de succès
-    private bool operationSuccess;        // Indique le succès ou l'échec de l'opération
     private bool isLoading = true;
     private bool isFormValid;
-    private string[] errors = { };
     private MudForm form;
     private List<Genre> genre;
     private List<PrefSex> prefSex;
@@ -107,8 +98,7 @@ else if (userProfile != null)
         var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier);
         if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
         {
-            message = "Erreur : utilisateur non authentifié.";
-            operationSuccess = false;
+            AlertService.ShowMessage("Erreur : utilisateur non authentifié.", false);
             isLoading = false;
             return;
         }
@@ -121,8 +111,7 @@ else if (userProfile != null)
         }
         catch (Exception ex)
         {
-            message = $"Erreur lors du chargement du profil : {ex.Message}";
-            operationSuccess = false;
+            AlertService.ShowMessage($"Erreur lors du chargement du profil : {ex.Message}", false);
         }
 
         isLoading = false;
@@ -135,19 +124,16 @@ else if (userProfile != null)
             var result = await UserService.UpdateUserProfileAsync(userProfile!);
             if (result)
             {
-                message = "Profil mis à jour avec succès.";
-                operationSuccess = true;
+                AlertService.ShowMessage("Profil mis à jour avec succès.", true);
             }
             else
             {
-                message = "Échec de la mise à jour du profil.";
-                operationSuccess = false;
+                AlertService.ShowMessage("Échec de la mise à jour du profil.", false);
             }
         }
         catch (Exception ex)
         {
-            message = $"Erreur : {ex.Message}";
-            operationSuccess = false;
+            AlertService.ShowMessage($"Erreur : {ex.Message}", false);
         }
     }
 }

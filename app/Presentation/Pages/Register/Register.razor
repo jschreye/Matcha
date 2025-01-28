@@ -2,14 +2,13 @@
 @using Core.Interfaces.Services;
 @using System.Text.RegularExpressions
 @using System.ComponentModel.DataAnnotations
-
 @inject IUserService UserService
+@inject IAlertService AlertService
 @inject NavigationManager NavigationManager
-
 
 <MudText Typo="Typo.h3">Inscription</MudText>
 
-<MudForm @ref="form" @bind-IsValid="isFormValid" @bind-Errors="errors" Outlined="true">
+<MudForm @ref="form" @bind-IsValid="isFormValid" Outlined="true">
     <!-- Nom -->
     <MudTextField T="string" Label="Nom" Variant="Variant.Outlined" Required="true" RequiredError="Le nom est requis" @bind-Value="registerModel.Lastname"/>
     
@@ -49,20 +48,10 @@
     </div>
 </MudForm>   
 
-@if (!string.IsNullOrEmpty(message))
-{
-    <MudAlert class="mt-5" Severity="@(operationSuccess ? Severity.Success : Severity.Error)" Elevation="2">
-        @message
-    </MudAlert>
-}
 
 @code {
     private RegisterDto registerModel = new RegisterDto();
-    private string message = string.Empty;
     private bool isFormValid;
-    private bool operationSuccess;
-    private string[] errors = { };
-    private MudTextField<string> pwField1;
     private MudForm form;
 
     private async Task RegisterUser()
@@ -71,13 +60,12 @@
         try
         {
             await UserService.RegisterUser(registerModel);
-            operationSuccess = true; // Indique que l'inscription est réussie
-            message = "Inscription réussie ! Un email vous a été envoyé";
+            AlertService.ShowMessage("Inscription réussie ! Un email vous a été envoyé", true);
+            NavigationManager.NavigateTo("/login");
         }
         catch (Exception ex)
         {
-            operationSuccess = false; // Indique un échec
-            message = ex.Message; // Affiche le message d'erreur
+            AlertService.ShowMessage($"Erreur lors de l'inscription : {ex.Message}", false);
         }
     }
 

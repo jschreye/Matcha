@@ -5,12 +5,8 @@ using Infrastructure.Repository;
 using MudBlazor.Services;
 using Core.Data.Mail;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Server;
 using Microsoft.AspNetCore.Components.Authorization;
-using Presentation.Middlewares;
 var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -48,6 +44,7 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IGenreService, GenreService>();
 builder.Services.AddScoped<IPrefSexService, PrefSexService>();
+builder.Services.AddScoped<IAlertService, AlertService>();
 
 // Ajouter les repository
 builder.Services.AddScoped<IUserRepository, UserRepository>();

@@ -1,9 +1,10 @@
 @page "/request-reset"
 @inject HttpClient Http
+@inject IAlertService AlertService
 
 <MudText Typo="Typo.h3">Réinitialiser le mot de passe</MudText>
 
-<MudForm @ref="form" @bind-IsValid="@isFormValid" @bind-Errors="@errors" Outlined="true">
+<MudForm @ref="form" @bind-IsValid="@isFormValid" Outlined="true">
     <!-- Email -->
     <MudTextField T="string" Label="Email" Variant="Variant.Outlined" Required="true"
                   RequiredError="L'email est requis" Validation="@(new EmailAddressAttribute())" 
@@ -17,19 +18,10 @@
     </div>
 </MudForm>
 
-@if (!string.IsNullOrEmpty(message))
-{
-    <MudAlert class="mt-5" Severity="@(operationSuccess ? Severity.Success : Severity.Error)" Elevation="2">
-        @message
-    </MudAlert>
-}
 
 @code {
     private string email;
-    private string message = string.Empty;
     private bool isFormValid;
-    private bool operationSuccess;
-    private string[] errors = { };
     private MudForm form;
 
     protected override void OnInitialized()
@@ -42,8 +34,7 @@
     {
         if (!isFormValid)
         {
-            message = "Veuillez remplir correctement le formulaire.";
-            operationSuccess = false;
+            AlertService.ShowMessage("Veuillez remplir correctement le formulaire.", false);
             return;
         }
 
@@ -52,16 +43,27 @@
             new KeyValuePair<string, string>("email", email)
         });
 
-        var response = await Http.PostAsync("auth/request-password-reset", content);
-        if (response.IsSuccessStatusCode)
+        try
         {
-            message = "Email de réinitialisation envoyé. Veuillez vérifier votre boîte de réception.";
-            operationSuccess = true;
+            var response = await Http.PostAsync("auth/request-password-reset", content);
+            if (response.IsSuccessStatusCode)
+            {
+                AlertService.ShowMessage("Email de réinitialisation envoyé. Veuillez vérifier votre boîte de réception.", true);
+            }
+            else
+            {
+                var errorResponse = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+                AlertService.ShowMessage($"Erreur : {errorResponse?.Message}", false);
+            }
         }
-        else
+        catch (Exception ex)
         {
-            message = "Erreur lors de la demande.";
-            operationSuccess = false;
+            AlertService.ShowMessage($"Une erreur s'est produite : {ex.Message}", false);
         }
+    }
+
+    private class ErrorResponse
+    {
+        public string? Message { get; set; }
     }
 }

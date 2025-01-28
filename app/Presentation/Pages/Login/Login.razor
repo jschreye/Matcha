@@ -1,12 +1,13 @@
 @page "/login"
 @inject IJSRuntime JS
 @inject NavigationManager Navigation
+@inject IAlertService AlertService
 @using Core.Data.DTOs
 @using System.ComponentModel.DataAnnotations
 
 <MudText Typo="Typo.h3">Connexion</MudText>
 
-<MudForm @ref="form" @bind-IsValid="@isFormValid" @bind-Errors="@errors" Outlined="true">
+<MudForm @ref="form" @bind-IsValid="@isFormValid" Outlined="true">
     <!-- Nom d'utilisateur -->
     <MudTextField T="string" Label="Nom d'utilisateur" Variant="Variant.Outlined" Required="true"
                   RequiredError="Le nom d'utilisateur est requis" @bind-Value="loginDto.Username"/>
@@ -31,21 +32,12 @@
     </div>
 </MudForm>
 
-
-@if (!string.IsNullOrEmpty(message))
-{
-    <MudAlert class="mt-5" Severity="@(operationSuccess ? Severity.Success : Severity.Error)" Elevation="2">
-        @message
-    </MudAlert>
-}
-
 @code {
     private LoginDto loginDto = new LoginDto();
     private MudForm form;
     private string message = string.Empty;
     private bool isFormValid;
     private bool operationSuccess;
-    private string[] errors = { };
 
     private async Task HandleLogin()
     {
@@ -53,12 +45,12 @@
         operationSuccess = await JS.InvokeAsync<bool>("login", loginDto.Username, loginDto.Password);
         if (operationSuccess)
         {
-            message = "Connexion réussie !";
+            AlertService.ShowMessage("Connexion réussie !", true);
             Navigation.NavigateTo("/", true);
         }
         else
         {
-            message = "Nom d'utilisateur ou mot de passe incorrect.";
+            AlertService.ShowMessage("Nom d'utilisateur ou mot de passe incorrect.", false);
         }
     }
 

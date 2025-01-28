@@ -4,7 +4,6 @@
 <MudDialogProvider />
 <MudSnackbarProvider />
 <MudPopoverProvider />
-@* <MudBreakpointProvider /> *@
 
 <MudLayout id="unique_id_scroll_section" Style="height: 100vh; overflow-y: auto;">
     <!-- AppBar en haut de l'application -->
@@ -19,6 +18,15 @@
     <MudMainContent Class="pt-16 px-4">
         <MudContainer Class="mt-6">
             @Body
+            <!-- Affichage des alertes -->
+            @if (!string.IsNullOrEmpty(_message))
+            {
+                <div class="alert-container @(isVisible ? "alert-slide-in" : "alert-slide-out")">
+                    <MudAlert class="mt-5" Severity="@(isSuccess ? Severity.Success : Severity.Error)" Elevation="2">
+                        @_message
+                    </MudAlert>
+                </div>
+            }
             <MudScrollToTop TopOffset="100"
                             Selector="#unique_id_scroll_section"
                             VisibleCssClass="visible fixed bottom-4 right-4"
@@ -33,8 +41,71 @@
 
 @code {
     private bool _drawerOpen = false;
+    private string _message = string.Empty;
+    private bool isSuccess;
+    private bool isVisible = false;
 
-    [Inject] private NavigationManager NavigationManager { get; set; }
+    private CancellationTokenSource _cancellationTokenSource;
+
+    [Inject] private Core.Interfaces.Services.IAlertService AlertService { get; set; }
+
+    protected override void OnInitialized()
+    {
+        AlertService.OnMessageChanged += HandleAlertMessage;
+    }
+
+    private void HandleAlertMessage(string message, bool success)
+    {
+        // Annule tout délai en cours avant de gérer le nouveau message
+        _cancellationTokenSource?.Cancel();
+        _cancellationTokenSource = new CancellationTokenSource();
+
+        _message = message;
+        isSuccess = success;
+        isVisible = true;
+
+        InvokeAsync(StateHasChanged);
+
+        // Effacer l'alerte après un délai, sauf si un nouveau message arrive
+        Task.Delay(5000, _cancellationTokenSource.Token).ContinueWith(task =>
+        {
+            if (!task.IsCanceled)
+            {
+                isVisible = false;
+                InvokeAsync(StateHasChanged);
+
+                // Effacer complètement après l'animation de disparition
+                Task.Delay(500, _cancellationTokenSource.Token).ContinueWith(_ =>
+                {
+                    if (!_cancellationTokenSource.Token.IsCancellationRequested)
+                    {
+                        _message = string.Empty;
+                        InvokeAsync(StateHasChanged);
+                    }
+                });
+            }
+        });
+    }
+
+    private void CloseAlert()
+    {
+        _cancellationTokenSource?.Cancel(); // Annule tout délai en cours
+        isVisible = false;
+
+        InvokeAsync(StateHasChanged);
+
+        Task.Delay(500).ContinueWith(_ =>
+        {
+            _message = string.Empty;
+            InvokeAsync(StateHasChanged);
+        });
+    }
+
+    public void Dispose()
+    {
+        AlertService.OnMessageChanged -= HandleAlertMessage;
+        _cancellationTokenSource?.Dispose(); // Nettoyage des ressources
+    }
 
     private void ToggleDrawer()
     {
