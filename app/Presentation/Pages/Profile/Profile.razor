@@ -2,62 +2,96 @@
 @using Core.Data.DTOs
 @using Core.Interfaces.Services
 @using System.Security.Claims
+@using Core.Data.Entity
 @inject IUserService UserService
+@inject IGenreService GenreService
+@inject IPrefSexService PrefSexService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 
-<h3>Profil</h3>
+<MudText Typo="Typo.h3">Profil</MudText>
 
 @if (isLoading)
 {
-    <p>Chargement...</p>
-}
-else if (errorMessage != null)
-{
-    <p class="text-danger">@errorMessage</p>
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
 }
 else if (userProfile != null)
 {
-    <EditForm Model="@userProfile" OnValidSubmit="HandleValidSubmit">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
+    <MudForm @ref="form" @bind-IsValid="isFormValid" @bind-Errors="errors" Outlined="true">
+        <!-- Prénom -->
+        <MudTextField T="string" Label="Prénom" Variant="Variant.Outlined" @bind-Value="userProfile.Firstname" Required="true" RequiredError="Le prénom est requis" />
+        
+        <!-- Nom -->
+        <MudTextField T="string" Label="Nom" Variant="Variant.Outlined" @bind-Value="userProfile.Lastname" Required="true" RequiredError="Le nom est requis" />
+        
+        <!-- Nom d'utilisateur -->
+        <MudTextField T="string" Label="Nom d'utilisateur" Variant="Variant.Outlined" @bind-Value="userProfile.Username" Required="true" RequiredError="Le nom d'utilisateur est requis" />
+        
+        <!-- Email -->
+        <MudTextField T="string" Label="Email" Variant="Variant.Outlined" InputType="InputType.Email" @bind-Value="userProfile.Email" Required="true" RequiredError="L'email est requis" />
+        
+        <!-- Genre -->
+        <MudSelect T="int?" Label="Genre" Variant="Variant.Outlined" @bind-Value="userProfile.Genre" Required="true">
+            @if (genre != null)
+            {
+                @foreach (var g in genre)
+                {
+                    <MudSelectItem T="int?" Value="@g.Id">@g.Libelle</MudSelectItem>
+                }
+            }
+        </MudSelect>
 
-        <div class="form-group">
-            <label for="firstname">Prénom</label>
-            <InputText id="firstname" class="form-control" @bind-Value="userProfile.Firstname" />
+        <!-- PrefSex -->
+        <MudSelect T="int?" Label="SexualPreferences" Variant="Variant.Outlined" @bind-Value="userProfile.SexualPreferences" Required="true">
+            @if (prefSex != null)
+            {
+                @foreach (var p in prefSex)
+                {
+                    <MudSelectItem T="int?" Value="@p.Id">@p.Libelle</MudSelectItem>
+                }
+            }
+        </MudSelect>
+        
+        <!-- Biographie -->
+        <MudTextField T="string" Label="Biographie" Variant="Variant.Outlined" Lines="3" @bind-Value="userProfile.Biography" />
+        
+        <!-- Latitude -->
+        <MudNumericField T="double?" Label="Latitude" Variant="Variant.Outlined" @bind-Value="userProfile.Latitude" />
+        
+        <!-- Longitude -->
+        <MudNumericField T="double?" Label="Longitude" Variant="Variant.Outlined" @bind-Value="userProfile.Longitude" />
+        
+        <!-- Boutons -->
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <MudButton Variant="Variant.Text" Color="Color.Primary" DropShadow="false" OnClick="@(() => form.Validate())">Valider</MudButton>
+                <MudButton Variant="Variant.Text" Color="Color.Secondary" DropShadow="false" OnClick="@(() => form.ResetAsync())" Class="mx-2">Réinitialiser</MudButton>
+                <MudButton Variant="Variant.Text" DropShadow="false" OnClick="@(() => form.ResetValidation())">Réinitialiser la validation</MudButton>
+            </div>
+            <div>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" Disabled="@(!isFormValid)" OnClick="UpdateUserProfile">Enregistrer</MudButton>
+            </div>
         </div>
-        <div class="form-group">
-            <label for="lastname">Nom</label>
-            <InputText id="lastname" class="form-control" @bind-Value="userProfile.Lastname" />
-        </div>
-        <div class="form-group">
-            <label for="username">Nom d'utilisateur</label>
-            <InputText id="username" class="form-control" @bind-Value="userProfile.Username" />
-        </div>
-        <div class="form-group">
-            <label for="email">Email</label>
-            <InputText id="email" type="email" class="form-control" @bind-Value="userProfile.Email" />
-        </div>
-        <div class="form-group">
-            <label for="biography">Biographie</label>
-            <InputTextArea id="biography" class="form-control" @bind-Value="userProfile.Biography" />
-        </div>
-        <div class="form-group">
-            <label for="latitude">Latitude</label>
-            <InputNumber id="latitude" class="form-control" @bind-Value="userProfile.Latitude" />
-        </div>
-        <div class="form-group">
-            <label for="longitude">Longitude</label>
-            <InputNumber id="longitude" class="form-control" @bind-Value="userProfile.Longitude" />
-        </div>
-        <button type="submit" class="btn btn-primary">Enregistrer</button>
-    </EditForm>
+    </MudForm>
+}
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <MudAlert class="mt-5" Severity="@(operationSuccess ? Severity.Success : Severity.Error)" Elevation="2">
+        @message
+    </MudAlert>
 }
 
 @code {
     private UserProfileDto? userProfile;
+    private string message = string.Empty; // Message d'erreur ou de succès
+    private bool operationSuccess;        // Indique le succès ou l'échec de l'opération
     private bool isLoading = true;
-    private string? errorMessage;
+    private bool isFormValid;
+    private string[] errors = { };
+    private MudForm form;
+    private List<Genre> genre;
+    private List<PrefSex> prefSex;
 
     protected override async Task OnInitializedAsync()
     {
@@ -70,42 +104,50 @@ else if (userProfile != null)
             return;
         }
 
-        // Récupérer l'ID utilisateur depuis les claims
         var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier);
-        if (userIdClaim == null)
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
         {
-            errorMessage = "Utilisateur non authentifié.";
+            message = "Erreur : utilisateur non authentifié.";
+            operationSuccess = false;
             isLoading = false;
             return;
         }
 
-        if (!int.TryParse(userIdClaim.Value, out var userId))
+        try
         {
-            errorMessage = "Identifiant utilisateur invalide.";
-            isLoading = false;
-            return;
+            userProfile = await UserService.GetUserProfileAsync(userId);
+            genre = await GenreService.GetGenresAsync();
+            prefSex = await PrefSexService.GetPrefSexAsync();
         }
-
-        userProfile = await UserService.GetUserProfileAsync(userId);
-        if (userProfile == null)
+        catch (Exception ex)
         {
-            errorMessage = "Impossible de charger le profil.";
+            message = $"Erreur lors du chargement du profil : {ex.Message}";
+            operationSuccess = false;
         }
 
         isLoading = false;
     }
 
-    private async Task HandleValidSubmit()
+    private async Task UpdateUserProfile()
     {
-        var result = await UserService.UpdateUserProfileAsync(userProfile!);
-        if (result)
+        try
         {
-            // Afficher un message de succès
-            errorMessage = "Profil mis à jour avec succès.";
+            var result = await UserService.UpdateUserProfileAsync(userProfile!);
+            if (result)
+            {
+                message = "Profil mis à jour avec succès.";
+                operationSuccess = true;
+            }
+            else
+            {
+                message = "Échec de la mise à jour du profil.";
+                operationSuccess = false;
+            }
         }
-        else
+        catch (Exception ex)
         {
-            errorMessage = "Échec de la mise à jour du profil.";
+            message = $"Erreur : {ex.Message}";
+            operationSuccess = false;
         }
     }
 }
