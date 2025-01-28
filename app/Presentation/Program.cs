@@ -46,10 +46,14 @@ builder.Services.AddScoped<AuthenticationStateProvider, ServerAuthenticationStat
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+builder.Services.AddScoped<IGenreService, GenreService>();
+builder.Services.AddScoped<IPrefSexService, PrefSexService>();
 
 // Ajouter les repository
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ISessionRepository>(sp => new SessionRepository(connectionString));
+builder.Services.AddScoped<IGenreRepository, GenreRepository>();
+builder.Services.AddScoped<IPrefSexRepository, PrefSexRepository>();
 
 var app = builder.Build();
 

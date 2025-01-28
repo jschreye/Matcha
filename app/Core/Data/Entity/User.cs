@@ -15,9 +15,9 @@ namespace Core.Data.Entity
         
         public string PasswordHash { get; set; } = string.Empty;
         
-        public string? Gender { get; set; }
+        public int? Gender { get; set; }
         
-        public string? SexualPreferences { get; set; }
+        public int? SexualPreferences { get; set; }
         
         public string? Biography { get; set; }
         
