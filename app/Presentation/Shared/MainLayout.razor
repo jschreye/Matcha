@@ -22,7 +22,7 @@
             @if (!string.IsNullOrEmpty(_message))
             {
                 <div class="alert-container @(isVisible ? "alert-slide-in" : "alert-slide-out")">
-                    <MudAlert class="mt-5" Severity="@(isSuccess ? Severity.Success : Severity.Error)" Elevation="2">
+                    <MudAlert class="mt-5" Severity="@(isSuccess ? Severity.Success : Severity.Error)" Elevation="2" Dense="true">
                         @_message
                     </MudAlert>
                 </div>
