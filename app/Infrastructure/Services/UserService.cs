@@ -109,7 +109,7 @@ public class UserService : IUserService
             Username = user.Username,
             Lastname = user.Lastname,
             Firstname = user.Firstname,
-            Gender = user.Gender,
+            Genre = user.Genre,
             SexualPreferences = user.SexualPreferences,
             Biography = user.Biography,
             Latitude = user.Latitude,
@@ -129,7 +129,7 @@ public class UserService : IUserService
         user.Lastname = profileDto.Lastname;
         user.Username = profileDto.Username;
         user.Email = profileDto.Email;
-        user.Gender = profileDto.Gender;
+        user.Genre = profileDto.Genre;
         user.SexualPreferences = profileDto.SexualPreferences;
         user.Biography = profileDto.Biography;
         user.Latitude = profileDto.Latitude;

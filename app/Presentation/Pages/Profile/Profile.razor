@@ -2,7 +2,10 @@
 @using Core.Data.DTOs
 @using Core.Interfaces.Services
 @using System.Security.Claims
+@using Core.Data.Entity
 @inject IUserService UserService
+@inject IGenreService GenreService
+@inject IPrefSexService PrefSexService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 
@@ -28,14 +31,26 @@ else if (userProfile != null)
         <MudTextField T="string" Label="Email" Variant="Variant.Outlined" InputType="InputType.Email" @bind-Value="userProfile.Email" Required="true" RequiredError="L'email est requis" />
         
         <!-- Genre -->
-        <MudSelect T="string" Label="Genre" Variant="Variant.Outlined" @bind-Value="userProfile.Gender" Required="true">
-            <MudSelectItem Value="@("Male")">Masculin</MudSelectItem>
-            <MudSelectItem Value="@("Female")">Féminin</MudSelectItem>
-            <MudSelectItem Value="@("Other")">Autre</MudSelectItem>
+        <MudSelect T="int?" Label="Genre" Variant="Variant.Outlined" @bind-Value="userProfile.Genre" Required="true">
+            @if (genre != null)
+            {
+                @foreach (var g in genre)
+                {
+                    <MudSelectItem T="int?" Value="@g.Id">@g.Libelle</MudSelectItem>
+                }
+            }
         </MudSelect>
-        
-        <!-- Préférences sexuelles -->
-        <MudTextField T="string" Label="Préférences sexuelles" Variant="Variant.Outlined" @bind-Value="userProfile.SexualPreferences" />
+
+        <!-- PrefSex -->
+        <MudSelect T="int?" Label="SexualPreferences" Variant="Variant.Outlined" @bind-Value="userProfile.SexualPreferences" Required="true">
+            @if (prefSex != null)
+            {
+                @foreach (var p in prefSex)
+                {
+                    <MudSelectItem T="int?" Value="@p.Id">@p.Libelle</MudSelectItem>
+                }
+            }
+        </MudSelect>
         
         <!-- Biographie -->
         <MudTextField T="string" Label="Biographie" Variant="Variant.Outlined" Lines="3" @bind-Value="userProfile.Biography" />
@@ -62,7 +77,7 @@ else if (userProfile != null)
 
 @if (!string.IsNullOrEmpty(message))
 {
-    <MudAlert Severity="@(operationSuccess ? Severity.Success : Severity.Error)" Elevation="2">
+    <MudAlert class="mt-5" Severity="@(operationSuccess ? Severity.Success : Severity.Error)" Elevation="2">
         @message
     </MudAlert>
 }
@@ -75,6 +90,8 @@ else if (userProfile != null)
     private bool isFormValid;
     private string[] errors = { };
     private MudForm form;
+    private List<Genre> genre;
+    private List<PrefSex> prefSex;
 
     protected override async Task OnInitializedAsync()
     {
@@ -99,6 +116,8 @@ else if (userProfile != null)
         try
         {
             userProfile = await UserService.GetUserProfileAsync(userId);
+            genre = await GenreService.GetGenresAsync();
+            prefSex = await PrefSexService.GetPrefSexAsync();
         }
         catch (Exception ex)
         {
