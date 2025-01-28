@@ -8,13 +8,6 @@
 
 <MudText Typo="Typo.h3">Profil</MudText>
 
-@if (!string.IsNullOrEmpty(message))
-{
-    <MudAlert Severity="@(operationSuccess ? Severity.Success : Severity.Error)" Elevation="2">
-        @message
-    </MudAlert>
-}
-
 @if (isLoading)
 {
     <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
@@ -65,6 +58,13 @@ else if (userProfile != null)
             </div>
         </div>
     </MudForm>
+}
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <MudAlert Severity="@(operationSuccess ? Severity.Success : Severity.Error)" Elevation="2">
+        @message
+    </MudAlert>
 }
 
 @code {

@@ -30,7 +30,14 @@
                         <MudNavLink Href="/security" Icon="@Icons.Material.Filled.Security" IconColor="Color.Info" Class="mud-menu-item">Security</MudNavLink>
                     </MudNavGroup>
                     <MudDivider Class="my-2" /> *@
-                    <MudMenuItem OnClick="Logout" Icon="@Icons.Material.Filled.Logout">Logout</MudMenuItem>
+                    <MudMenuItem Href="/profile">
+                        <MudIcon Icon="@Icons.Material.Filled.People" Class="mr-5" Style="@($"color:{Colors.DeepPurple.Accent4};")" />
+                        Profile
+                    </MudMenuItem>
+                    <MudMenuItem OnClick="Logout">
+                        <MudIcon Icon="@Icons.Material.Filled.Logout" Class="mr-5" Style="@($"color:{Colors.DeepPurple.Accent4};")" />
+                        Logout
+                    </MudMenuItem>
                 </ChildContent>
             </MudMenu>
         </Authorized>
