@@ -193,7 +193,7 @@ namespace Infrastructure.Repository
                 SELECT 
                     id, firstname, lastname, username, email, 
                     password_hash, isactive, activationtoken, passwordresettoken, 
-                    gender, sexual_preferences, biography, 
+                    genre_id, sexual_preferences_id, biography, 
                     ST_AsText(gps_location) as gps_location,
                     popularity_score,
                     created_at 
@@ -215,8 +215,8 @@ namespace Infrastructure.Repository
                     IsActive = !reader.IsDBNull(reader.GetOrdinal("isactive")) && reader.GetBoolean(reader.GetOrdinal("isactive")),
                     ActivationToken = reader.IsDBNull(reader.GetOrdinal("activationtoken")) ? null : reader.GetString(reader.GetOrdinal("activationtoken")),
                     PasswordResetToken = reader.IsDBNull(reader.GetOrdinal("passwordresettoken")) ? null : reader.GetString(reader.GetOrdinal("passwordresettoken")),
-                    Gender = reader.IsDBNull(reader.GetOrdinal("gender")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("gender")),
-                    SexualPreferences = reader.IsDBNull(reader.GetOrdinal("sexual_preferences")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("sexual_preferences")),
+                    Genre = reader.IsDBNull(reader.GetOrdinal("genre_id")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("genre_id")),
+                    SexualPreferences = reader.IsDBNull(reader.GetOrdinal("sexual_preferences_id")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("sexual_preferences_id")),
                     Biography = reader.IsDBNull(reader.GetOrdinal("biography")) ? null : reader.GetString(reader.GetOrdinal("biography")),
                     Latitude = reader.IsDBNull(reader.GetOrdinal("gps_location")) ? (double?)null : ParseLatitude(reader.GetString(reader.GetOrdinal("gps_location"))),
                     Longitude = reader.IsDBNull(reader.GetOrdinal("gps_location")) ? (double?)null : ParseLongitude(reader.GetString(reader.GetOrdinal("gps_location"))),
@@ -256,8 +256,8 @@ namespace Infrastructure.Repository
                     lastname = @Lastname,
                     username = @Username,
                     email = @Email,
-                    gender = @Gender,
-                    sexual_preferences = @SexualPreferences,
+                    genre_id = @Genre,
+                    sexual_preferences_id = @SexualPreferences,
                     biography = @Biography,
                     gps_location = ST_GeomFromText(@GpsLocation)
                 WHERE id = @Id";
@@ -267,7 +267,7 @@ namespace Infrastructure.Repository
             command.Parameters.AddWithValue("@Lastname", user.Lastname ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@Username", user.Username ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@Email", user.Email ?? (object)DBNull.Value);
-            command.Parameters.AddWithValue("@Gender", user.Gender ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@Genre", user.Genre ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@SexualPreferences", user.SexualPreferences ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@Biography", user.Biography ?? (object)DBNull.Value);
             if (user.Latitude.HasValue && user.Longitude.HasValue)

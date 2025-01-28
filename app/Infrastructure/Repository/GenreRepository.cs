@@ -40,5 +40,28 @@ namespace Infrastructure.Repository
 
             return genres;
         }
+        public async Task<Genre?> GetGenreByIdAsync(int id)
+        {
+            Genre? genre = null;
+
+            using (var connection = new MySqlConnection(_connectionString))
+            {
+                var query = "SELECT id, libelle FROM genre WHERE id = @Id LIMIT 1";
+                using var command = new MySqlCommand(query, connection);
+                command.Parameters.AddWithValue("@Id", id);
+                await connection.OpenAsync();
+
+                using var reader = await command.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
+                {
+                    genre = new Genre
+                    {
+                        Id = reader.GetInt32(reader.GetOrdinal("id")),
+                        Libelle = reader.GetString(reader.GetOrdinal("libelle"))
+                    };
+                }
+            }
+            return genre;
+        }
     }
 }
