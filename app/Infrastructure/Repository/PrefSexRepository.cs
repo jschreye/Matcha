@@ -39,5 +39,28 @@ namespace Infrastructure.Repository
 
             return prefsexs;
         }
+        public async Task<PrefSex?> GetPrefSexByIdAsync(int id)
+        {
+            PrefSex? prefSex = null;
+
+            using (var connection = new MySqlConnection(_connectionString))
+            {
+                var query = "SELECT id, libelle FROM prefsex WHERE id = @Id LIMIT 1";
+                using var command = new MySqlCommand(query, connection);
+                command.Parameters.AddWithValue("@Id", id);
+                await connection.OpenAsync();
+
+                using var reader = await command.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
+                {
+                    prefSex = new PrefSex
+                    {
+                        Id = reader.GetInt32(reader.GetOrdinal("id")),
+                        Libelle = reader.GetString(reader.GetOrdinal("libelle"))
+                    };
+                }
+            }
+            return prefSex;
+        }
     }
 }

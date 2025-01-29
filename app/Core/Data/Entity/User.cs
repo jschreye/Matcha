@@ -33,6 +33,10 @@ namespace Core.Data.Entity
         public string? ActivationToken { get; set; }
         
         public string? PasswordResetToken { get; set; }
+
+        public bool ProfileComplete { get; set; } = false;
+
+        public bool LocalisationIsActive { get; set; } = false;
         
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }

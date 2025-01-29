@@ -7,6 +7,8 @@ using Core.Data.Mail;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Server;
 using Microsoft.AspNetCore.Components.Authorization;
+using Presentation.Middlewares;
+
 var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -35,7 +37,16 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.ExpireTimeSpan = TimeSpan.FromHours(1);
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("RequireProfileComplete", policy =>
+    {
+        // Exige le claim "ProfileComplete" = "true"
+        policy.RequireAuthenticatedUser();
+        policy.RequireClaim("ProfileComplete", "true");
+    });
+});
+
 builder.Services.AddScoped<AuthenticationStateProvider, ServerAuthenticationStateProvider>();
 
 // Ajouter les services personnalisés

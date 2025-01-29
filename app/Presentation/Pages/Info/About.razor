@@ -1,4 +1,5 @@
 @page "/about"
+@attribute [Authorize(Policy = "RequireProfileComplete")]
 
 <!-- Titre principal -->
 <MudText Typo="Typo.h3" Class="mb-10">

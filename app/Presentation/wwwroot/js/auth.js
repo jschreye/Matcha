@@ -12,3 +12,11 @@ async function login(username, password) {
     });
     return response.ok;
 }
+
+window.refreshProfileClaim = async function() {
+    const response = await fetch('/auth/refresh-profile-claim', {
+        method: 'POST',
+        credentials: 'include' // essentiel pour inclure et mettre à jour le cookie
+    });
+    return response.ok;
+}

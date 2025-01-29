@@ -1,4 +1,6 @@
 @page "/profile"
+@inject IJSRuntime JS
+
 @using Core.Data.DTOs
 @using Core.Interfaces.Services
 @using System.Security.Claims
@@ -163,14 +165,28 @@ else if (userProfile != null)
         // Si tout est valide, procéder à la mise à jour
         try
         {
-            var result = await UserService.UpdateUserProfileAsync(userProfile!);
+            var result = await UserService.UpdateUserProfileAsync(userProfile);
             if (result)
             {
-                AlertService.ShowMessage("Profil mis à jour avec succès.", true);
+                message = "Profil mis à jour.";
+                operationSuccess = true;
+                bool refreshOk = await JS.InvokeAsync<bool>("refreshProfileClaim");
+
+                if (refreshOk)
+                {
+                    // On redirige vers la page voulue, en forçant un rechargement complet du navigateur
+                    NavigationManager.NavigateTo("/", forceLoad: true);
+                }
+                else
+                {
+                    message = "Impossible de rafraîchir le cookie...";
+                    operationSuccess = false;
+                }
             }
             else
             {
-                AlertService.ShowMessage("Échec de la mise à jour du profil.", false);
+                message = "Échec mise à jour du profil.";
+                operationSuccess = false;
             }
         }
         catch (Exception ex)

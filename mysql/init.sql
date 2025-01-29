@@ -36,6 +36,8 @@ CREATE TABLE IF NOT EXISTS users (
     activationtoken VARCHAR(255),
     passwordresettoken VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    profile_complete BOOLEAN DEFAULT FALSE,
+    localisation_isactive BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (genre_id) REFERENCES genre(id),
     FOREIGN KEY (sexual_preferences_id) REFERENCES prefsex(id)
 ) ENGINE=InnoDB;

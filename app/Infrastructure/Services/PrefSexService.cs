@@ -14,6 +14,10 @@ namespace Infrastructure.Services
         public async Task<List<PrefSex>> GetPrefSexAsync()
         {
             return await _prefSexRepository.GetPrefSexAsync();
-        }      
+        } 
+        public async Task<PrefSex> GetPrefSexByIdAsync(int id)
+        {
+            return await _prefSexRepository.GetPrefSexByIdAsync(id);
+        }    
     }
 }

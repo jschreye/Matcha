@@ -1,0 +1,26 @@
+@using Microsoft.AspNetCore.Components.Authorization
+@inject NavigationManager NavigationManager
+
+@code {
+    [Parameter] public AuthenticationState AuthState { get; set; }
+    private bool _firstRenderDone;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender && !_firstRenderDone)
+        {
+            _firstRenderDone = true;
+
+            if (AuthState.User.Identity?.IsAuthenticated ?? false)
+            {
+                // Connecté mais policy non respectée => /profile
+                NavigationManager.NavigateTo("/profile");
+            }
+            else
+            {
+                // Non connecté => /login
+                NavigationManager.NavigateTo("/login");
+            }
+        }
+    }
+}

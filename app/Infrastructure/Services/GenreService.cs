@@ -16,5 +16,10 @@ namespace Infrastructure.Services
         {
             return await _genreRepository.GetGenresAsync();
         }
+
+        public async Task<Genre> GetGenreByIdAsync(int id)
+        {
+            return await _genreRepository.GetGenreByIdAsync(id);
+        }
     }
 }

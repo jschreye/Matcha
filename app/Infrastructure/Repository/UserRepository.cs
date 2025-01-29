@@ -88,7 +88,7 @@ namespace Infrastructure.Repository
             var command = new MySqlCommand(@"
                 SELECT 
                     id, firstname, lastname, username, email, 
-                    password_hash, isactive, activationtoken, created_at 
+                    password_hash, isactive, activationtoken, profile_complete, created_at 
                 FROM users 
                 WHERE username = @Username", connection);
             command.Parameters.AddWithValue("@Username", username);
@@ -111,6 +111,8 @@ namespace Infrastructure.Repository
                     ActivationToken = reader.IsDBNull(reader.GetOrdinal("activationtoken")) 
                                     ? null 
                                     : reader.GetString(reader.GetOrdinal("activationtoken")),
+                    ProfileComplete = !reader.IsDBNull(reader.GetOrdinal("profile_complete"))
+                                    && reader.GetBoolean(reader.GetOrdinal("profile_complete")),
                     CreatedAt = reader.GetDateTime(reader.GetOrdinal("created_at"))
                 };
             }
@@ -195,7 +197,7 @@ namespace Infrastructure.Repository
                     password_hash, isactive, activationtoken, passwordresettoken, 
                     genre_id, sexual_preferences_id, biography, 
                     ST_AsText(gps_location) as gps_location,
-                    popularity_score,
+                    popularity_score, profile_complete,
                     created_at 
                 FROM users 
                 WHERE id = @Id", connection);
@@ -221,6 +223,7 @@ namespace Infrastructure.Repository
                     Latitude = reader.IsDBNull(reader.GetOrdinal("gps_location")) ? (double?)null : ParseLatitude(reader.GetString(reader.GetOrdinal("gps_location"))),
                     Longitude = reader.IsDBNull(reader.GetOrdinal("gps_location")) ? (double?)null : ParseLongitude(reader.GetString(reader.GetOrdinal("gps_location"))),
                     PopularityScore = reader.GetInt32(reader.GetOrdinal("popularity_score")),
+                    ProfileComplete = !reader.IsDBNull(reader.GetOrdinal("profile_complete")) && reader.GetBoolean(reader.GetOrdinal("profile_complete")),
                     CreatedAt = reader.GetDateTime(reader.GetOrdinal("created_at"))
                 };
                 return user;
@@ -259,7 +262,8 @@ namespace Infrastructure.Repository
                     genre_id = @Genre,
                     sexual_preferences_id = @SexualPreferences,
                     biography = @Biography,
-                    gps_location = ST_GeomFromText(@GpsLocation)
+                    gps_location = ST_GeomFromText(@GpsLocation),
+                    profile_complete = @ProfileComplete
                 WHERE id = @Id";
 
             using var command = new MySqlCommand(query, connection);
@@ -278,6 +282,7 @@ namespace Infrastructure.Repository
             {
                 command.Parameters.AddWithValue("@GpsLocation", DBNull.Value);
             }
+            command.Parameters.AddWithValue("@ProfileComplete", user.ProfileComplete);
             command.Parameters.AddWithValue("@Id", user.Id);
 
             await command.ExecuteNonQueryAsync();
