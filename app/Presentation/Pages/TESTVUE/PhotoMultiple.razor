@@ -1,0 +1,142 @@
+@page "/upload-multiple-photos"
+@using Microsoft.AspNetCore.Components.Forms
+@using MudBlazor
+@using System.Security.Claims
+@using Core.Data.Entity
+@using PhotoEntity = Core.Data.Entity.Photo
+
+@inject IPhotoService PhotoService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager NavigationManager
+
+<h3>Ajouter Plusieurs Photos</h3>
+
+@if (!string.IsNullOrEmpty(UploadMessage))
+{
+    <p style="color:@(UploadSuccess ? "green" : "red")">@UploadMessage</p>
+}
+
+<MudFileUpload T="IBrowserFile" FilesChanged="@HandleFilesChanged" MaxFileSize="5242880" FileFilter="image/*" Multiple="true">
+    <ActivatorContent>
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.CloudUpload">
+            Choisir des Photos
+        </MudButton>
+    </ActivatorContent>
+</MudFileUpload>
+
+@if (_imageDatas != null && _imageDatas.Any())
+{
+    <h4>Aperçu des Photos Sélectionnées</h4>
+    <div class="photo-preview">
+        @foreach (var imageData in _imageDatas)
+        {
+            <img src="@($"data:image/jpeg;base64,{Convert.ToBase64String(imageData)}")" alt="Aperçu de la photo" style="max-width: 150px; max-height: 150px; margin: 5px;" />
+        }
+    </div>
+}
+
+<MudButton Variant="Variant.Outlined" 
+           Color="Color.Primary" 
+           OnClick="UploadPhotos" 
+           Disabled="!_imageDatas.Any()">
+    Uploader les Photos
+</MudButton>
+
+<h4>Vos Photos</h4>
+@if (_userPhotos != null && _userPhotos.Any())
+{
+    <div class="user-photos">
+        @foreach (var photo in _userPhotos)
+        {
+            <img src="@($"data:image/jpeg;base64,{Convert.ToBase64String(photo.ImageData)}")" alt="Photo de l'utilisateur" style="max-width: 150px; max-height: 150px; margin: 5px;" />
+        }
+    </div>
+}
+else
+{
+    <p>Aucune photo enregistrée.</p>
+}
+
+@code {
+    private List<byte[]> _imageDatas = new List<byte[]>();
+    private List<PhotoEntity> _userPhotos = new List<PhotoEntity>();
+    private string? UploadMessage;
+    private bool UploadSuccess;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUserPhotos();
+    }
+
+    private async Task LoadUserPhotos()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var userId))
+        {
+            _userPhotos = await PhotoService.GetUserPhotosAsync(userId);
+        }
+    }
+
+    private async Task HandleFilesChanged(IBrowserFile file)
+    {
+        try
+        {
+            using var stream = file.OpenReadStream(5242880); // Limite à 5 MB par fichier
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            _imageDatas.Add(ms.ToArray());
+
+            UploadMessage = $"{_imageDatas.Count} photo(s) chargée(s) en mémoire.";
+            UploadSuccess = true;
+        }
+        catch (Exception ex)
+        {
+            UploadMessage = $"Erreur lors de la lecture du fichier '{file.Name}' : {ex.Message}";
+            UploadSuccess = false;
+        }
+    }
+
+    private async Task UploadPhotos()
+    {
+        if (!_imageDatas.Any())
+        {
+            UploadMessage = "Aucune photo sélectionnée.";
+            UploadSuccess = false;
+            return;
+        }
+
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+            {
+                UploadMessage = "Utilisateur non authentifié ou ID invalide.";
+                UploadSuccess = false;
+                return;
+            }
+
+            foreach (var imageData in _imageDatas)
+            {
+                // Toujours définir est_profil à false
+                await PhotoService.AddPhotoAsync(userId, imageData, false);
+            }
+
+            UploadMessage = $"{_imageDatas.Count} photo(s) enregistrée(s) avec succès !";
+            UploadSuccess = true;
+
+            _imageDatas.Clear(); // Nettoyer les sélections après l'upload
+            await LoadUserPhotos(); // Recharger les photos de l'utilisateur
+        }
+        catch (Exception ex)
+        {
+            UploadMessage = $"Erreur lors de l'enregistrement : {ex.Message}";
+            UploadSuccess = false;
+        }
+    }
+}

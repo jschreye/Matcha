@@ -1,0 +1,127 @@
+@page "/photo-upload"
+@using Microsoft.AspNetCore.Components.Forms
+@using MudBlazor
+@using System.Security.Claims
+@using Core.Data.Entity
+@using PhotoEntity = Core.Data.Entity.Photo
+
+@inject IPhotoService PhotoService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager NavigationManager
+
+<h3>Ajouter une Photo</h3>
+
+@if (!string.IsNullOrEmpty(UploadMessage))
+{
+    <p style="color:@(UploadSuccess ? "green" : "red")">@UploadMessage</p>
+}
+
+<MudFileUpload T="IBrowserFile" FilesChanged="HandleFilesChanged" MaxFileSize="5242880" FileFilter="image/*">
+    <ActivatorContent>
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.CloudUpload">
+            Choisir une Photo
+        </MudButton>
+    </ActivatorContent>
+</MudFileUpload>
+
+@if (_imageData != null)
+{
+    <img src="@($"data:image/jpeg;base64,{Convert.ToBase64String(_imageData)}")" alt="Aperçu de la photo" style="max-width: 300px; max-height: 300px;" />
+}
+
+<MudButton Variant="Variant.Outlined" 
+           Color="Color.Primary" 
+           OnClick="UploadPhoto">
+    Uploader la Photo
+</MudButton>
+
+<h4>Photo de Profil Actuelle</h4>
+@if (_currentProfilePhoto != null)
+{
+    <img src="@($"data:image/jpeg;base64,{Convert.ToBase64String(_currentProfilePhoto.ImageData)}")" alt="Photo de Profil" style="max-width: 200px; max-height: 200px;" />
+}
+else
+{
+    <p>Aucune photo de profil définie.</p>
+}
+
+@code {
+    private byte[]? _imageData;
+    private string? UploadMessage;
+    private bool UploadSuccess;
+    private PhotoEntity? _currentProfilePhoto;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCurrentProfilePhoto();
+    }
+
+    private async Task LoadCurrentProfilePhoto()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var userId))
+        {
+            _currentProfilePhoto = await PhotoService.GetProfilePhotoAsync(userId);
+        }
+    }
+
+    private async Task HandleFilesChanged(IBrowserFile file)
+    {
+        try
+        {
+            using var stream = file.OpenReadStream(5242880); // Limite à 5 MB
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            _imageData = ms.ToArray();
+
+            UploadMessage = $"Fichier '{file.Name}' chargé en mémoire.";
+            UploadSuccess = true;
+        }
+        catch (Exception ex)
+        {
+            UploadMessage = $"Erreur lors de la lecture du fichier : {ex.Message}";
+            UploadSuccess = false;
+        }
+    }
+
+    private async Task UploadPhoto()
+    {
+        if (_imageData == null)
+        {
+            UploadMessage = "Aucune photo sélectionnée.";
+            UploadSuccess = false;
+            return;
+        }
+
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+            {
+                UploadMessage = "Utilisateur non authentifié ou ID invalide.";
+                UploadSuccess = false;
+                return;
+            }
+
+            // Toujours définir est_profil à true
+            await PhotoService.AddPhotoAsync(userId, _imageData, true);
+
+            UploadMessage = $"Photo enregistrée avec succès comme photo de profil !";
+            UploadSuccess = true;
+
+            // Recharger la photo de profil actuelle
+            await LoadCurrentProfilePhoto();
+        }
+        catch (Exception ex)
+        {
+            UploadMessage = $"Erreur lors de l'enregistrement : {ex.Message}";
+            UploadSuccess = false;
+        }
+    }
+}

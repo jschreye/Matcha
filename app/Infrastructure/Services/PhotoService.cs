@@ -6,7 +6,7 @@ namespace Infrastructure.Services
 {
     public class PhotoService : IPhotoService
     {
-         private readonly IPhotoRepository _photoRepository;
+        private readonly IPhotoRepository _photoRepository;
 
         public PhotoService(IPhotoRepository photoRepository)
         {
@@ -15,7 +15,6 @@ namespace Infrastructure.Services
 
         public async Task AddPhotoAsync(int userId, byte[] imageData, bool estProfil)
         {
-            // Construire l'entité Photo
             var photo = new Photo
             {
                 UserId = userId,
@@ -23,8 +22,23 @@ namespace Infrastructure.Services
                 EstProfil = estProfil
             };
 
-            // Appeler le repository pour insérer la photo
-            await _photoRepository.InsertPhotoAsync(photo);
-        }   
+            if (estProfil)
+            {
+                await _photoRepository.AddPhotoWithProfileAsync(photo);
+            }
+            else
+            {
+                await _photoRepository.InsertPhotoAsync(photo);
+            }
+        }
+
+        public async Task<Photo?> GetProfilePhotoAsync(int userId)
+        {
+            return await _photoRepository.GetProfilePhotoAsync(userId);
+        }
+        public async Task<List<Photo>> GetUserPhotosAsync(int userId)
+        {
+            return await _photoRepository.GetUserPhotosAsync(userId);
+        }
     }
 }
