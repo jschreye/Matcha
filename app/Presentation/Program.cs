@@ -58,12 +58,14 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IGenreService, GenreService>();
 builder.Services.AddScoped<IPrefSexService, PrefSexService>();
+builder.Services.AddScoped<IPhotoService, PhotoService>();
 
 // Ajouter les repository
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ISessionRepository>(sp => new SessionRepository(connectionString));
 builder.Services.AddScoped<IGenreRepository, GenreRepository>();
 builder.Services.AddScoped<IPrefSexRepository, PrefSexRepository>();
+builder.Services.AddScoped<IPhotoRepository, PhotoRepository>();
 
 var app = builder.Build();
 
@@ -79,7 +81,6 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-// Positionner les middlewares d'authentification et d'autorisation après UseRouting
 app.UseMiddleware<Presentation.Middlewares.SessionValidationMiddleware>();
 
 app.UseAuthentication();
