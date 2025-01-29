@@ -45,6 +45,7 @@ builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IGenreService, GenreService>();
 builder.Services.AddScoped<IPrefSexService, PrefSexService>();
 builder.Services.AddScoped<IAlertService, AlertService>();
+builder.Services.AddScoped<IValidationService, ValidationService>();
 
 // Ajouter les repository
 builder.Services.AddScoped<IUserRepository, UserRepository>();

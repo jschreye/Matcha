@@ -9,6 +9,7 @@
 @inject IAlertService AlertService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
+@inject IValidationService ValidationService
 
 <MudText Typo="Typo.h3">Profil</MudText>
 
@@ -119,6 +120,47 @@ else if (userProfile != null)
 
     private async Task UpdateUserProfile()
     {
+        // Initialiser une liste pour collecter les erreurs
+        var allErrors = new List<string>();
+
+        // Valider le nom d'utilisateur
+        var usernameErrors = ValidationService.ValidateUsername(userProfile.Username);
+        allErrors.AddRange(usernameErrors);
+
+        // Valider le prénom
+        var firstnameErrors = ValidationService.ValidateName(userProfile.Firstname, "Le prénom");
+        allErrors.AddRange(firstnameErrors);
+
+        // Valider le nom
+        var lastnameErrors = ValidationService.ValidateName(userProfile.Lastname, "Le nom");
+        allErrors.AddRange(lastnameErrors);
+
+        // Valider l'email
+        var emailErrors = ValidationService.ValidateEmail(userProfile.Email);
+        allErrors.AddRange(emailErrors);
+
+        // Valider la latitude et la longitude
+        var latitudeErrors = ValidationService.ValidateLatitude(userProfile.Latitude);
+        var longitudeErrors = ValidationService.ValidateLongitude(userProfile.Longitude);
+        allErrors.AddRange(latitudeErrors);
+        allErrors.AddRange(longitudeErrors);
+
+        // (Optionnel) Si vous avez un champ d'image, vous pouvez le valider ici
+        // Exemple :
+        // var imageErrors = ValidationService.ValidateImage(uploadedImage, 2 * 1024 * 1024); // 2 MB
+        // allErrors.AddRange(imageErrors);
+
+        // Vérifier s'il y a des erreurs
+        if (allErrors.Any())
+        {
+            foreach (var error in allErrors)
+            {
+                AlertService.ShowMessage(error, false);
+            }
+            return;
+        }
+
+        // Si tout est valide, procéder à la mise à jour
         try
         {
             var result = await UserService.UpdateUserProfileAsync(userProfile!);

@@ -5,6 +5,7 @@
 @inject IUserService UserService
 @inject IAlertService AlertService
 @inject NavigationManager NavigationManager
+@inject IValidationService ValidationService
 
 <MudText Typo="Typo.h3">Inscription</MudText>
 
@@ -56,7 +57,30 @@
 
     private async Task RegisterUser()
     {
-        Console.WriteLine("RegisterUser called");
+        // Valider les champs
+        var usernameErrors = ValidationService.ValidateUsername(registerModel.Username);
+        var lastnameErrors = ValidationService.ValidateName(registerModel.Lastname, "Le nom");
+        var firstnameErrors = ValidationService.ValidateName(registerModel.Firstname, "Le prénom");
+        var emailErrors = ValidationService.ValidateEmail(registerModel.Email);
+        var passwordErrors = ValidationService.ValidatePassword(registerModel.Password);
+
+        var allErrors = new List<string>();
+        allErrors.AddRange(usernameErrors);
+        allErrors.AddRange(lastnameErrors);
+        allErrors.AddRange(firstnameErrors);
+        allErrors.AddRange(emailErrors);
+        allErrors.AddRange(passwordErrors);
+
+        if (allErrors.Any())
+        {
+            foreach (var error in allErrors)
+            {
+                AlertService.ShowMessage(error, false);
+            }
+            return;
+        }
+
+        // Si tout est valide, procéder à l'inscription
         try
         {
             await UserService.RegisterUser(registerModel);
