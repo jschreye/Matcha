@@ -1,4 +1,6 @@
 @page "/profile"
+@using Microsoft.AspNetCore.Components.Forms
+
 @inject IJSRuntime JS
 @using Core.Data.DTOs
 @using Core.Interfaces.Services
@@ -8,6 +10,7 @@
 @inject IGenreService GenreService
 @inject IPrefSexService PrefSexService
 @inject IAlertService AlertService
+@inject IPhotoService PhotoService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 @inject IValidationService ValidationService
@@ -22,16 +25,20 @@ else if (userProfile != null)
 {
     <MudForm @ref="form" @bind-IsValid="isFormValid" Outlined="true">
         <!-- Prénom -->
-        <MudTextField T="string" Label="Prénom" Variant="Variant.Outlined" @bind-Value="userProfile.Firstname" Required="true" RequiredError="Le prénom est requis" />
+        <MudTextField T="string" Label="Prénom" Variant="Variant.Outlined" @bind-Value="userProfile.Firstname"
+                      Required="true" RequiredError="Le prénom est requis" />
         
         <!-- Nom -->
-        <MudTextField T="string" Label="Nom" Variant="Variant.Outlined" @bind-Value="userProfile.Lastname" Required="true" RequiredError="Le nom est requis" />
+        <MudTextField T="string" Label="Nom" Variant="Variant.Outlined" @bind-Value="userProfile.Lastname"
+                      Required="true" RequiredError="Le nom est requis" />
         
         <!-- Nom d'utilisateur -->
-        <MudTextField T="string" Label="Nom d'utilisateur" Variant="Variant.Outlined" @bind-Value="userProfile.Username" Required="true" RequiredError="Le nom d'utilisateur est requis" />
+        <MudTextField T="string" Label="Nom d'utilisateur" Variant="Variant.Outlined" @bind-Value="userProfile.Username"
+                      Required="true" RequiredError="Le nom d'utilisateur est requis" />
         
         <!-- Email -->
-        <MudTextField T="string" Label="Email" Variant="Variant.Outlined" InputType="InputType.Email" @bind-Value="userProfile.Email" Required="true" RequiredError="L'email est requis" />
+        <MudTextField T="string" Label="Email" Variant="Variant.Outlined" InputType="InputType.Email"
+                      @bind-Value="userProfile.Email" Required="true" RequiredError="L'email est requis" />
         
         <!-- Genre -->
         <MudSelect T="int?" Label="Genre" Variant="Variant.Outlined" @bind-Value="userProfile.Genre" Required="true">
@@ -45,7 +52,8 @@ else if (userProfile != null)
         </MudSelect>
 
         <!-- PrefSex -->
-        <MudSelect T="int?" Label="SexualPreferences" Variant="Variant.Outlined" @bind-Value="userProfile.SexualPreferences" Required="true">
+        <MudSelect T="int?" Label="SexualPreferences" Variant="Variant.Outlined"
+                   @bind-Value="userProfile.SexualPreferences" Required="true">
             @if (prefSex != null)
             {
                 @foreach (var p in prefSex)
@@ -67,22 +75,33 @@ else if (userProfile != null)
         <!-- Boutons -->
         <div class="d-flex justify-content-between align-items-center">
             <div>
-                <MudButton Variant="Variant.Text" Color="Color.Primary" DropShadow="false" OnClick="@(() => form.Validate())">Valider</MudButton>
-                <MudButton Variant="Variant.Text" Color="Color.Secondary" DropShadow="false" OnClick="@(() => form.ResetAsync())" Class="mx-2">Réinitialiser</MudButton>
-                <MudButton Variant="Variant.Text" DropShadow="false" OnClick="@(() => form.ResetValidation())">Réinitialiser la validation</MudButton>
+                <MudButton Variant="Variant.Text" Color="Color.Primary" DropShadow="false" OnClick="@(() => form.Validate())">
+                    Valider
+                </MudButton>
+                <MudButton Variant="Variant.Text" Color="Color.Secondary" DropShadow="false"
+                           OnClick="@(() => form.ResetAsync())" Class="mx-2">
+                    Réinitialiser
+                </MudButton>
+                <MudButton Variant="Variant.Text" DropShadow="false" OnClick="@(() => form.ResetValidation())">
+                    Réinitialiser la validation
+                </MudButton>
             </div>
             <div>
-                <MudButton Variant="Variant.Outlined" Color="Color.Primary" Disabled="@(!isFormValid)" OnClick="UpdateUserProfile">Enregistrer</MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" Disabled="@(!isFormValid)" OnClick="@UpdateUserProfile">
+                    Enregistrer
+                </MudButton>
             </div>
         </div>
     </MudForm>
 }
 
 @code {
+    
     private UserProfileDto? userProfile;
     private bool isLoading = true;
     private bool isFormValid;
     private MudForm form;
+
     private List<Genre> genre;
     private List<PrefSex> prefSex;
 
@@ -167,11 +186,11 @@ else if (userProfile != null)
             var result = await UserService.UpdateUserProfileAsync(userProfile);
             if (result)
             {
+                // On rafraîchit le cookie
                 bool refreshOk = await JS.InvokeAsync<bool>("refreshProfileClaim");
-
                 if (refreshOk)
                 {
-                    // On redirige vers la page voulue, en forçant un rechargement complet du navigateur
+                    // On redirige vers la page d'accueil, en forçant un rechargement complet du navigateur
                     NavigationManager.NavigateTo("/", forceLoad: true);
                     AlertService.ShowMessage("Profil mis à jour.", true);
                 }

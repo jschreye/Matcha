@@ -6,7 +6,5 @@ namespace Core.Data.Entity
         public int UserId { get; set; }
         public byte[] ImageData { get; set; } = Array.Empty<byte>(); 
         public bool EstProfil { get; set; }
-
-        public virtual  User User { get; set; } = new User();
     }
 }
