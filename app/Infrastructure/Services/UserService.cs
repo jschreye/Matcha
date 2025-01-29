@@ -135,6 +135,16 @@ public class UserService : IUserService
         user.Latitude = profileDto.Latitude;
         user.Longitude = profileDto.Longitude;
 
+        bool isProfileComplete = !string.IsNullOrWhiteSpace(user.Firstname) &&
+                             !string.IsNullOrWhiteSpace(user.Lastname) &&
+                             !string.IsNullOrWhiteSpace(user.Username) &&
+                             !string.IsNullOrWhiteSpace(user.Email) &&
+                             user.Genre.HasValue &&
+                             user.SexualPreferences.HasValue &&
+                             !string.IsNullOrWhiteSpace(user.Biography);
+
+        user.ProfileComplete = isProfileComplete;
+
         await _userRepository.UpdateUserAsync(user);
 
         return true;

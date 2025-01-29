@@ -38,9 +38,11 @@ namespace Presentation.Controllers // Remplacez par votre espace de noms appropr
                 var claims = new List<Claim>
                 {
                     new Claim(ClaimTypes.Name, username),
-                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                    new Claim("ProfileComplete", user.ProfileComplete ? "true" : "false")
                     // Ajoutez d'autres claims si nécessaire
                 };
+
                 var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
                 var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
 
@@ -98,11 +100,6 @@ namespace Presentation.Controllers // Remplacez par votre espace de noms appropr
             if (user == null)
                 return NotFound("Utilisateur non trouvé.");
 
-            // Journaliser les valeurs pour le débogage
-            Console.WriteLine($"Email reçu : {email}");
-            Console.WriteLine($"Token reçu : {token}");
-            Console.WriteLine($"Token en DB : {user.ActivationToken}");
-
             if (user.ActivationToken != token)
                 return BadRequest("Jeton invalide.");
 
@@ -150,6 +147,37 @@ namespace Presentation.Controllers // Remplacez par votre espace de noms appropr
             await _userRepository.Update(user);
 
             return Ok("Mot de passe réinitialisé avec succès.");
+        }
+        [HttpPost("refresh-profile-claim")]
+        public async Task<IActionResult> RefreshProfileClaim()
+        {
+            // Récupérer l'user ID depuis le claim NameIdentifier
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null) return Unauthorized("Pas d'utilisateur.");
+
+            if (!int.TryParse(userIdClaim.Value, out var userId))
+                return BadRequest("ID user invalide");
+
+            // Relire l'utilisateur en base (pour connaître l'état ProfileComplete)
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null) return NotFound("Utilisateur introuvable.");
+
+            // Reconstruire les claims
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, user.Username),
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim("ProfileComplete", user.ProfileComplete ? "true" : "false")
+            };
+
+            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var principal = new ClaimsPrincipal(identity);
+
+            // Regénérer le cookie d'authentification
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+
+            // On peut renvoyer l'info au client
+            return Ok(new { ProfileComplete = user.ProfileComplete });
         }
     }
 }

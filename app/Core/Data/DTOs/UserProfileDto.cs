@@ -32,4 +32,5 @@ public class UserProfileDto
 
     // Optionnel : Si vous souhaitez afficher le score de popularité sans le rendre éditable
     public int PopularityScore { get; set; }
+    public bool ProfileComplete {get; set;}
 }

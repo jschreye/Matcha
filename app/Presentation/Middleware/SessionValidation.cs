@@ -11,7 +11,6 @@ namespace Presentation.Middlewares
             _next = next;
         }
 
-        // Injecte IUserService comme paramètre de méthode pour le résoudre dans le scope de la requête
         public async Task InvokeAsync(HttpContext context, IUserService userService)
         {
             if (context.Request.Cookies.TryGetValue("SessionToken", out var sessionToken))
