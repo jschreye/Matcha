@@ -131,7 +131,7 @@ namespace Infrastructure.Repository
             var query = @"
                 SELECT id, user_id, image_data, est_profil
                 FROM photos
-                WHERE user_id = @UserId;
+                WHERE user_id = @UserId AND est_profil = FALSE;
             ";
 
             using var cmd = new MySqlCommand(query, connection);
