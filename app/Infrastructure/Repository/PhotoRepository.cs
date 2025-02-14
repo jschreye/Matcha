@@ -28,7 +28,7 @@ namespace Infrastructure.Repository
             using var cmd = new MySqlCommand(query, connection);
             cmd.Parameters.AddWithValue("@UserId", photo.UserId);
             cmd.Parameters.AddWithValue("@ImageData", photo.ImageData);
-            cmd.Parameters.AddWithValue("@EstProfil", photo.EstProfil);
+            cmd.Parameters.Add("@EstProfil", MySqlDbType.Bit).Value = photo.EstProfil ? 1 : 0;
 
             await cmd.ExecuteNonQueryAsync();
         }
@@ -58,7 +58,7 @@ namespace Infrastructure.Repository
                 using var insertCmd = new MySqlCommand(insertQuery, connection, (MySqlTransaction)transaction);
                 insertCmd.Parameters.AddWithValue("@UserId", photo.UserId);
                 insertCmd.Parameters.AddWithValue("@ImageData", photo.ImageData);
-                insertCmd.Parameters.AddWithValue("@EstProfil", photo.EstProfil);
+                insertCmd.Parameters.Add("@EstProfil", MySqlDbType.Bit).Value = photo.EstProfil ? 1 : 0;
 
                 await insertCmd.ExecuteNonQueryAsync();
 
@@ -156,6 +156,44 @@ namespace Infrastructure.Repository
             }
 
             return photos;
+        }
+
+        public async Task UpdateProfilePhotoAsync(int userId, int newProfilePhotoId)
+        {
+            using var connection = new MySqlConnection(_connectionString);
+            await connection.OpenAsync();
+            
+            using var transaction = await connection.BeginTransactionAsync();
+
+            try
+            {
+                // Désactiver l'ancienne photo de profil
+                var updateOldQuery = @"
+                    UPDATE photos
+                    SET est_profil = 0
+                    WHERE user_id = @UserId AND est_profil = 1;
+                ";
+                using var updateOldCmd = new MySqlCommand(updateOldQuery, connection, (MySqlTransaction)transaction);
+                updateOldCmd.Parameters.AddWithValue("@UserId", userId);
+                await updateOldCmd.ExecuteNonQueryAsync();
+
+                // Activer la nouvelle photo de profil
+                var updateNewQuery = @"
+                    UPDATE photos
+                    SET est_profil = 1
+                    WHERE id = @NewProfilePhotoId;
+                ";
+                using var updateNewCmd = new MySqlCommand(updateNewQuery, connection, (MySqlTransaction)transaction);
+                updateNewCmd.Parameters.AddWithValue("@NewProfilePhotoId", newProfilePhotoId);
+                await updateNewCmd.ExecuteNonQueryAsync();
+
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
     }
 }
