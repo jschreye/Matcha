@@ -58,6 +58,7 @@ builder.Services.AddScoped<IPrefSexService, PrefSexService>();
 builder.Services.AddScoped<IAlertService, AlertService>();
 builder.Services.AddScoped<IValidationService, ValidationService>();
 builder.Services.AddScoped<IPhotoService, PhotoService>();
+builder.Services.AddSingleton<ProfileStateService>();
 
 // Ajouter les repository
 builder.Services.AddScoped<IUserRepository, UserRepository>();

@@ -1,6 +1,7 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
+@inject IPhotoService PhotoService
 
 <MudAppBar Elevation="1" Style="@($"background:{Colors.Gray.Lighten3};")">
     <MudIconButton Icon="@Icons.Material.Filled.Menu" Edge="Edge.Start" OnClick="@ToggleDrawerAsync" Style="@($"color:{Colors.DeepPurple.Accent4};")"/>
@@ -22,14 +23,6 @@
                     </MudBadge>
                 </ActivatorContent>
                 <ChildContent>
-                    @* <MudNavLink Href="/dashboard" Icon="@Icons.Material.Filled.Dashboard" Class="mud-menu-item">Dashboard</MudNavLink>
-                    <MudNavLink Href="/servers" Icon="@Icons.Material.Filled.Storage" Class="mud-menu-item">Servers</MudNavLink>
-                    <MudNavLink Href="/billing" Icon="@Icons.Material.Filled.Receipt" Disabled="true" Class="mud-menu-item">Billing</MudNavLink>
-                    <MudNavGroup Title="Settings" Icon="@Icons.Material.Filled.Settings" Expanded="true">
-                        <MudNavLink Href="/users" Icon="@Icons.Material.Filled.People" IconColor="Color.Success" Class="mud-menu-item">Users</MudNavLink>
-                        <MudNavLink Href="/security" Icon="@Icons.Material.Filled.Security" IconColor="Color.Info" Class="mud-menu-item">Security</MudNavLink>
-                    </MudNavGroup>
-                    <MudDivider Class="my-2" /> *@
                     <MudMenuItem Href="/profile">
                         <MudIcon Icon="@Icons.Material.Filled.People" Class="mr-5" Style="@($"color:{Colors.DeepPurple.Accent4};")" />
                         Profile
