@@ -58,6 +58,7 @@ builder.Services.AddScoped<IPrefSexService, PrefSexService>();
 builder.Services.AddScoped<IAlertService, AlertService>();
 builder.Services.AddScoped<IValidationService, ValidationService>();
 builder.Services.AddScoped<IPhotoService, PhotoService>();
+builder.Services.AddScoped<ITagService, TagService>();
 
 // Ajouter les repository
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -65,6 +66,7 @@ builder.Services.AddScoped<ISessionRepository>(sp => new SessionRepository(conne
 builder.Services.AddScoped<IGenreRepository, GenreRepository>();
 builder.Services.AddScoped<IPrefSexRepository, PrefSexRepository>();
 builder.Services.AddScoped<IPhotoRepository, PhotoRepository>();
+builder.Services.AddScoped<ITagRepository, TagRepository>();
 
 var app = builder.Build();
 

@@ -54,8 +54,19 @@ CREATE TABLE IF NOT EXISTS photos (
 -- Table Tags
 CREATE TABLE IF NOT EXISTS tags (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(50) NOT NULL UNIQUE
+    libelle VARCHAR(50) NOT NULL UNIQUE
 ) ENGINE=InnoDB;
+
+INSERT INTO tags (libelle) VALUES
+('Jeux video'),
+('Grimpe'),
+('Shopping'),
+('Course a pied'),
+('Plaide et chocolat chaud'),
+('Rando'),
+('Volley'),
+('Foot'),
+('Ski');
 
 -- Table UserTags (relation plusieurs-à-plusieurs entre Users et Tags)
 CREATE TABLE IF NOT EXISTS userTags (
@@ -146,15 +157,6 @@ VALUES
 (3, 0xFFD8FFE2, FALSE),
 (4, 0xFFD8FFE3, FALSE),
 (5, 0xFFD8FFE4, TRUE);
-
--- Insertion d'exemples de tags
-INSERT INTO tags (name) 
-VALUES
-('Hiking'),
-('Cooking'),
-('Reading'),
-('Gaming'),
-('Traveling');
 
 -- Insertion d'exemples de relations Users-Tags
 INSERT INTO userTags (user_id, tag_id)
