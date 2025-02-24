@@ -3,7 +3,6 @@
 @using Core.Data.DTOs
 @using Core.Data.Entity
 @using Core.Interfaces.Services
-@using MudBlazor
 @inject IUserService UserService
 @inject IPhotoService PhotoService
 @inject IAlertService AlertService
@@ -19,8 +18,21 @@
     <div class="d-flex justify-center mb-4">
         @if (GetProfileImageSrc() != null)
         {
-            <MudImage Src="@GetProfileImageSrc()" Alt="Photo de profil" Elevation="25" 
-                      Class="rounded-circle" Style="width:150px; height:150px; object-fit:cover;" />
+            <!-- Conteneur pour l'image de profil avec bouton de suppression -->
+            <div style="position: relative; display: inline-block;">
+                <MudImage Src="@GetProfileImageSrc()" Alt="Photo de profil" Elevation="25" 
+                        Class="rounded-circle" Style="width:150px; height:150px; object-fit:cover;" />
+                <!-- Bouton de suppression : on enveloppe le lambda asynchrone dans @(...) -->
+                <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" Color="Color.Primary" Variant="Variant.Outlined"
+                            Style="position: absolute; top: 5px; right: 5px;" 
+                            OnClick="@(async () => {
+                                var photo = _photoPreviews.FirstOrDefault(p => p.IsProfile);
+                                if (photo != null)
+                                {
+                                    await DeletePhoto(photo);
+                                }
+                            })" />
+            </div>
         }
         else
         {
@@ -283,10 +295,6 @@
             await PhotoService.UpdateProfilePhotoAsync(userId, photo.Id.Value);
             AlertService.ShowMessage("Photo de profil mise à jour.", true);
         }
-        else
-        {
-            AlertService.ShowMessage("La photo n'est pas encore enregistrée. Enregistre-la d'abord.", false);
-        }
     }
 
     /** 
@@ -294,14 +302,24 @@
      */
     private async Task DeletePhoto(PhotoPreview photo)
     {
-        if (!photo.IsNew && photo.Id.HasValue)
+        try
         {
-            await PhotoService.DeletePhotoAsync(photo.Id.Value);
+            if (!photo.IsNew && photo.Id.HasValue)
+            {
+                await PhotoService.DeletePhotoAsync(photo.Id.Value);
+            }
+            _photoPreviews.Remove(photo);
+            // Si la photo supprimée était la photo de profil, on réattribue une nouvelle photo de profil.
+            if (photo.IsProfile && _photoPreviews.Any())
+            {
+                _photoPreviews.First().IsProfile = true;
+            }
+            AlertService.ShowMessage("L'image a été supprimée.", true);
         }
-        _photoPreviews.Remove(photo);
-        // Si la photo supprimée était en profil, on définit la première image disponible comme photo de profil
-        if (photo.IsProfile && _photoPreviews.Any())
-            _photoPreviews.First().IsProfile = true;
+        catch (Exception ex)
+        {
+            AlertService.ShowMessage($"Erreur lors de la suppression : {ex.Message}", false);
+        }
     }
 
     /** 
