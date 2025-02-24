@@ -66,6 +66,8 @@ builder.Services.AddScoped<IGenreRepository, GenreRepository>();
 builder.Services.AddScoped<IPrefSexRepository, PrefSexRepository>();
 builder.Services.AddScoped<IPhotoRepository, PhotoRepository>();
 
+builder.Services.AddSingleton<IProfileImageStateService ,ProfileImageStateService>();
+
 var app = builder.Build();
 
 // Configuration du pipeline HTTP
