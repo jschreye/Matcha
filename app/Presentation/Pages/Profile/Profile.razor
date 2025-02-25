@@ -277,6 +277,17 @@
         }
         foreach (var file in files.Take(availableSlots))
         {
+
+            // Validation de l'image
+            var imageErrors = ValidationService.ValidateImage(file);
+            if (imageErrors.Any())
+            {
+                foreach (var error in imageErrors)
+                {
+                    AlertService.ShowMessage(error, false);
+                }
+                continue;
+            }
             try
             {
                 using var stream = file.OpenReadStream(5242880); // 5MB max par fichier
@@ -381,7 +392,8 @@
         allErrors.AddRange(ValidationService.ValidateEmail(userProfile.Email));
         allErrors.AddRange(ValidationService.ValidateLatitude(userProfile.Latitude));
         allErrors.AddRange(ValidationService.ValidateLongitude(userProfile.Longitude));
-
+        allErrors.AddRange(ValidationService.ValidateBiography(userProfile.Biography));
+        
         if (allErrors.Any())
         {
             foreach (var error in allErrors)

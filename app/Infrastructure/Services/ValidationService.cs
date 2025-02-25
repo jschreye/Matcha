@@ -1,7 +1,7 @@
 // Infrastructure/Services/ValidationService.cs
 using Core.Interfaces.Services;
-// using Microsoft.AspNetCore.Components.Forms;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Components.Forms;
 using System.Text.RegularExpressions;
 
 namespace Infrastructure.Services
@@ -143,30 +143,39 @@ namespace Infrastructure.Services
 
             return errors;
         }
+        // Validation de la biographie (max 500 caractères)
+        public IEnumerable<string> ValidateBiography(string biography)
+        {
+            var errors = new List<string>();
 
-    //     public IEnumerable<string> ValidateImage(IFileListEntry image, long maxSizeInBytes)
-    //     {
-    //         var errors = new List<string>();
+            if (!string.IsNullOrWhiteSpace(biography) && biography.Length > 500)
+            {
+                errors.Add("La biographie ne doit pas dépasser 500 caractères.");
+            }
 
-    //         if (image == null)
-    //         {
-    //             errors.Add("Aucune image téléchargée.");
-    //             return errors;
-    //         }
+            return errors;
+        }
 
-    //         if (image.Size > maxSizeInBytes)
-    //         {
-    //             errors.Add($"L'image ne doit pas dépasser {maxSizeInBytes / (1024 * 1024)} MB.");
-    //         }
+        // Validation d'une image : doit être JPEG ou PNG et ne pas dépasser 5 Mo
+        public IEnumerable<string> ValidateImage(IBrowserFile file)
+        {
+            var errors = new List<string>();
 
-    //         // Vérifier le type de fichier si nécessaire
-    //         var allowedTypes = new List<string> { "image/jpeg", "image/png", "image/gif" };
-    //         if (!allowedTypes.Contains(image.Type))
-    //         {
-    //             errors.Add("Le format de l'image n'est pas pris en charge. Formats autorisés : JPEG, PNG, GIF.");
-    //         }
+            if (file == null)
+                return errors;
 
-    //         return errors;
-    //     }
+            var allowedTypes = new[] { "image/jpeg", "image/png" };
+            if (!allowedTypes.Contains(file.ContentType))
+            {
+                errors.Add("Le fichier doit être une image au format JPEG ou PNG.");
+            }
+
+            if (file.Size > MaxImageSizeInBytes)
+            {
+                errors.Add("La taille de l'image ne doit pas dépasser 5 Mo.");
+            }
+
+            return errors;
+        }
     }
 }
