@@ -22,7 +22,7 @@
             <div style="position: relative; display: inline-block;">
                 <MudImage Src="@GetProfileImageSrc()" Alt="Photo de profil" Elevation="25" 
                           Class="rounded-circle" Style="width:150px; height:150px; object-fit:cover;" />
-                <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" Color="Color.Primary" Variant="Variant.Outlined"
+                <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" Class="rounded-circle" Color="Color.Primary" Variant="Variant.Outlined"
                                Style="position: absolute; top: 5px; right: 5px;" 
                                OnClick="@(async () => {
                                     var photo = _photoPreviews.FirstOrDefault(p => p.IsProfile);
@@ -77,42 +77,111 @@
     </MudGrid>
 
     <!-- Upload de nouvelles photos -->
-    <MudFileUpload T="IReadOnlyList<IBrowserFile>" FilesChanged="UploadFiles" MaxFileSize="5242880" 
-                   FileFilter="image/*" Multiple="true" Class="mt-4">
-        <ActivatorContent>
-            <MudButton Variant="Variant.Filled" Color="@Color.Primary" StartIcon="@Icons.Material.Filled.CloudUpload">
-                Choisir des photos
-            </MudButton>
-        </ActivatorContent>
-    </MudFileUpload>
-    <MudButton Variant="Variant.Outlined" Color="@Color.Primary" OnClick="SavePhotos" Class="mt-2">
-        Enregistrer les photos
-    </MudButton>
+    <div class="d-flex flex-row justify-content-end align-items-center mt-4">
+        <MudFileUpload T="IReadOnlyList<IBrowserFile>" FilesChanged="UploadFiles" MaxFileSize="5242880" 
+                    FileFilter="image/*" Multiple="true" Class="me-2">
+            <ActivatorContent>
+                <MudButton Variant="Variant.Filled" Color="@Color.Primary" StartIcon="@Icons.Material.Filled.CloudUpload">
+                    Choisir des photos
+                </MudButton>
+            </ActivatorContent>
+        </MudFileUpload>
+        <MudButton Variant="Variant.Outlined" Color="@Color.Primary" OnClick="SavePhotos">
+            Enregistrer les photos
+        </MudButton>
+    </div>
 
-    <!-- Formulaire utilisateur -->
-    <MudForm @ref="form" @bind-IsValid="isFormValid" Class="mt-6">
+    <MudForm @ref="form" @bind-IsValid="isFormValid" Outlined="true">
+        <!-- Section Informations de base -->
+        <MudText Typo="Typo.h5" Class="mt-10 mb-4">Informations de base</MudText>
         <MudGrid Spacing="2">
-            <MudItem xs="12">
-                <MudText Typo="Typo.h4">Informations de base</MudText>
+            <MudItem xs="12" sm="6">
+                <MudTextField T="string" Label="Prénom" Variant="Variant.Outlined" 
+                            @bind-Value="userProfile.Firstname" Required="true" 
+                            RequiredError="Le prénom est requis" />
             </MudItem>
             <MudItem xs="12" sm="6">
-                <MudTextField T="string" Label="Prénom" Variant="Variant.Outlined" @bind-Value="userProfile.Firstname" 
-                              Required="true" RequiredError="Le prénom est requis" />
+                <MudTextField T="string" Label="Nom" Variant="Variant.Outlined" 
+                            @bind-Value="userProfile.Lastname" Required="true" 
+                            RequiredError="Le nom est requis" />
             </MudItem>
             <MudItem xs="12" sm="6">
-                <MudTextField T="string" Label="Nom" Variant="Variant.Outlined" @bind-Value="userProfile.Lastname" 
-                              Required="true" RequiredError="Le nom est requis" />
-            </MudItem>
-            <MudItem xs="12" sm="6">
-                <MudTextField T="string" Label="Nom d'utilisateur" Variant="Variant.Outlined" @bind-Value="userProfile.Username" 
-                              Required="true" RequiredError="Le nom d'utilisateur est requis" />
+                <MudTextField T="string" Label="Nom d'utilisateur" Variant="Variant.Outlined" 
+                            @bind-Value="userProfile.Username" Required="true" 
+                            RequiredError="Le nom d'utilisateur est requis" />
             </MudItem>
             <MudItem xs="12" sm="6">
                 <MudTextField T="string" Label="Email" Variant="Variant.Outlined" InputType="InputType.Email" 
-                              @bind-Value="userProfile.Email" Required="true" RequiredError="L'email est requis" />
+                            @bind-Value="userProfile.Email" Required="true" 
+                            RequiredError="L'email est requis" />
             </MudItem>
-            <!-- Autres champs du formulaire... -->
         </MudGrid>
+
+        <!-- Section Information complémentaire -->
+        <MudText Typo="Typo.h5" Class="mt-10 mb-4">Information complémentaire</MudText>
+        <MudGrid Spacing="2">
+            <MudItem xs="12" sm="6">
+                <MudSelect T="int?" Label="Genre" Variant="Variant.Outlined" 
+                        @bind-Value="userProfile.Genre" Required="true">
+                    @if (genre != null)
+                    {
+                        @foreach (var g in genre)
+                        {
+                            <MudSelectItem T="int?" Value="@g.Id">@g.Libelle</MudSelectItem>
+                        }
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudSelect T="int?" Label="Sexual Preferences" Variant="Variant.Outlined" 
+                        @bind-Value="userProfile.SexualPreferences" Required="true">
+                    @if (prefSex != null)
+                    {
+                        @foreach (var p in prefSex)
+                        {
+                            <MudSelectItem T="int?" Value="@p.Id">@p.Libelle</MudSelectItem>
+                        }
+                    }
+                </MudSelect>
+            </MudItem>
+            <!-- Biographie en pleine largeur -->
+            <MudItem xs="12">
+                <MudTextField T="string" Label="Biographie" Variant="Variant.Outlined" Lines="3" 
+                            @bind-Value="userProfile.Biography" Required="true" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudNumericField T="double?" Label="Latitude" Variant="Variant.Outlined" 
+                                @bind-Value="userProfile.Latitude" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudNumericField T="double?" Label="Longitude" Variant="Variant.Outlined" 
+                                @bind-Value="userProfile.Longitude" />
+            </MudItem>
+        </MudGrid>
+
+        <!-- Boutons d'action -->
+        <div class="d-flex justify-content-between align-items-center mt-4">
+            <div>
+                <MudButton Variant="Variant.Text" Color="Color.Primary" DropShadow="false" 
+                        OnClick="@(() => form.Validate())">
+                    Valider
+                </MudButton>
+                <MudButton Variant="Variant.Text" Color="Color.Secondary" DropShadow="false" 
+                        OnClick="@(() => form.ResetAsync())" Class="mx-2">
+                    Réinitialiser
+                </MudButton>
+                <MudButton Variant="Variant.Text" DropShadow="false" 
+                        OnClick="@(() => form.ResetValidation())">
+                    Réinitialiser la validation
+                </MudButton>
+            </div>
+            <div>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" Disabled="@(!isFormValid)" 
+                        OnClick="@UpdateUserProfile">
+                    Enregistrer
+                </MudButton>
+            </div>
+        </div>
     </MudForm>
 </MudPaper>
 
@@ -165,6 +234,7 @@
         userProfile = await UserService.GetUserProfileAsync(userId);
         genre = await GenreService.GetGenresAsync();
         prefSex = await PrefSexService.GetPrefSexAsync();
+        StateHasChanged();
 
         // Charger la photo de profil existante
         var profilePhoto = await PhotoService.GetProfilePhotoAsync(userId);
