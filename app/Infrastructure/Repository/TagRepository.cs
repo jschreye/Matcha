@@ -3,6 +3,7 @@ using Core.Interfaces.Services;
 using Core.Interfaces.Repository;
 using Core.Data.Entity;
 using Microsoft.Extensions.Configuration;
+using Dapper;
 
 namespace Infrastructure.Repository
 {
@@ -59,6 +60,17 @@ namespace Infrastructure.Repository
                         await insertCommand.ExecuteNonQueryAsync();
                     }
                 }
+            }
+        }
+
+        public async Task<List<int>> GetTagUserAsync(int userId)
+        {
+            using (var connection = new MySqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                var query = "SELECT TagId FROM UserTags WHERE UserId = @UserId";
+                var tagIds = await connection.QueryAsync<int>(query, new { UserId = userId });
+                return tagIds.ToList();
             }
         }
     }

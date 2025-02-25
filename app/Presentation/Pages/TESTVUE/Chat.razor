@@ -1,0 +1,61 @@
+@page "/chat"
+@inject IChatService ChatService
+
+<h3>Chat en temps réel2</h3>
+
+<div class="mb-3">
+    <input placeholder="Votre nom" @bind="userName" class="form-control" />
+</div>
+
+<div class="mb-3">
+    <input placeholder="Votre message" @bind="message" class="form-control" @onkeydown="HandleKeyDown" />
+</div>
+
+<button class="btn btn-primary" @onclick="SendMessage">Envoyer</button>
+
+<hr />
+
+<ul class="list-unstyled">
+    @foreach (var msg in chatMessages)
+    {
+        <li>@msg</li>
+    }
+</ul>
+
+@code {
+    private string userName = string.Empty;
+    private string message = string.Empty;
+    private List<string> chatMessages = new();
+
+    protected override void OnInitialized()
+    {
+        // On s'abonne à l'événement pour être notifié quand un message est envoyé
+        ChatService.OnMessageReceived += OnMessageReceived;
+
+        // Charger éventuellement les messages déjà présents
+        chatMessages.AddRange(ChatService.Messages);
+    }
+
+    private void OnMessageReceived(string fullMessage)
+    {
+        chatMessages.Add(fullMessage);
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void SendMessage()
+    {
+        if (!string.IsNullOrWhiteSpace(userName) && !string.IsNullOrWhiteSpace(message))
+        {
+            ChatService.SendMessage(userName, message);
+            message = string.Empty;
+        }
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            SendMessage();
+        }
+    }
+}

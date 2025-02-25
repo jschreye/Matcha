@@ -7,5 +7,6 @@ namespace Core.Interfaces.Repository
 
         Task<List<Tag>> GetTagsAsync();
         Task SaveUserTagsAsync(int userId, List<int> tagIds);
+        Task<List<int>> GetTagUserAsync(int userId);
     }
 }

@@ -15,6 +15,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
 
 // Ajouter les services au conteneur.
+//builder.Services.AddSignalR();
 builder.Services.AddControllers();
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
@@ -48,6 +49,8 @@ builder.Services.AddAuthorization(options =>
 });
 
 builder.Services.AddScoped<AuthenticationStateProvider, ServerAuthenticationStateProvider>();
+
+builder.Services.AddScoped<IChatService, ChatService>();
 
 // Ajouter les services personnalisés
 builder.Services.AddScoped<IUserService, UserService>();
@@ -91,6 +94,7 @@ app.UseAuthorization();
 app.MapControllers();
 
 // Mapper Blazor Hub et fallback
+//app.MapHub<ChatHub>("/ChatHub");
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 
