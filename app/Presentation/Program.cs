@@ -71,6 +71,9 @@ builder.Services.AddScoped<IPrefSexRepository, PrefSexRepository>();
 builder.Services.AddScoped<IPhotoRepository, PhotoRepository>();
 builder.Services.AddScoped<ITagRepository, TagRepository>();
 
+builder.Services.AddSingleton<IMessageRepository, MessageRepository>();
+
+
 var app = builder.Build();
 
 // Configuration du pipeline HTTP
@@ -93,8 +96,6 @@ app.UseAuthorization();
 // Mapper les contrôleurs après l'authentification/autorisation
 app.MapControllers();
 
-// Mapper Blazor Hub et fallback
-//app.MapHub<ChatHub>("/ChatHub");
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 

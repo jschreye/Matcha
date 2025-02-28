@@ -6,6 +6,7 @@ namespace Core.Interfaces.Services
     {
         IReadOnlyList<Message> Messages { get; }
         event Action<Message>? OnMessageReceived;
-        void SendMessage(int senderId, int receiverId, string contenu);
+        Task SendMessageAsync(int senderId, int receiverId, string contenu);
+        Task<List<Message>> LoadConversationAsync(int userId1, int userId2);
     }
 }

@@ -66,11 +66,11 @@
         }
     }
 
-    private void SendMessage()
+    private async Task SendMessage()
     {
         if (!string.IsNullOrWhiteSpace(message))
         {
-            ChatService.SendMessage(currentUserId, ReceiverId, message);
+            await ChatService.SendMessageAsync(currentUserId, ReceiverId, message);
             message = string.Empty;
         }
     }
