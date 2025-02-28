@@ -21,4 +21,6 @@ RUN dotnet build ./Presentation/Presentation.csproj -c Debug -o /app/build
 # Utiliser l'image runtime pour exécuter l'application
 FROM build AS development
 WORKDIR /app
+
+# watch create a error websocket in Console web
 CMD ["dotnet", "watch", "run", "--project", "Presentation/Presentation.csproj", "--urls", "http://0.0.0.0:5000", "--poll"]
