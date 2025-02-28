@@ -70,6 +70,7 @@ builder.Services.AddScoped<IPrefSexRepository, PrefSexRepository>();
 builder.Services.AddScoped<IPhotoRepository, PhotoRepository>();
 builder.Services.AddScoped<ITagRepository, TagRepository>();
 
+builder.Services.AddSingleton<IProfileImageStateService ,ProfileImageStateService>();
 builder.Services.AddSingleton<IMessageRepository, MessageRepository>();
 
 

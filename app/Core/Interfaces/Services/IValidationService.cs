@@ -1,6 +1,6 @@
 // Core/Interfaces/Services/IValidationService.cs
 using System.Collections.Generic;
-// using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.AspNetCore.Components.Forms;
 using System.Threading.Tasks;
 
 namespace Core.Interfaces.Services
@@ -13,6 +13,9 @@ namespace Core.Interfaces.Services
         IEnumerable<string> ValidatePassword(string password);
         IEnumerable<string> ValidateLatitude(double? latitude);
         IEnumerable<string> ValidateLongitude(double? longitude);
-        // IEnumerable<string> ValidateImage(IFileListEntry image, long maxSizeInBytes);
+        IEnumerable<string> ValidateBiography(string biography);
+        IEnumerable<string> ValidateImage(IBrowserFile file);
+
     }
+
 }

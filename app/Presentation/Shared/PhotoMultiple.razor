@@ -1,0 +1,145 @@
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Forms
+@inject IPhotoService PhotoService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IAlertService AlertService
+
+<div>
+    <!-- Bouton pour choisir des photos -->
+    <MudFileUpload T="IBrowserFile"
+        FilesChanged="@fileChangedCallback"
+        MaxFileSize="5242880" FileFilter="image/*" Multiple="true">
+        <ActivatorContent>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.CloudUpload">
+                Choisir des Photos
+            </MudButton>
+        </ActivatorContent>
+    </MudFileUpload>
+
+    @if (_imageDatas.Any())
+    {
+        <h4>Aperçu</h4>
+        <div class="photo-preview">
+            @foreach (var imageData in _imageDatas)
+            {
+                <img src="@($"data:image/jpeg;base64,{Convert.ToBase64String(imageData)}")" 
+                     alt="Aperçu" style="max-width:150px; margin:5px;" />
+            }
+        </div>
+    }
+
+    <!-- Bouton pour uploader les photos -->
+    <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="UploadPhotos" 
+               Disabled="@(!_imageDatas.Any())">
+        Uploader les Photos
+    </MudButton>
+
+    @if (!string.IsNullOrEmpty(UploadMessage))
+    {
+        <p style="color:@(UploadSuccess ? "green" : "red")">@UploadMessage</p>
+    }
+</div>
+
+@code {
+    /** Liste des images sélectionnées */
+    private List<byte[]> _imageDatas = new List<byte[]>();
+
+    /** Message à afficher à l'utilisateur */
+    private string? UploadMessage;
+
+    /** Statut de l'upload (succès ou échec) */
+    private bool UploadSuccess;
+
+    /** Limite maximale de photos à uploader */
+    private const int MaxPhotos = 5;
+
+    /** Callback pour la sélection de fichiers */
+    private EventCallback fileChangedCallback;
+
+    protected override void OnInitialized()
+    {
+        // Créer le callback sans spécifier de type générique
+        fileChangedCallback = EventCallback.Factory.Create(this, HandleFilesChanged);
+    }
+
+    /** 
+     * Gestion de la sélection des fichiers.
+     * Vérifie le type de l'argument et le convertit en liste de IBrowserFile.
+     */
+    private async Task HandleFilesChanged(object args)
+    {
+        // Si l'argument est déjà une liste, on l'utilise directement.
+        IReadOnlyList<IBrowserFile> files = args switch
+        {
+            IReadOnlyList<IBrowserFile> list => list,
+            IBrowserFile file => new List<IBrowserFile> { file },
+            _ => throw new InvalidCastException("Type d'argument non reconnu pour FilesChanged")
+        };
+
+        // Vérifier si la sélection dépasse la limite
+        if (_imageDatas.Count + files.Count > MaxPhotos)
+        {
+            UploadMessage = $"Vous pouvez sélectionner au maximum {MaxPhotos} photos.";
+            UploadSuccess = false;
+            return;
+        }
+
+        foreach (var file in files)
+        {
+            try
+            {
+                using var stream = file.OpenReadStream(5242880); // 5 MB max par fichier
+                using var ms = new MemoryStream();
+                await stream.CopyToAsync(ms);
+                _imageDatas.Add(ms.ToArray());
+            }
+            catch (Exception ex)
+            {
+                UploadMessage = $"Erreur lors de la lecture du fichier {file.Name} : {ex.Message}";
+                UploadSuccess = false;
+            }
+        }
+
+        // Message de confirmation
+        if (string.IsNullOrEmpty(UploadMessage))
+        {
+            UploadMessage = $"{_imageDatas.Count} photo(s) sélectionnée(s).";
+            UploadSuccess = true;
+        }
+    }
+
+    /** 
+     * Upload des photos via le service PhotoService.
+     * Vérifie l'authentification et ajoute chaque photo.
+     */
+    private async Task UploadPhotos()
+    {
+        // Récupérer l'utilisateur authentifié
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+        {
+            UploadMessage = "Utilisateur non authentifié.";
+            UploadSuccess = false;
+            return;
+        }
+
+        try
+        {
+            foreach (var imageData in _imageDatas)
+            {
+                // Appel au service pour enregistrer la photo (est_profil à false par défaut)
+                await PhotoService.AddPhotoAsync(userId, imageData, false);
+            }
+            UploadMessage = $"{_imageDatas.Count} photo(s) enregistrée(s) avec succès !";
+            UploadSuccess = true;
+            _imageDatas.Clear(); // Réinitialiser la sélection après upload
+        }
+        catch (Exception ex)
+        {
+            UploadMessage = $"Erreur lors de l'enregistrement : {ex.Message}";
+            UploadSuccess = false;
+        }
+    }
+}

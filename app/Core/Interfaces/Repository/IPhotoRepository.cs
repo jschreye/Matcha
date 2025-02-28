@@ -9,5 +9,6 @@ namespace Core.Interfaces.Repository
         Task<Photo?> GetProfilePhotoAsync(int userId);
         Task DeletePhotoAsync(int photoId);
         Task<List<Photo>> GetUserPhotosAsync(int userId);
+        Task UpdateProfilePhotoAsync(int userId, int newProfilePhotoId);
     }
 }

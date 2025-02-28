@@ -1,209 +1,480 @@
 @page "/profile"
 @using Microsoft.AspNetCore.Components.Forms
-
-@inject IJSRuntime JS
 @using Core.Data.DTOs
-@using Core.Interfaces.Services
-@using System.Security.Claims
 @using Core.Data.Entity
+@using Core.Interfaces.Services
 @inject IUserService UserService
+@inject IPhotoService PhotoService
+@inject IAlertService AlertService
 @inject IGenreService GenreService
 @inject IPrefSexService PrefSexService
-@inject IAlertService AlertService
-@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IJSRuntime JS
+@inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager NavigationManager
 @inject IValidationService ValidationService
+@inject IProfileImageStateService ProfileState
 
-<MudText Typo="Typo.h3">Profil</MudText>
+<MudPaper Class="p-4">
+    <!-- Conteneur centré pour l'image de profil -->
+    <div class="d-flex justify-center mb-4">
+        @if (GetProfileImageSrc() != null)
+        {
+            <div style="position: relative; display: inline-block;">
+                <MudImage Src="@GetProfileImageSrc()" Alt="Photo de profil" Elevation="25" 
+                          Class="rounded-circle" Style="width:150px; height:150px; object-fit:cover;" />
+                <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" Class="rounded-circle" Color="Color.Primary" Variant="Variant.Outlined"
+                               Style="position: absolute; top: 5px; right: 5px;" 
+                               OnClick="@(async () => {
+                                    var photo = _photoPreviews.FirstOrDefault(p => p.IsProfile);
+                                    if (photo != null)
+                                    {
+                                        await DeletePhoto(photo);
+                                        // Met à jour le service après suppression
+                                        ProfileState.ProfileImageSrc = GetProfileImageSrc();
+                                    }
+                               })" />
+            </div>
+        }
+        else
+        {
+            <MudAvatar Size="Size.Large" Class="rounded-circle" Style="width:150px; height:150px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icon-tabler-user">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                    <circle cx="12" cy="7" r="4"/>
+                    <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
+                </svg>
+            </MudAvatar>
+        }
+    </div>
 
-@if (isLoading)
-{
-    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
-}
-else if (userProfile != null)
-{
+    <!-- Prévisualisation des photos restantes sous forme de cards -->
+    <MudGrid Class="mt-4" Spacing="2">
+        @foreach (var photo in _otherPhotos)
+        {
+            <MudItem xs="12" sm="6" md="3">
+                <MudCard>
+                    <MudCardMedia Image="@($"data:image/jpeg;base64,{Convert.ToBase64String(photo.Data)}")" 
+                                  Style="height:100px; object-fit:cover;" />
+                    <MudCardActions>
+                        <MudButton Size="@Size.Small" Color="@Color.Primary" OnClick="@(() => SetAsProfile(photo))">
+                            Profil
+                        </MudButton>
+                        <MudButton Size="@Size.Small" Color="@Color.Secondary" OnClick="@(() => DeletePhoto(photo))">
+                            Supprimer
+                        </MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+        }
+        @for (int i = _otherPhotos.Count; i < MaxPhotos - 1; i++)
+        {
+            <MudItem xs="12" sm="6" md="3">
+                <MudCard Style="height:150px; display:flex; align-items:center; justify-content:center;">
+                    <MudIcon Icon="@Icons.Material.Filled.ImageNotSupported" Size="@Size.Medium" Color="@Color.Default" />
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+
+    <!-- Upload de nouvelles photos -->
+    <div class="d-flex flex-row justify-content-end align-items-center mt-4">
+        <MudFileUpload T="IReadOnlyList<IBrowserFile>" FilesChanged="UploadFiles" MaxFileSize="5242880" 
+                    FileFilter="image/*" Multiple="true" Class="me-2">
+            <ActivatorContent>
+                <MudButton Variant="Variant.Filled" Color="@Color.Primary" StartIcon="@Icons.Material.Filled.CloudUpload">
+                    Choisir des photos
+                </MudButton>
+            </ActivatorContent>
+        </MudFileUpload>
+        <MudButton Variant="Variant.Outlined" Color="@Color.Primary" OnClick="SavePhotos">
+            Enregistrer les photos
+        </MudButton>
+    </div>
+
     <MudForm @ref="form" @bind-IsValid="isFormValid" Outlined="true">
-        <!-- Prénom -->
-        <MudTextField T="string" Label="Prénom" Variant="Variant.Outlined" @bind-Value="userProfile.Firstname"
-                      Required="true" RequiredError="Le prénom est requis" />
-        
-        <!-- Nom -->
-        <MudTextField T="string" Label="Nom" Variant="Variant.Outlined" @bind-Value="userProfile.Lastname"
-                      Required="true" RequiredError="Le nom est requis" />
-        
-        <!-- Nom d'utilisateur -->
-        <MudTextField T="string" Label="Nom d'utilisateur" Variant="Variant.Outlined" @bind-Value="userProfile.Username"
-                      Required="true" RequiredError="Le nom d'utilisateur est requis" />
-        
-        <!-- Email -->
-        <MudTextField T="string" Label="Email" Variant="Variant.Outlined" InputType="InputType.Email"
-                      @bind-Value="userProfile.Email" Required="true" RequiredError="L'email est requis" />
-        
-        <!-- Genre -->
-        <MudSelect T="int?" Label="Genre" Variant="Variant.Outlined" @bind-Value="userProfile.Genre" Required="true">
-            @if (genre != null)
-            {
-                @foreach (var g in genre)
-                {
-                    <MudSelectItem T="int?" Value="@g.Id">@g.Libelle</MudSelectItem>
-                }
-            }
-        </MudSelect>
+        <!-- Section Informations de base -->
+        <MudText Typo="Typo.h5" Class="mt-10 mb-4">Informations de base</MudText>
+        <MudGrid Spacing="2">
+            <MudItem xs="12" sm="6">
+                <MudTextField T="string" Label="Prénom" Variant="Variant.Outlined" 
+                            @bind-Value="userProfile.Firstname" Required="true" 
+                            RequiredError="Le prénom est requis" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudTextField T="string" Label="Nom" Variant="Variant.Outlined" 
+                            @bind-Value="userProfile.Lastname" Required="true" 
+                            RequiredError="Le nom est requis" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudTextField T="string" Label="Nom d'utilisateur" Variant="Variant.Outlined" 
+                            @bind-Value="userProfile.Username" Required="true" 
+                            RequiredError="Le nom d'utilisateur est requis" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudTextField T="string" Label="Email" Variant="Variant.Outlined" InputType="InputType.Email" 
+                            @bind-Value="userProfile.Email" Required="true" 
+                            RequiredError="L'email est requis" />
+            </MudItem>
+        </MudGrid>
 
-        <!-- PrefSex -->
-        <MudSelect T="int?" Label="SexualPreferences" Variant="Variant.Outlined"
-                   @bind-Value="userProfile.SexualPreferences" Required="true">
-            @if (prefSex != null)
-            {
-                @foreach (var p in prefSex)
-                {
-                    <MudSelectItem T="int?" Value="@p.Id">@p.Libelle</MudSelectItem>
-                }
-            }
-        </MudSelect>
-        
-        <!-- Biographie -->
-        <MudTextField T="string" Label="Biographie" Variant="Variant.Outlined" Lines="3" @bind-Value="userProfile.Biography" Required="true" />
-        
-        <!-- Latitude -->
-        <MudNumericField T="double?" Label="Latitude" Variant="Variant.Outlined" @bind-Value="userProfile.Latitude" />
-        
-        <!-- Longitude -->
-        <MudNumericField T="double?" Label="Longitude" Variant="Variant.Outlined" @bind-Value="userProfile.Longitude" />
-        
-        <!-- Boutons -->
-        <div class="d-flex justify-content-between align-items-center">
+        <!-- Section Information complémentaire -->
+        <MudText Typo="Typo.h5" Class="mt-10 mb-4">Information complémentaire</MudText>
+        <MudGrid Spacing="2">
+            <MudItem xs="12" sm="6">
+                <MudSelect T="int?" Label="Genre" Variant="Variant.Outlined" 
+                        @bind-Value="userProfile.Genre" Required="true">
+                    @if (genre != null)
+                    {
+                        @foreach (var g in genre)
+                        {
+                            <MudSelectItem T="int?" Value="@g.Id">@g.Libelle</MudSelectItem>
+                        }
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudSelect T="int?" Label="Sexual Preferences" Variant="Variant.Outlined" 
+                        @bind-Value="userProfile.SexualPreferences" Required="true">
+                    @if (prefSex != null)
+                    {
+                        @foreach (var p in prefSex)
+                        {
+                            <MudSelectItem T="int?" Value="@p.Id">@p.Libelle</MudSelectItem>
+                        }
+                    }
+                </MudSelect>
+            </MudItem>
+            <!-- Biographie en pleine largeur -->
+            <MudItem xs="12">
+                <MudTextField T="string" Label="Biographie" Variant="Variant.Outlined" Lines="3" 
+                            @bind-Value="userProfile.Biography" Required="true" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudNumericField T="double?" Label="Latitude" Variant="Variant.Outlined" 
+                                @bind-Value="userProfile.Latitude" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudNumericField T="double?" Label="Longitude" Variant="Variant.Outlined" 
+                                @bind-Value="userProfile.Longitude" />
+            </MudItem>
+        </MudGrid>
+
+        <!-- Boutons d'action -->
+        <div class="d-flex justify-content-between align-items-center mt-4">
             <div>
-                <MudButton Variant="Variant.Text" Color="Color.Primary" DropShadow="false" OnClick="@(() => form.Validate())">
+                <MudButton Variant="Variant.Text" Color="Color.Primary" DropShadow="false" 
+                        OnClick="@(() => form.Validate())">
                     Valider
                 </MudButton>
-                <MudButton Variant="Variant.Text" Color="Color.Secondary" DropShadow="false"
-                           OnClick="@(() => form.ResetAsync())" Class="mx-2">
+                <MudButton Variant="Variant.Text" Color="Color.Secondary" DropShadow="false" 
+                        OnClick="@(() => form.ResetAsync())" Class="mx-2">
                     Réinitialiser
                 </MudButton>
-                <MudButton Variant="Variant.Text" DropShadow="false" OnClick="@(() => form.ResetValidation())">
+                <MudButton Variant="Variant.Text" DropShadow="false" 
+                        OnClick="@(() => form.ResetValidation())">
                     Réinitialiser la validation
                 </MudButton>
             </div>
             <div>
-                <MudButton Variant="Variant.Outlined" Color="Color.Primary" Disabled="@(!isFormValid)" OnClick="@UpdateUserProfile">
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" Disabled="@(!isFormValid)" 
+                        OnClick="@UpdateUserProfile">
                     Enregistrer
                 </MudButton>
             </div>
         </div>
+
+        <!-- Section Sécurité pour le changement de mot de passe -->
+        <MudText Typo="Typo.h5" Class="mt-10 mb-4">Sécurité</MudText>
+        <MudTextField T="string" Label="Mot de passe actuel" Variant="Variant.Outlined" 
+                    InputType="InputType.Password" @bind-Value="currentPassword" />
+        <MudTextField T="string" Label="Nouveau mot de passe" Variant="Variant.Outlined" 
+                    InputType="InputType.Password" @bind-Value="newPassword" />
+        <MudTextField T="string" Label="Confirmer le nouveau mot de passe" Variant="Variant.Outlined" 
+                    InputType="InputType.Password" @bind-Value="confirmNewPassword" />
+        <div class="d-flex justify-content-end">
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="UpdatePassword">
+                Modifier le mot de passe
+            </MudButton>
+        </div>
     </MudForm>
-}
+</MudPaper>
+
 @code {
-    
-    private UserProfileDto? userProfile;
-    private bool isLoading = true;
-    private bool isFormValid;
+    /** Nombre maximum total d'images (1 photo profil + 4 autres) */
+    private const int MaxPhotos = 5;
     private MudForm form;
+    private bool isFormValid;
+    /** Objet contenant les infos du profil utilisateur */
+    private UserProfileDto userProfile = new();
+    /** Listes des genres et préférences sexuelles */
     private List<Genre> genre;
     private List<PrefSex> prefSex;
+    private string currentPassword;
+    private string newPassword;
+    private string confirmNewPassword;
+    /** Classe locale pour la prévisualisation des photos */
+    private class PhotoPreview {
+        public int? Id { get; set; }
+        public byte[] Data { get; set; }
+        public bool IsNew { get; set; }
+        public bool IsProfile { get; set; }
+    }
+
+    /** Liste globale des photos en prévisualisation */
+    private List<PhotoPreview> _photoPreviews = new();
+
+    /** Photos hors profil */
+    private List<PhotoPreview> _otherPhotos => _photoPreviews.Where(p => !p.IsProfile).ToList();
+
+    // Delegate pour l'abonnement au service d'état
+    private Action _onProfileImageChanged;
 
     protected override async Task OnInitializedAsync()
     {
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
+        _onProfileImageChanged = () => InvokeAsync(StateHasChanged);
+        ProfileState.OnChange += _onProfileImageChanged;
 
+        // Récupérer l'utilisateur authentifié
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
         if (user.Identity == null || !user.Identity.IsAuthenticated)
         {
             NavigationManager.NavigateTo("/login");
             return;
         }
+        int userId = int.Parse(user.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier").Value);
 
-        var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier);
-        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+        // Charger le profil utilisateur et autres données
+        userProfile = await UserService.GetUserProfileAsync(userId);
+        genre = await GenreService.GetGenresAsync();
+        prefSex = await PrefSexService.GetPrefSexAsync();
+        StateHasChanged();
+
+        // Charger la photo de profil existante
+        var profilePhoto = await PhotoService.GetProfilePhotoAsync(userId);
+        if (profilePhoto != null)
         {
-            AlertService.ShowMessage("Erreur : utilisateur non authentifié.", false);
-            isLoading = false;
-            return;
+            _photoPreviews.Add(new PhotoPreview { Id = profilePhoto.Id, Data = profilePhoto.ImageData, IsNew = false, IsProfile = true });
+        }
+        // Charger les autres photos
+        var otherPhotos = await PhotoService.GetUserPhotosAsync(userId);
+        foreach (var p in otherPhotos)
+        {
+            _photoPreviews.Add(new PhotoPreview { Id = p.Id, Data = p.ImageData, IsNew = false, IsProfile = false });
         }
 
+        // Initialisation du service d'état avec l'image actuelle (si présente)
+        ProfileState.ProfileImageSrc = GetProfileImageSrc();
+    }
+
+    public void Dispose()
+    {
+        ProfileState.OnChange -= _onProfileImageChanged;
+    }
+
+    /** Retourne la source de l'image de profil */
+    private string GetProfileImageSrc()
+    {
+        var profile = _photoPreviews.FirstOrDefault(p => p.IsProfile);
+        if (profile != null)
+            return $"data:image/jpeg;base64,{Convert.ToBase64String(profile.Data)}";
+        return null;
+    }
+
+    /** Callback lors de l'upload de nouvelles photos */
+    private async Task UploadFiles(IReadOnlyList<IBrowserFile> files)
+    {
+        int availableSlots = MaxPhotos - _photoPreviews.Count;
+        if (files.Count > availableSlots)
+        {
+            AlertService.ShowMessage($"Seulement {availableSlots} emplacement(s) disponible(s).", false);
+        }
+        foreach (var file in files.Take(availableSlots))
+        {
+
+            // Validation de l'image
+            var imageErrors = ValidationService.ValidateImage(file);
+            if (imageErrors.Any())
+            {
+                foreach (var error in imageErrors)
+                {
+                    AlertService.ShowMessage(error, false);
+                }
+                continue;
+            }
+            try
+            {
+                using var stream = file.OpenReadStream(5242880); // 5MB max par fichier
+                using var ms = new MemoryStream();
+                await stream.CopyToAsync(ms);
+                var data = ms.ToArray();
+                bool setAsProfile = !_photoPreviews.Any(p => p.IsProfile);
+                _photoPreviews.Add(new PhotoPreview { Data = data, IsNew = true, IsProfile = setAsProfile });
+            }
+            catch (Exception ex)
+            {
+                AlertService.ShowMessage($"Erreur sur le fichier {file.Name} : {ex.Message}", false);
+            }
+        }
+    }
+
+    /** Définit la photo sélectionnée comme photo de profil et met à jour la BDD */
+    private async Task SetAsProfile(PhotoPreview photo)
+    {
+        foreach (var p in _photoPreviews)
+            p.IsProfile = false;
+        photo.IsProfile = true;
+
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        int userId = int.Parse(authState.User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier").Value);
+
+        if (photo.Id.HasValue)
+        {
+            await PhotoService.UpdateProfilePhotoAsync(userId, photo.Id.Value);
+            AlertService.ShowMessage("Photo de profil mise à jour.", true);
+        }
+        ProfileState.ProfileImageSrc = GetProfileImageSrc();
+    }
+
+    /** 
+    * Supprime une photo (profil ou autre) et affiche une alerte.
+    * Si la photo supprimée est celle de profil, on réattribue la première image restante comme profil et on met à jour la BDD.
+    */
+    private async Task DeletePhoto(PhotoPreview photo)
+    {
         try
         {
-            userProfile = await UserService.GetUserProfileAsync(userId);
-            genre = await GenreService.GetGenresAsync();
-            prefSex = await PrefSexService.GetPrefSexAsync();
+            if (!photo.IsNew && photo.Id.HasValue)
+            {
+                await PhotoService.DeletePhotoAsync(photo.Id.Value);
+            }
+            _photoPreviews.Remove(photo);
+            if (photo.IsProfile && _photoPreviews.Any())
+            {
+                // Réattribuer une nouvelle photo de profil
+                var newProfilePhoto = _photoPreviews.First();
+                newProfilePhoto.IsProfile = true;
+                
+                // Mise à jour en base de données pour marquer cette photo comme profil
+                var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+                int userId = int.Parse(authState.User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier").Value);
+                if(newProfilePhoto.Id.HasValue)
+                {
+                    await PhotoService.UpdateProfilePhotoAsync(userId, newProfilePhoto.Id.Value);
+                }
+            }
+            AlertService.ShowMessage("L'image a été supprimée.", true);
+            ProfileState.ProfileImageSrc = GetProfileImageSrc();
         }
         catch (Exception ex)
         {
-            AlertService.ShowMessage($"Erreur lors du chargement du profil : {ex.Message}", false);
+            AlertService.ShowMessage($"Erreur lors de la suppression : {ex.Message}", false);
         }
-
-        isLoading = false;
     }
 
+    /** Enregistre les nouvelles photos en base */
+    private async Task SavePhotos()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        int userId = int.Parse(authState.User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier").Value);
+        
+        foreach (var photo in _photoPreviews.Where(p => p.IsNew))
+        {
+            await PhotoService.AddPhotoAsync(userId, photo.Data, photo.IsProfile);
+            photo.IsNew = false;
+        }
+        
+        var profilePhoto = await PhotoService.GetProfilePhotoAsync(userId);
+        
+        if (profilePhoto != null && profilePhoto.EstProfil)
+        {
+            AlertService.ShowMessage("L'image de profil a été correctement enregistrée.", true);
+        }
+        else
+        {
+            AlertService.ShowMessage("Erreur lors de l'enregistrement de l'image de profil.", false);
+        }
+    }
+
+    /** Met à jour le profil utilisateur */
     private async Task UpdateUserProfile()
     {
-        // Initialiser une liste pour collecter les erreurs
         var allErrors = new List<string>();
-
-        // Valider le nom d'utilisateur
-        var usernameErrors = ValidationService.ValidateUsername(userProfile.Username);
-        allErrors.AddRange(usernameErrors);
-
-        // Valider le prénom
-        var firstnameErrors = ValidationService.ValidateName(userProfile.Firstname, "Le prénom");
-        allErrors.AddRange(firstnameErrors);
-
-        // Valider le nom
-        var lastnameErrors = ValidationService.ValidateName(userProfile.Lastname, "Le nom");
-        allErrors.AddRange(lastnameErrors);
-
-        // Valider l'email
-        var emailErrors = ValidationService.ValidateEmail(userProfile.Email);
-        allErrors.AddRange(emailErrors);
-
-        // Valider la latitude et la longitude
-        var latitudeErrors = ValidationService.ValidateLatitude(userProfile.Latitude);
-        var longitudeErrors = ValidationService.ValidateLongitude(userProfile.Longitude);
-        allErrors.AddRange(latitudeErrors);
-        allErrors.AddRange(longitudeErrors);
-
-        // (Optionnel) Si vous avez un champ d'image, vous pouvez le valider ici
-        // Exemple :
-        // var imageErrors = ValidationService.ValidateImage(uploadedImage, 2 * 1024 * 1024); // 2 MB
-        // allErrors.AddRange(imageErrors);
-
-        // Vérifier s'il y a des erreurs
+        allErrors.AddRange(ValidationService.ValidateUsername(userProfile.Username));
+        allErrors.AddRange(ValidationService.ValidateName(userProfile.Firstname, "Le prénom"));
+        allErrors.AddRange(ValidationService.ValidateName(userProfile.Lastname, "Le nom"));
+        allErrors.AddRange(ValidationService.ValidateEmail(userProfile.Email));
+        allErrors.AddRange(ValidationService.ValidateLatitude(userProfile.Latitude));
+        allErrors.AddRange(ValidationService.ValidateLongitude(userProfile.Longitude));
+        allErrors.AddRange(ValidationService.ValidateBiography(userProfile.Biography));
+        
         if (allErrors.Any())
         {
             foreach (var error in allErrors)
-            {
                 AlertService.ShowMessage(error, false);
-            }
             return;
         }
 
-        // Si tout est valide, procéder à la mise à jour
-        try
+        var result = await UserService.UpdateUserProfileAsync(userProfile);
+        if (result)
         {
-            var result = await UserService.UpdateUserProfileAsync(userProfile);
-            if (result)
+            bool refreshOk = await JS.InvokeAsync<bool>("refreshProfileClaim");
+            if (refreshOk)
             {
-                // On rafraîchit le cookie
-                bool refreshOk = await JS.InvokeAsync<bool>("refreshProfileClaim");
-                if (refreshOk)
-                {
-                    // On redirige vers la page d'accueil, en forçant un rechargement complet du navigateur
-                    NavigationManager.NavigateTo("/", forceLoad: true);
-                    AlertService.ShowMessage("Profil mis à jour.", true);
-                }
-                else
-                {
-                    AlertService.ShowMessage("Impossible de rafraîchir le cookie...", false);
-                }
+                NavigationManager.NavigateTo("/", forceLoad: true);
+                AlertService.ShowMessage("Profil mis à jour.", true);
             }
             else
             {
-                AlertService.ShowMessage("Échec mise à jour du profil.", false);
+                AlertService.ShowMessage("Impossible de rafraîchir le cookie...", false);
             }
         }
-        catch (Exception ex)
+        else
         {
-            AlertService.ShowMessage($"Erreur : {ex.Message}", false);
+            AlertService.ShowMessage("Échec de la mise à jour du profil.", false);
+        }
+    }
+
+    /** 
+    * Fonction pour mettre à jour le mot de passe.
+    * Vérifie que la confirmation est correcte, valide le mot de passe actuel 
+    * et appelle la méthode dédiée du service.
+    */
+    private async Task UpdatePassword()
+    {
+        if (newPassword != confirmNewPassword)
+        {
+            AlertService.ShowMessage("La confirmation ne correspond pas.", false);
+            return;
+        }
+
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if (user.Identity == null || !user.Identity.IsAuthenticated)
+        {
+            AlertService.ShowMessage("Utilisateur non authentifié.", false);
+            return;
+        }
+        int userId = int.Parse(user.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier").Value);
+
+        // Vérifie le mot de passe actuel via le service
+        bool isValid = await UserService.ValidateUser(user.Identity.Name, currentPassword);
+        if (!isValid)
+        {
+            AlertService.ShowMessage("Mot de passe actuel incorrect.", false);
+            return;
+        }
+
+        // Appelle la méthode dédiée pour mettre à jour le mot de passe
+        bool result = await UserService.UpdatePasswordAsync(userId, newPassword);
+        if (result)
+        {
+            AlertService.ShowMessage("Mot de passe mis à jour avec succès.", true);
+            currentPassword = newPassword = confirmNewPassword = "";
+        }
+        else
+        {
+            AlertService.ShowMessage("Erreur lors de la mise à jour du mot de passe.", false);
         }
     }
 }

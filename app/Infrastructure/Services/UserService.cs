@@ -149,4 +149,22 @@ public class UserService : IUserService
 
         return true;
     }
+
+    /** 
+    * Met à jour le mot de passe de l'utilisateur.
+    * @param userId L'ID de l'utilisateur.
+    * @param newPassword Le nouveau mot de passe en clair.
+    * @return true si la mise à jour a réussi, false sinon.
+    */
+    public async Task<bool> UpdatePasswordAsync(int userId, string newPassword)
+    {
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null)
+            return false;
+
+        // Hashe le nouveau mot de passe et met à jour l'utilisateur
+        user.PasswordHash = _passwordHasher.HashPassword(newPassword);
+        await _userRepository.Update(user);
+        return true;
+    }
 }

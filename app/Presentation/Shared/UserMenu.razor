@@ -1,35 +1,36 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
+@inject IPhotoService PhotoService
+@inject IProfileImageStateService ProfileState
 
 <MudAppBar Elevation="1" Style="@($"background:{Colors.Gray.Lighten3};")">
     <MudIconButton Icon="@Icons.Material.Filled.Menu" Edge="Edge.Start" OnClick="@ToggleDrawerAsync" Style="@($"color:{Colors.DeepPurple.Accent4};")"/>
     <MudSpacer />
-    <!-- Contenu du User Menu -->
     <AuthorizeView>
         <Authorized>
-            <!-- Menu de Navigation pour les Utilisateurs Authentifiés -->
             <MudMenu>
                 <ActivatorContent>
-                    <MudBadge class="mr-3" Color="Color.Success" Overlap="true" Bordered="true">
-                        <MudAvatar Size="Size.Medium">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icon-tabler-user">
-                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                                <circle cx="12" cy="7" r="4"/>
-                                <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
-                            </svg>
-                        </MudAvatar>
+                    <MudBadge Class="mr-3" Color="Color.Success" Overlap="true" Bordered="true">
+                        @if (!string.IsNullOrWhiteSpace(ProfileState.ProfileImageSrc))
+                        {
+                            <!-- Affiche l'image de profil synchronisée -->
+                            <img src="@ProfileState.ProfileImageSrc" alt="Profile" style="width:48px; height:48px; border-radius:50%;" />
+                        }
+                        else
+                        {
+                            <!-- Affiche le SVG par défaut -->
+                            <MudAvatar Size="Size.Medium">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icon-tabler-user">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                    <circle cx="12" cy="7" r="4"/>
+                                    <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
+                                </svg>
+                            </MudAvatar>
+                        }
                     </MudBadge>
                 </ActivatorContent>
                 <ChildContent>
-                    @* <MudNavLink Href="/dashboard" Icon="@Icons.Material.Filled.Dashboard" Class="mud-menu-item">Dashboard</MudNavLink>
-                    <MudNavLink Href="/servers" Icon="@Icons.Material.Filled.Storage" Class="mud-menu-item">Servers</MudNavLink>
-                    <MudNavLink Href="/billing" Icon="@Icons.Material.Filled.Receipt" Disabled="true" Class="mud-menu-item">Billing</MudNavLink>
-                    <MudNavGroup Title="Settings" Icon="@Icons.Material.Filled.Settings" Expanded="true">
-                        <MudNavLink Href="/users" Icon="@Icons.Material.Filled.People" IconColor="Color.Success" Class="mud-menu-item">Users</MudNavLink>
-                        <MudNavLink Href="/security" Icon="@Icons.Material.Filled.Security" IconColor="Color.Info" Class="mud-menu-item">Security</MudNavLink>
-                    </MudNavGroup>
-                    <MudDivider Class="my-2" /> *@
                     <MudMenuItem Href="/profile">
                         <MudIcon Icon="@Icons.Material.Filled.People" Class="mr-5" Style="@($"color:{Colors.DeepPurple.Accent4};")" />
                         Profile
@@ -42,18 +43,18 @@
             </MudMenu>
         </Authorized>
         <NotAuthorized>
-            <!-- Boutons Login et Register pour les Utilisateurs Non Authentifiés -->
+            <!-- Boutons Login et Register pour les utilisateurs non authentifiés -->
             @if (ShowLogin)
             {
                 <MudButton OnClick="@NavigateToLogin" Style="@($"color:{Colors.DeepPurple.Accent4};")">
                     <div>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-login-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icon-tabler-login-2">
                             <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                            <path d="M9 8v-2a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-7a2 2 0 0 1-2-2v-2" />
-                            <path d="M3 12h13l-3-3" />
-                            <path d="M13 15l3-3" />
+                            <path d="M9 8v-2a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-7a2 2 0 0 1-2-2v-2"/>
+                            <path d="M3 12h13l-3-3"/>
+                            <path d="M13 15l3-3"/>
                         </svg>
-                        <MudText style="font-size: small;" Class="ml-2">Login</MudText>
+                        <MudText Style="font-size: small;" Class="ml-2">Login</MudText>
                     </div>
                 </MudButton>
             }
@@ -61,14 +62,14 @@
             {
                 <MudButton OnClick="@NavigateToRegister" Class="mx-1" Style="@($"color:{Colors.DeepPurple.Accent4};")">
                     <div>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-user-plus">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icon-tabler-user-plus">
                             <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                            <path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0-8 0" />
-                            <path d="M16 19h6" />
-                            <path d="M19 16v6" />
-                            <path d="M6 21v-2a4 4 0 0 1 4-4h4" />
+                            <path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0-8 0"/>
+                            <path d="M16 19h6"/>
+                            <path d="M19 16v6"/>
+                            <path d="M6 21v-2a4 4 0 0 1 4-4h4"/>
                         </svg>
-                        <MudText style="font-size: small;" Class="ml-2">Register</MudText>
+                        <MudText Style="font-size: small;" Class="ml-2">Register</MudText>
                     </div>
                 </MudButton>
             }
@@ -86,6 +87,8 @@
     [Parameter]
     public EventCallback OnToggleDrawer { get; set; }
 
+    private Action _onProfileImageChanged;
+
     private bool isAuthenticated;
     private bool isOnLoginPage;
     private bool isOnRegisterPage;
@@ -95,8 +98,24 @@
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         isAuthenticated = authState.User.Identity?.IsAuthenticated ?? false;
 
+        // Abonnement avec InvokeAsync pour s'assurer que StateHasChanged est appelé sur le bon Dispatcher
+        _onProfileImageChanged = () => InvokeAsync(StateHasChanged);
+        ProfileState.OnChange += _onProfileImageChanged;
+
         UpdateCurrentPage();
-        NavigationManager.LocationChanged += (s, e) => UpdateCurrentPage();
+        NavigationManager.LocationChanged += OnLocationChanged;
+    }
+
+    public void Dispose()
+    {
+        ProfileState.OnChange -= _onProfileImageChanged;
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        UpdateCurrentPage();
+        InvokeAsync(StateHasChanged);
     }
 
     private void UpdateCurrentPage()
@@ -104,25 +123,13 @@
         var currentUri = NavigationManager.Uri.ToLower();
         isOnLoginPage = currentUri.EndsWith("/login");
         isOnRegisterPage = currentUri.EndsWith("/register");
-        StateHasChanged();
     }
 
-    private void NavigateToLogin()
-    {
-        NavigationManager.NavigateTo("/login");
-    }
+    private void NavigateToLogin() => NavigationManager.NavigateTo("/login");
 
-    private void NavigateToRegister()
-    {
-        NavigationManager.NavigateTo("/register");
-    }
+    private void NavigateToRegister() => NavigationManager.NavigateTo("/register");
 
-    private void Logout()
-    {
-        // Implémentez votre logique de déconnexion ici
-        // Par exemple, appeler une API de déconnexion ou utiliser un service d'authentification
-        NavigationManager.NavigateTo("/logout", true);
-    }
+    private void Logout() => NavigationManager.NavigateTo("/logout", true);
 
     private async Task ToggleDrawerAsync()
     {

@@ -40,5 +40,14 @@ namespace Infrastructure.Services
         {
             return await _photoRepository.GetUserPhotosAsync(userId);
         }
+        public async Task DeletePhotoAsync(int photoId)
+        {
+            await _photoRepository.DeletePhotoAsync(photoId);
+        }
+
+        public async Task UpdateProfilePhotoAsync(int userId, int newProfilePhotoId)
+        {
+            await _photoRepository.UpdateProfilePhotoAsync(userId, newProfilePhotoId);
+        }
     }
 }
