@@ -182,6 +182,20 @@
                 </MudButton>
             </div>
         </div>
+
+        <!-- Section Sécurité pour le changement de mot de passe -->
+        <MudText Typo="Typo.h5" Class="mt-10 mb-4">Sécurité</MudText>
+        <MudTextField T="string" Label="Mot de passe actuel" Variant="Variant.Outlined" 
+                    InputType="InputType.Password" @bind-Value="currentPassword" />
+        <MudTextField T="string" Label="Nouveau mot de passe" Variant="Variant.Outlined" 
+                    InputType="InputType.Password" @bind-Value="newPassword" />
+        <MudTextField T="string" Label="Confirmer le nouveau mot de passe" Variant="Variant.Outlined" 
+                    InputType="InputType.Password" @bind-Value="confirmNewPassword" />
+        <div class="d-flex justify-content-end">
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="UpdatePassword">
+                Modifier le mot de passe
+            </MudButton>
+        </div>
     </MudForm>
 </MudPaper>
 
@@ -195,7 +209,9 @@
     /** Listes des genres et préférences sexuelles */
     private List<Genre> genre;
     private List<PrefSex> prefSex;
-
+    private string currentPassword;
+    private string newPassword;
+    private string confirmNewPassword;
     /** Classe locale pour la prévisualisation des photos */
     private class PhotoPreview {
         public int? Id { get; set; }
@@ -416,6 +432,49 @@
         else
         {
             AlertService.ShowMessage("Échec de la mise à jour du profil.", false);
+        }
+    }
+
+    /** 
+    * Fonction pour mettre à jour le mot de passe.
+    * Vérifie que la confirmation est correcte, valide le mot de passe actuel 
+    * et appelle la méthode dédiée du service.
+    */
+    private async Task UpdatePassword()
+    {
+        if (newPassword != confirmNewPassword)
+        {
+            AlertService.ShowMessage("La confirmation ne correspond pas.", false);
+            return;
+        }
+
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if (user.Identity == null || !user.Identity.IsAuthenticated)
+        {
+            AlertService.ShowMessage("Utilisateur non authentifié.", false);
+            return;
+        }
+        int userId = int.Parse(user.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier").Value);
+
+        // Vérifie le mot de passe actuel via le service
+        bool isValid = await UserService.ValidateUser(user.Identity.Name, currentPassword);
+        if (!isValid)
+        {
+            AlertService.ShowMessage("Mot de passe actuel incorrect.", false);
+            return;
+        }
+
+        // Appelle la méthode dédiée pour mettre à jour le mot de passe
+        bool result = await UserService.UpdatePasswordAsync(userId, newPassword);
+        if (result)
+        {
+            AlertService.ShowMessage("Mot de passe mis à jour avec succès.", true);
+            currentPassword = newPassword = confirmNewPassword = "";
+        }
+        else
+        {
+            AlertService.ShowMessage("Erreur lors de la mise à jour du mot de passe.", false);
         }
     }
 }
