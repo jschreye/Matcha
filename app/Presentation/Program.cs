@@ -50,7 +50,7 @@ builder.Services.AddAuthorization(options =>
 
 builder.Services.AddScoped<AuthenticationStateProvider, ServerAuthenticationStateProvider>();
 
-builder.Services.AddScoped<IChatService, ChatService>();
+builder.Services.AddSingleton<IChatService, ChatService>();
 
 // Ajouter les services personnalisés
 builder.Services.AddScoped<IUserService, UserService>();

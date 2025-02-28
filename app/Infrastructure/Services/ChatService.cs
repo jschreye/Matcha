@@ -1,21 +1,26 @@
-using Core.Interfaces.Services;
 using System;
 using System.Collections.Generic;
-
+using System.Linq;
+using Core.Data.Entity;
+using Core.Interfaces.Services;
 public class ChatService : IChatService
 {
-    // Stockage interne des messages
-    private readonly List<string> _messages = new List<string>();
+    private readonly List<Message> _messages = new List<Message>();
+    public IReadOnlyList<Message> Messages => _messages;
 
-    // Implémentation de la propriété avec IReadOnlyList<string>
-    public IReadOnlyList<string> Messages => _messages;
+    public event Action<Message>? OnMessageReceived;
 
-    public event Action<string>? OnMessageReceived;
-
-    public void SendMessage(string user, string message)
+    public void SendMessage(int senderId, int receiverId, string contenu)
     {
-        var fullMessage = $"{user}: {message}";
-        _messages.Add(fullMessage);
-        OnMessageReceived?.Invoke(fullMessage);
+        var msg = new Message
+        {
+            SenderId = senderId,
+            ReceiverId = receiverId,
+            Contenu = contenu,
+            Timestamp = DateTime.Now
+        };
+
+        _messages.Add(msg);
+        OnMessageReceived?.Invoke(msg);
     }
 }

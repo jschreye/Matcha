@@ -140,15 +140,6 @@ CREATE TABLE IF NOT EXISTS sessions (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
--- Insertion d'exemples d'utilisateurs
-INSERT INTO users (firstname, lastname, username, email, password_hash)
-VALUES
-('a', 'a', 'Alice', 'alice@example.com', 'hashed_password'),
-('b', 'b', 'Bob', 'bob@example.com', 'hashed_password'),
-('c', 'c', 'Charlie', 'charlie@example.com', 'hashed_password'),
-('d', 'd', 'Diana', 'diana@example.com', 'hashed_password'),
-('e', 'e', 'Eve', 'eve@example.com', 'hashed_password');
-
 -- Insertion d'exemples de photos
 INSERT INTO photos (user_id, image_data, est_profil)
 VALUES

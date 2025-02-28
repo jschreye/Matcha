@@ -1,0 +1,75 @@
+@page "/users"
+@using Core.Data.DTOs
+@using System.ComponentModel
+@inject IUserService UserService
+
+<h3>Liste des utilisateurs</h3>
+
+@if (users == null)
+{
+    <p>Chargement...</p>
+}
+else if (!users.Any())
+{
+    <p>Aucun utilisateur trouvé.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>@(GetDisplayName(nameof(UserDto.Username)))</th>
+                <th>Email</th>
+                <th>Date de création</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var user in users)
+            {
+                <tr>
+                    <td>@user.Id</td>
+                    <td>@user.Username</td>
+                    <td>@user.Email</td>
+                    <td>@user.CreatedAt.ToString("dd/MM/yyyy")</td>
+                    <td>
+                    <MudNavLink Href="@($"/chat/{user.Id}")">
+                        Chat privé
+                    </MudNavLink>
+                    </td>
+                </tr>
+            }
+        </tbody>
+
+    </table>
+}
+
+@code {
+    private List<UserDto> users;
+
+    protected override async Task OnInitializedAsync()
+    {
+        users = await UserService.GetAllUsersAsync();
+    }
+
+    /// <summary>
+    /// Permet de récupérer le DisplayName de la propriété du DTO si défini
+    /// </summary>
+    /// <param name="propertyName"></param>
+    /// <returns>Le nom d'affichage ou le nom de la propriété</returns>
+    private string GetDisplayName(string propertyName)
+    {
+        var prop = typeof(UserDto).GetProperty(propertyName);
+        if (prop != null)
+        {
+            var displayAttr = prop.GetCustomAttributes(typeof(DisplayNameAttribute), false)
+                                  .FirstOrDefault() as DisplayNameAttribute;
+            if (displayAttr != null)
+            {
+                return displayAttr.DisplayName;
+            }
+        }
+        return propertyName;
+    }
+}
