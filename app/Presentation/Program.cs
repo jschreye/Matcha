@@ -49,7 +49,6 @@ builder.Services.AddAuthorization(options =>
 
 builder.Services.AddScoped<AuthenticationStateProvider, ServerAuthenticationStateProvider>();
 
-builder.Services.AddSingleton<IChatService, ChatService>();
 
 // Ajouter les services personnalisés
 builder.Services.AddScoped<IUserService, UserService>();
@@ -62,6 +61,9 @@ builder.Services.AddScoped<IValidationService, ValidationService>();
 builder.Services.AddScoped<IPhotoService, PhotoService>();
 builder.Services.AddScoped<ITagService, TagService>();
 
+builder.Services.AddSingleton<IChatService, ChatService>();
+builder.Services.AddSingleton<INotificationService, NotificationService>();
+
 // Ajouter les repository
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ISessionRepository>(sp => new SessionRepository(connectionString));
@@ -70,9 +72,10 @@ builder.Services.AddScoped<IPrefSexRepository, PrefSexRepository>();
 builder.Services.AddScoped<IPhotoRepository, PhotoRepository>();
 builder.Services.AddScoped<ITagRepository, TagRepository>();
 
-builder.Services.AddSingleton<IProfileImageStateService ,ProfileImageStateService>();
+builder.Services.AddSingleton<INotificationRepository, NotificationRepository>();
 builder.Services.AddSingleton<IMessageRepository, MessageRepository>();
 
+builder.Services.AddSingleton<IProfileImageStateService ,ProfileImageStateService>();
 
 var app = builder.Build();
 

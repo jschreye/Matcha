@@ -4,9 +4,16 @@ namespace Core.Data.Entity
     {
         public int Id { get; set; }
         public int UserId { get; set; }
-        public string? Type { get; set; }
-        public string? Contenu { get; set; }
+        public int SenderId { get; set; }
+        public int? NotificationTypeId { get; set; }
         public bool Lu { get; set; }
         public DateTime Timestamp { get; set; }
+        public NotificationType? NotificationType { get; set; }
+    }
+
+    public class NotificationType
+    {
+        public int Id { get; set; }
+        public string Libelle { get; set; } = string.Empty;
     }
 }

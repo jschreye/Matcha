@@ -4,6 +4,7 @@ using System.Linq;
 using Core.Data.Entity;
 using Core.Interfaces.Services;
 using Core.Interfaces.Repository;
+
 public class ChatService : IChatService
 {
     private readonly List<Message> _messages = new List<Message>();
@@ -29,7 +30,6 @@ public class ChatService : IChatService
 
         // Sauvegarder le message en base
         await _messageRepository.SaveMessageAsync(msg);
-
         // Ajout en mémoire et notification
         _messages.Add(msg);
         OnMessageReceived?.Invoke(msg);

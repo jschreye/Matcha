@@ -1,0 +1,58 @@
+@page "/notifications"
+@using Core.Data.DTOs
+@inject INotificationService NotificationService
+@inject AuthenticationStateProvider AuthStateProvider
+
+<h3>Notifications</h3>
+
+@if (notifications == null || !notifications.Any())
+{
+    <p>Aucune notification pour le moment.</p>
+}
+else
+{
+    @foreach (var group in notifications.GroupBy(n => n.TypeLibelle))
+    {
+        <h4>@group.Key</h4>
+        <ul class="list-group mb-3">
+            @foreach (var notif in group.OrderByDescending(n => n.Timestamp))
+            {
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>@notif.TypeLibelle</strong> – De @notif.SenderUsername
+                        <br />
+                        <span class="text-muted" style="font-size:0.8em;">
+                            @notif.Timestamp.ToString("dd/MM/yyyy HH:mm")
+                        </span>
+                    </div>
+                    <button class="btn btn-sm btn-danger" @onclick="() => DeleteNotification(notif.Id)">
+                        Supprimer
+                    </button>
+                </li>
+            }
+        </ul>
+    }
+}
+
+@code {
+    private List<NotificationDto> notifications = new();
+    private int currentUserId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var userIdClaim = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        if (userIdClaim != null && int.TryParse(userIdClaim.Value, out currentUserId))
+        {
+            notifications = await NotificationService.GetNotificationsForUserAsync(currentUserId);
+        }
+    }
+
+    private async Task DeleteNotification(int notificationId)
+    {
+        await NotificationService.DeleteNotificationAsync(notificationId);
+        notifications.RemoveAll(n => n.Id == notificationId);
+        await InvokeAsync(StateHasChanged);
+    }
+}

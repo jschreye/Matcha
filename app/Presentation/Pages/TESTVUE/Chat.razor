@@ -3,7 +3,7 @@
 @using Core.Data.Entity
 @inject IChatService ChatService
 @inject AuthenticationStateProvider AuthStateProvider
-
+@inject INotificationService NotificationService
 <h3>Chat privé</h3>
 
 <div class="mb-3">
@@ -71,6 +71,7 @@
         if (!string.IsNullOrWhiteSpace(message))
         {
             await ChatService.SendMessageAsync(currentUserId, ReceiverId, message);
+            await NotificationService.NotifyMessageReceivedAsync(ReceiverId, currentUserId);
             message = string.Empty;
         }
     }

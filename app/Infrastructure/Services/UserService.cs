@@ -134,7 +134,8 @@ public class UserService : IUserService
         user.Biography = profileDto.Biography;
         user.Latitude = profileDto.Latitude;
         user.Longitude = profileDto.Longitude;
-
+        
+        //TODO faire le check des tags pour la variable profilecomplete
         bool isProfileComplete = !string.IsNullOrWhiteSpace(user.Firstname) &&
                              !string.IsNullOrWhiteSpace(user.Lastname) &&
                              !string.IsNullOrWhiteSpace(user.Username) &&
