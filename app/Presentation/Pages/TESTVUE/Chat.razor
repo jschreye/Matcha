@@ -1,52 +1,76 @@
-@page "/chat"
+@page "/chat/{ReceiverId:int}"
+@using System.Security.Claims
+@using Core.Data.Entity
 @inject IChatService ChatService
+@inject AuthenticationStateProvider AuthStateProvider
 
-<h3>Chat en temps réel2</h3>
-
-<div class="mb-3">
-    <input placeholder="Votre nom" @bind="userName" class="form-control" />
-</div>
+<h3>Chat privé</h3>
 
 <div class="mb-3">
-    <input placeholder="Votre message" @bind="message" class="form-control" @onkeydown="HandleKeyDown" />
+    <label for="messageInput">Votre message :</label>
+    <input id="messageInput" placeholder="Entrez votre message" @bind="message" class="form-control" @onkeydown="HandleKeyDown" />
 </div>
-
 <button class="btn btn-primary" @onclick="SendMessage">Envoyer</button>
 
 <hr />
 
 <ul class="list-unstyled">
-    @foreach (var msg in chatMessages)
+    @foreach (var msg in conversationMessages)
     {
-        <li>@msg</li>
+        <li>
+            <strong>@(msg.SenderId == currentUserId ? "Moi" : "Lui")</strong> : @msg.Contenu
+            <span class="text-muted">(@msg.Timestamp.ToString("HH:mm:ss"))</span>
+        </li>
     }
 </ul>
 
 @code {
-    private string userName = string.Empty;
-    private string message = string.Empty;
-    private List<string> chatMessages = new();
+    [Parameter]
+    public int ReceiverId { get; set; }  // ID de l'utilisateur avec qui discuter
 
-    protected override void OnInitialized()
+    private int currentUserId;
+    private string message = string.Empty;
+    private List<Message> conversationMessages = new();
+
+    protected override async Task OnInitializedAsync()
     {
-        // On s'abonne à l'événement pour être notifié quand un message est envoyé
+        // Récupérer l'utilisateur connecté et son ID
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out currentUserId))
+        {
+            // Vous pouvez afficher un message ou rediriger l'utilisateur non authentifié
+            return;
+        }
+
+        // Abonnement à l'événement pour recevoir les nouveaux messages
         ChatService.OnMessageReceived += OnMessageReceived;
 
-        // Charger éventuellement les messages déjà présents
-        chatMessages.AddRange(ChatService.Messages);
+        // Charger les messages déjà envoyés concernant cette conversation
+        conversationMessages = ChatService.Messages
+            .Where(m => (m.SenderId == currentUserId && m.ReceiverId == ReceiverId) ||
+                        (m.SenderId == ReceiverId && m.ReceiverId == currentUserId))
+            .OrderBy(m => m.Timestamp)
+            .ToList();
     }
 
-    private void OnMessageReceived(string fullMessage)
+    private void OnMessageReceived(Message newMsg)
     {
-        chatMessages.Add(fullMessage);
-        InvokeAsync(StateHasChanged);
+        // Filtrer pour n'afficher que les messages appartenant à cette conversation
+        if ((newMsg.SenderId == currentUserId && newMsg.ReceiverId == ReceiverId) ||
+            (newMsg.SenderId == ReceiverId && newMsg.ReceiverId == currentUserId))
+        {
+            conversationMessages.Add(newMsg);
+            InvokeAsync(StateHasChanged);
+        }
     }
 
     private void SendMessage()
     {
-        if (!string.IsNullOrWhiteSpace(userName) && !string.IsNullOrWhiteSpace(message))
+        if (!string.IsNullOrWhiteSpace(message))
         {
-            ChatService.SendMessage(userName, message);
+            ChatService.SendMessage(currentUserId, ReceiverId, message);
             message = string.Empty;
         }
     }

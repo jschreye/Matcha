@@ -3,9 +3,5 @@
 }
 
 http:// {
-    reverse_proxy app:5000 {
-        header_up Host {upstream_hostport}
-        header_up Connection {http.request.header.Connection}
-        header_up Upgrade {http.request.header.Upgrade}
-    }
+    reverse_proxy app:5000
 }
