@@ -96,6 +96,7 @@ app.UseAuthorization();
 // Mapper les contrôleurs après l'authentification/autorisation
 app.MapControllers();
 
+// Remplacer UseEndpoints par des enregistrements de route de haut niveau
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 

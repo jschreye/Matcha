@@ -13,7 +13,7 @@ namespace Infrastructure.Services
             _photoRepository = photoRepository;
         }
 
-        public async Task AddPhotoAsync(int userId, byte[] imageData, bool estProfil)
+        public async Task<int> AddPhotoAsync(int userId, byte[] imageData, bool estProfil)
         {
             var photo = new Photo
             {
@@ -24,11 +24,11 @@ namespace Infrastructure.Services
 
             if (estProfil)
             {
-                await _photoRepository.AddPhotoWithProfileAsync(photo);
+                return await _photoRepository.AddPhotoWithProfileAsync(photo);
             }
             else
             {
-                await _photoRepository.InsertPhotoAsync(photo);
+                return await _photoRepository.InsertPhotoAsync(photo);
             }
         }
 

@@ -15,7 +15,7 @@ namespace Infrastructure.Repository
                 ?? throw new InvalidOperationException("Missing connection string 'DefaultConnection'.");
         }
 
-        public async Task InsertPhotoAsync(Photo photo)
+        public async Task<int> InsertPhotoAsync(Photo photo)
         {
             using var connection = new MySqlConnection(_connectionString);
             await connection.OpenAsync();
@@ -23,6 +23,7 @@ namespace Infrastructure.Repository
             var query = @"
                 INSERT INTO photos (user_id, image_data, est_profil)
                 VALUES (@UserId, @ImageData, @EstProfil);
+                SELECT LAST_INSERT_ID();
             ";
 
             using var cmd = new MySqlCommand(query, connection);
@@ -30,15 +31,16 @@ namespace Infrastructure.Repository
             cmd.Parameters.AddWithValue("@ImageData", photo.ImageData);
             cmd.Parameters.Add("@EstProfil", MySqlDbType.Bit).Value = photo.EstProfil ? 1 : 0;
 
-            await cmd.ExecuteNonQueryAsync();
+            return Convert.ToInt32(await cmd.ExecuteScalarAsync());
         }
 
-        public async Task AddPhotoWithProfileAsync(Photo photo)
+        public async Task<int> AddPhotoWithProfileAsync(Photo photo)
         {
             using var connection = new MySqlConnection(_connectionString);
             await connection.OpenAsync();
 
             using var transaction = await connection.BeginTransactionAsync();
+            int newPhotoId = 0;
 
             try
             {
@@ -53,6 +55,7 @@ namespace Infrastructure.Repository
                 var insertQuery = @"
                     INSERT INTO photos (user_id, image_data, est_profil)
                     VALUES (@UserId, @ImageData, @EstProfil);
+                    SELECT LAST_INSERT_ID();
                 ";
 
                 using var insertCmd = new MySqlCommand(insertQuery, connection, (MySqlTransaction)transaction);
@@ -60,9 +63,10 @@ namespace Infrastructure.Repository
                 insertCmd.Parameters.AddWithValue("@ImageData", photo.ImageData);
                 insertCmd.Parameters.Add("@EstProfil", MySqlDbType.Bit).Value = photo.EstProfil ? 1 : 0;
 
-                await insertCmd.ExecuteNonQueryAsync();
+                newPhotoId = Convert.ToInt32(await insertCmd.ExecuteScalarAsync());
 
                 await transaction.CommitAsync();
+                return newPhotoId;
             }
             catch
             {
@@ -98,7 +102,7 @@ namespace Infrastructure.Repository
                 {
                     Id = reader.GetInt32(idIndex),
                     UserId = reader.GetInt32(userIdIndex),
-                    ImageData = (byte[])reader["image_data"], // Correct comme tu l’as déjà
+                    ImageData = (byte[])reader["image_data"], // Correct comme tu l'as déjà
                     EstProfil = reader.GetBoolean(estProfilIndex)
                 };
             }
