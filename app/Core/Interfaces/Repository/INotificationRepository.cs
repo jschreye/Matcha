@@ -10,5 +10,6 @@ namespace Core.Interfaces.Repository
         Task SaveNotificationAsync(Notification notification);
         Task<List<NotificationDto>> GetNotificationsForUserAsync(int userId);
         Task DeleteNotificationAsync(int notificationId);
+        Task MarkAsReadAsync(int notificationId);
     }
 }

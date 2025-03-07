@@ -1,11 +1,9 @@
 using MySql.Data.MySqlClient;
 using Core.Data.Entity;
 using Core.Data.DTOs;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Core.Interfaces.Repository;
+
 public class NotificationRepository : INotificationRepository
 {
     private readonly string _connectionString;
@@ -63,8 +61,8 @@ public class NotificationRepository : INotificationRepository
         {
             notifications.Add(new NotificationDto
             {
-                Id = reader.GetOrdinal("id"),
-                UserId = reader.GetOrdinal("user_id"),
+                Id = reader.GetInt32(reader.GetOrdinal("id")),
+                UserId = reader.GetInt32(reader.GetOrdinal("user_id")),
                 SenderUsername = reader.IsDBNull(reader.GetOrdinal("sender_username"))
                     ? "Utilisateur inconnu"
                     : reader.GetString(reader.GetOrdinal("sender_username")),
@@ -72,6 +70,7 @@ public class NotificationRepository : INotificationRepository
                     ? "Autres"
                     : reader.GetString(reader.GetOrdinal("type_libelle")),
                 Lu = reader.GetBoolean(reader.GetOrdinal("lu")),
+                Timestamp = reader.GetDateTime(reader.GetOrdinal("timestamp"))
             });
         }
 
@@ -83,6 +82,19 @@ public class NotificationRepository : INotificationRepository
         await connection.OpenAsync();
         using var command = new MySqlCommand(
             "DELETE FROM notifications WHERE id = @id", connection);
+        command.Parameters.AddWithValue("@id", notificationId);
+        await command.ExecuteNonQueryAsync();
+    }
+
+    public async Task MarkAsReadAsync(int notificationId)
+    {
+        using var connection = new MySqlConnection(_connectionString);
+        await connection.OpenAsync();
+
+        using var command = new MySqlCommand(
+            "UPDATE notifications SET lu = true WHERE id = @id",
+            connection);
+
         command.Parameters.AddWithValue("@id", notificationId);
         await command.ExecuteNonQueryAsync();
     }

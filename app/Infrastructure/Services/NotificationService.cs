@@ -1,12 +1,10 @@
 using Core.Data.Entity;
 using Core.Data.DTOs;
-using System;
-using System.Threading.Tasks;
-using Core.Interfaces.Services;
+
 using Core.Interfaces.Repository;
 public class NotificationService : INotificationService
 {
-    //public event Action<int, Notification>? OnNotify;
+    public event Action<int>? OnNotify;
     private readonly INotificationRepository _notificationRepository;
 
     public NotificationService(INotificationRepository notificationRepository)
@@ -28,7 +26,7 @@ public class NotificationService : INotificationService
         };
 
         await _notificationRepository.SaveNotificationAsync(notification);
-        //OnNotify?.Invoke(receiverId, notification);
+        OnNotify?.Invoke(receiverId);
     }
     
     public async Task<List<NotificationDto>> GetNotificationsForUserAsync(int userId)

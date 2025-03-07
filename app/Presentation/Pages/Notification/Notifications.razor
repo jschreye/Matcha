@@ -37,7 +37,7 @@ else
 @code {
     private List<NotificationDto> notifications = new();
     private int currentUserId;
-
+    private int notificationCount = 0;
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
@@ -53,6 +53,14 @@ else
     {
         await NotificationService.DeleteNotificationAsync(notificationId);
         notifications.RemoveAll(n => n.Id == notificationId);
+        //await UpdateNotificationsAsync();
         await InvokeAsync(StateHasChanged);
     }
+/*
+    private async Task UpdateNotificationsAsync()
+    {
+        var notifications = await NotificationService.GetNotificationsForUserAsync(currentUserId);
+        notificationCount = notifications.Count(n => !n.Lu);
+    }
+    */
 }

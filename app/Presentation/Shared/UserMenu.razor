@@ -3,6 +3,7 @@
 @inject NavigationManager NavigationManager
 @inject IPhotoService PhotoService
 @inject IProfileImageStateService ProfileState
+@inject INotificationService NotificationService
 
 <MudAppBar Elevation="1" Style="@($"background:{Colors.Gray.Lighten3};")">
     <MudIconButton Icon="@Icons.Material.Filled.Menu" Edge="Edge.Start" OnClick="@ToggleDrawerAsync" Style="@($"color:{Colors.DeepPurple.Accent4};")"/>
@@ -11,7 +12,12 @@
         <Authorized>
             <MudMenu>
                 <ActivatorContent>
-                    <MudBadge Class="mr-3" Color="Color.Success" Overlap="true" Bordered="true">
+                    <!-- Badge avec la pastie verte indiquant que l'utilisateur est connecté -->
+                    <MudBadge Class="mr-3"
+                              Color="Color.Success"
+                              Overlap="true"
+                              Bordered="true"
+                              BadgeContent="@(notificationCount > 0 ? notificationCount.ToString() : null)">
                         @if (!string.IsNullOrWhiteSpace(ProfileState.ProfileImageSrc))
                         {
                             <!-- Affiche l'image de profil synchronisée -->
@@ -29,6 +35,13 @@
                             </MudAvatar>
                         }
                     </MudBadge>
+                    <!-- Message de notification si des notifications non lues existent -->
+                    @if(notificationCount > 0)
+                    {
+                        <MudText Color="Color.Error" Typo="Typo.subtitle2" Class="ml-2">
+                            Vous avez @notificationCount notification@(notificationCount > 1 ? "s" : "")
+                        </MudText>
+                    }
                 </ActivatorContent>
                 <ChildContent>
                     <MudMenuItem Href="/profile">
@@ -88,19 +101,40 @@
     public EventCallback OnToggleDrawer { get; set; }
 
     private Action _onProfileImageChanged;
+    private int notificationCount = 0; // Compteur de notifications
 
     private bool isAuthenticated;
     private bool isOnLoginPage;
     private bool isOnRegisterPage;
+    private int CurrentUserId;
 
     protected override async Task OnInitializedAsync()
     {
+
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         isAuthenticated = authState.User.Identity?.IsAuthenticated ?? false;
+        var user = authState.User;
 
-        // Abonnement avec InvokeAsync pour s'assurer que StateHasChanged est appelé sur le bon Dispatcher
+        // Récupère le claim NameIdentifier (celui-ci correspond à user.Id dans votre code)
+        var userIdClaim = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
+        {
+            CurrentUserId = userId;
+        }
+        else
+        {
+            // Gestion d'erreur si le claim n'est pas présent ou invalide
+            CurrentUserId = 0;
+        }
+        // Abonnement pour l'image de profil
         _onProfileImageChanged = () => InvokeAsync(StateHasChanged);
         ProfileState.OnChange += _onProfileImageChanged;
+
+        // Récupération initiale du nombre de notifications non lues
+        await UpdateNotificationsAsync();
+
+        // Optionnel : s'abonner à un éventuel événement de notification si vous l'implémentez dans NotificationService
+        NotificationService.OnNotify += OnNotificationReceived;
 
         UpdateCurrentPage();
         NavigationManager.LocationChanged += OnLocationChanged;
@@ -110,6 +144,7 @@
     {
         ProfileState.OnChange -= _onProfileImageChanged;
         NavigationManager.LocationChanged -= OnLocationChanged;
+        NotificationService.OnNotify -= OnNotificationReceived;
     }
 
     private void OnLocationChanged(object sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
@@ -137,5 +172,24 @@
         {
             await OnToggleDrawer.InvokeAsync(null);
         }
+    }
+
+    // Méthode appelée lorsque le service signale une nouvelle notification
+    private void OnNotificationReceived(int receiverId)
+    {
+        // Vous pouvez filtrer par utilisateur si besoin, ici par exemple :
+        // if (receiverId == currentUserId) { ... }
+        _ = InvokeAsync(async () =>
+        {
+            await UpdateNotificationsAsync();
+            StateHasChanged();
+        });
+    }
+
+    // Méthode pour récupérer le nombre de notifications non lues
+    private async Task UpdateNotificationsAsync()
+    {
+        var notifications = await NotificationService.GetNotificationsForUserAsync(CurrentUserId);
+        notificationCount = notifications.Count(n => !n.Lu);
     }
 }
