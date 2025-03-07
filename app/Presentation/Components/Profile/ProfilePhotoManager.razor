@@ -1,0 +1,263 @@
+@using Microsoft.AspNetCore.Components.Forms
+@using Core.Data.DTOs
+@using Core.Interfaces.Services
+@inject IPhotoService PhotoService
+@inject IAlertService AlertService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IValidationService ValidationService
+@inject IProfileImageStateService ProfileState
+
+<!-- Conteneur centré pour l'image de profil -->
+<div class="d-flex justify-center mb-4">
+    @if (GetProfileImageSrc() != null)
+    {
+        <div style="position: relative; display: inline-block;">
+            <MudImage Src="@GetProfileImageSrc()" Alt="Photo de profil" Elevation="25" 
+                      Class="rounded-circle" Style="width:150px; height:150px; object-fit:cover;" />
+            <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" Class="rounded-circle" Color="Color.Primary" Variant="Variant.Outlined"
+                           Style="position: absolute; top: 5px; right: 5px;" 
+                           OnClick="@(async () => {
+                                var photo = _photoPreviews.FirstOrDefault(p => p.IsProfile);
+                                if (photo != null)
+                                {
+                                    await DeletePhoto(photo);
+                                    // Met à jour le service après suppression
+                                    ProfileState.ProfileImageSrc = GetProfileImageSrc();
+                                }
+                           })" />
+        </div>
+    }
+    else
+    {
+        <MudAvatar Size="Size.Large" Class="rounded-circle" Style="width:150px; height:150px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icon-tabler-user">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                <circle cx="12" cy="7" r="4"/>
+                <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
+            </svg>
+        </MudAvatar>
+    }
+</div>
+
+<!-- Prévisualisation des photos restantes sous forme de cards -->
+<MudGrid Class="mt-4" Spacing="2">
+    @foreach (var photo in _otherPhotos)
+    {
+        <MudItem xs="12" sm="6" md="3">
+            <MudCard>
+                <MudCardMedia Image="@($"data:image/jpeg;base64,{Convert.ToBase64String(photo.Data)}")" 
+                              Style="height:100px; object-fit:cover;" />
+                <MudCardActions>
+                    <MudButton Size="@Size.Small" Color="@Color.Primary" OnClick="@(() => SetAsProfile(photo))">
+                        Profil
+                    </MudButton>
+                    <MudButton Size="@Size.Small" Color="@Color.Secondary" OnClick="@(() => DeletePhoto(photo))">
+                        Supprimer
+                    </MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+    }
+    @for (int i = _otherPhotos.Count; i < MaxPhotos - 1; i++)
+    {
+        <MudItem xs="12" sm="6" md="3">
+            <MudCard Style="height:150px; display:flex; align-items:center; justify-content:center;">
+                <MudIcon Icon="@Icons.Material.Filled.ImageNotSupported" Size="@Size.Medium" Color="@Color.Default" />
+            </MudCard>
+        </MudItem>
+    }
+</MudGrid>
+
+<!-- Upload de nouvelles photos -->
+<div class="d-flex flex-row justify-content-end align-items-center mt-4">
+    <MudFileUpload T="IReadOnlyList<IBrowserFile>" FilesChanged="UploadFiles" MaxFileSize="5242880" 
+                FileFilter="image/*" Multiple="true" Class="me-2">
+        <ActivatorContent>
+            <MudButton Variant="Variant.Filled" Color="@Color.Primary" StartIcon="@Icons.Material.Filled.CloudUpload">
+                Choisir des photos
+            </MudButton>
+        </ActivatorContent>
+    </MudFileUpload>
+    <MudButton Variant="Variant.Outlined" Color="@Color.Primary" OnClick="SavePhotos">
+        Enregistrer les photos
+    </MudButton>
+</div>
+
+@code {
+    [Parameter]
+    public int UserId { get; set; }
+
+    /** Nombre maximum total d'images (1 photo profil + 4 autres) */
+    private const int MaxPhotos = 5;
+
+    /** Classe locale pour la prévisualisation des photos */
+    private class PhotoPreview {
+        public int? Id { get; set; }
+        public byte[] Data { get; set; }
+        public bool IsNew { get; set; }
+        public bool IsProfile { get; set; }
+    }
+
+    /** Liste globale des photos en prévisualisation */
+    private List<PhotoPreview> _photoPreviews = new();
+
+    /** Photos hors profil */
+    private List<PhotoPreview> _otherPhotos => _photoPreviews.Where(p => !p.IsProfile).ToList();
+
+    // Delegate pour l'abonnement au service d'état
+    private Action _onProfileImageChanged;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _onProfileImageChanged = () => InvokeAsync(StateHasChanged);
+        ProfileState.OnChange += _onProfileImageChanged;
+
+        // Charger la photo de profil existante
+        var profilePhoto = await PhotoService.GetProfilePhotoAsync(UserId);
+        if (profilePhoto != null)
+        {
+            _photoPreviews.Add(new PhotoPreview { Id = profilePhoto.Id, Data = profilePhoto.ImageData, IsNew = false, IsProfile = true });
+        }
+        // Charger les autres photos
+        var otherPhotos = await PhotoService.GetUserPhotosAsync(UserId);
+        foreach (var p in otherPhotos)
+        {
+            _photoPreviews.Add(new PhotoPreview { Id = p.Id, Data = p.ImageData, IsNew = false, IsProfile = false });
+        }
+
+        // Initialisation du service d'état avec l'image actuelle (si présente)
+        ProfileState.ProfileImageSrc = GetProfileImageSrc();
+    }
+
+    public void Dispose()
+    {
+        ProfileState.OnChange -= _onProfileImageChanged;
+    }
+
+    /** Retourne la source de l'image de profil */
+    private string GetProfileImageSrc()
+    {
+        var profile = _photoPreviews.FirstOrDefault(p => p.IsProfile);
+        if (profile != null)
+            return $"data:image/jpeg;base64,{Convert.ToBase64String(profile.Data)}";
+        return null;
+    }
+
+    /** Callback lors de l'upload de nouvelles photos */
+    private async Task UploadFiles(IReadOnlyList<IBrowserFile> files)
+    {
+        int availableSlots = MaxPhotos - _photoPreviews.Count;
+        if (files.Count > availableSlots)
+        {
+            AlertService.ShowMessage($"Seulement {availableSlots} emplacement(s) disponible(s).", false);
+        }
+        foreach (var file in files.Take(availableSlots))
+        {
+            // Validation de l'image
+            var imageErrors = ValidationService.ValidateImage(file);
+            if (imageErrors.Any())
+            {
+                foreach (var error in imageErrors)
+                {
+                    AlertService.ShowMessage(error, false);
+                }
+                continue;
+            }
+            try
+            {
+                using var stream = file.OpenReadStream(5242880); // 5MB max par fichier
+                using var ms = new MemoryStream();
+                await stream.CopyToAsync(ms);
+                var data = ms.ToArray();
+                bool setAsProfile = !_photoPreviews.Any(p => p.IsProfile);
+                _photoPreviews.Add(new PhotoPreview { Data = data, IsNew = true, IsProfile = setAsProfile });
+            }
+            catch (Exception ex)
+            {
+                AlertService.ShowMessage($"Erreur sur le fichier {file.Name} : {ex.Message}", false);
+            }
+        }
+    }
+
+    /** Définit la photo sélectionnée comme photo de profil et met à jour la BDD */
+    private async Task SetAsProfile(PhotoPreview photo)
+    {
+        foreach (var p in _photoPreviews)
+            p.IsProfile = false;
+        photo.IsProfile = true;
+
+        if (photo.IsNew)
+        {
+            // Pour les nouvelles photos, on les enregistre d'abord en base de données
+            photo.Id = await PhotoService.AddPhotoAsync(UserId, photo.Data, true);
+            photo.IsNew = false;
+            AlertService.ShowMessage("Nouvelle photo de profil enregistrée.", true);
+        }
+        else if (photo.Id.HasValue)
+        {
+            // Pour les photos existantes, on met à jour leur statut
+            await PhotoService.UpdateProfilePhotoAsync(UserId, photo.Id.Value);
+            AlertService.ShowMessage("Photo de profil mise à jour.", true);
+        }
+        
+        // Mettre à jour l'image de profil dans l'interface utilisateur
+        ProfileState.ProfileImageSrc = GetProfileImageSrc();
+    }
+
+    /** 
+    * Supprime une photo (profil ou autre) et affiche une alerte.
+    * Si la photo supprimée est celle de profil, on réattribue la première image restante comme profil et on met à jour la BDD.
+    */
+    private async Task DeletePhoto(PhotoPreview photo)
+    {
+        try
+        {
+            if (!photo.IsNew && photo.Id.HasValue)
+            {
+                await PhotoService.DeletePhotoAsync(photo.Id.Value);
+            }
+            _photoPreviews.Remove(photo);
+            if (photo.IsProfile && _photoPreviews.Any())
+            {
+                // Réattribuer une nouvelle photo de profil
+                var newProfilePhoto = _photoPreviews.First();
+                newProfilePhoto.IsProfile = true;
+                
+                // Mise à jour en base de données pour marquer cette photo comme profil
+                if(newProfilePhoto.Id.HasValue)
+                {
+                    await PhotoService.UpdateProfilePhotoAsync(UserId, newProfilePhoto.Id.Value);
+                }
+            }
+            AlertService.ShowMessage("L'image a été supprimée.", true);
+            ProfileState.ProfileImageSrc = GetProfileImageSrc();
+        }
+        catch (Exception ex)
+        {
+            AlertService.ShowMessage($"Erreur lors de la suppression : {ex.Message}", false);
+        }
+    }
+
+    /** Enregistre les nouvelles photos en base */
+    private async Task SavePhotos()
+    {
+        foreach (var photo in _photoPreviews.Where(p => p.IsNew))
+        {
+            photo.Id = await PhotoService.AddPhotoAsync(UserId, photo.Data, photo.IsProfile);
+            photo.IsNew = false;
+        }
+        
+        var profilePhoto = await PhotoService.GetProfilePhotoAsync(UserId);
+        
+        if (profilePhoto != null && profilePhoto.EstProfil)
+        {
+            // Mettre à jour ProfileState.ProfileImageSrc pour synchroniser l'image de profil dans UserMenu
+            ProfileState.ProfileImageSrc = GetProfileImageSrc();
+            AlertService.ShowMessage("L'image de profil a été correctement enregistrée.", true);
+        }
+        else
+        {
+            AlertService.ShowMessage("Erreur lors de l'enregistrement de l'image de profil.", false);
+        }
+    }
+} 

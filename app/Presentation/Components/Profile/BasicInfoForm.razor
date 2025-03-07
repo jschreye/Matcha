@@ -1,0 +1,30 @@
+@using Core.Data.DTOs
+
+<MudText Typo="Typo.h5" Class="mt-10 mb-4">Informations de base</MudText>
+<MudGrid Spacing="2">
+    <MudItem xs="12" sm="6">
+        <MudTextField T="string" Label="Prénom" Variant="Variant.Outlined" 
+                    @bind-Value="UserProfile.Firstname" Required="true" 
+                    RequiredError="Le prénom est requis" />
+    </MudItem>
+    <MudItem xs="12" sm="6">
+        <MudTextField T="string" Label="Nom" Variant="Variant.Outlined" 
+                    @bind-Value="UserProfile.Lastname" Required="true" 
+                    RequiredError="Le nom est requis" />
+    </MudItem>
+    <MudItem xs="12" sm="6">
+        <MudTextField T="string" Label="Nom d'utilisateur" Variant="Variant.Outlined" 
+                    @bind-Value="UserProfile.Username" Required="true" 
+                    RequiredError="Le nom d'utilisateur est requis" />
+    </MudItem>
+    <MudItem xs="12" sm="6">
+        <MudTextField T="string" Label="Email" Variant="Variant.Outlined" InputType="InputType.Email" 
+                    @bind-Value="UserProfile.Email" Required="true" 
+                    RequiredError="L'email est requis" />
+    </MudItem>
+</MudGrid>
+
+@code {
+    [Parameter]
+    public UserProfileDto UserProfile { get; set; }
+} 

@@ -1,0 +1,101 @@
+@using Core.Data.DTOs
+@using Core.Data.Entity
+@using Core.Interfaces.Services
+@inject IAlertService AlertService
+@inject IJSRuntime JS
+
+<MudText Typo="Typo.h5" Class="mt-10 mb-4">Information complémentaire</MudText>
+<MudGrid Spacing="2">
+    <MudItem xs="12" sm="6">
+        <MudSelect T="int?" Label="Genre" Variant="Variant.Outlined" 
+                @bind-Value="UserProfile.Genre" Required="true">
+            @if (Genres != null)
+            {
+                @foreach (var g in Genres)
+                {
+                    <MudSelectItem T="int?" Value="@g.Id">@g.Libelle</MudSelectItem>
+                }
+            }
+        </MudSelect>
+    </MudItem>
+    <MudItem xs="12" sm="6">
+        <MudSelect T="int?" Label="Sexual Preferences" Variant="Variant.Outlined" 
+                @bind-Value="UserProfile.SexualPreferences" Required="true">
+            @if (PrefSexes != null)
+            {
+                @foreach (var p in PrefSexes)
+                {
+                    <MudSelectItem T="int?" Value="@p.Id">@p.Libelle</MudSelectItem>
+                }
+            }
+        </MudSelect>
+    </MudItem>
+    <!-- Biographie en pleine largeur -->
+    <MudItem xs="12">
+        <MudTextField T="string" Label="Biographie" Variant="Variant.Outlined" Lines="3" 
+                    @bind-Value="UserProfile.Biography" Required="true" />
+    </MudItem>
+    <MudItem xs="12">
+        <MudSwitch T="bool" Value="@UserProfile.LocalisationIsActive" Color="Color.Primary" 
+                   Label="Activer la géolocalisation" 
+                   LabelPosition="LabelPosition.End"
+                   ValueChanged="@OnLocalisationSwitchChanged" />
+        <MudText Typo="Typo.caption" Color="Color.Secondary">
+            Lorsque cette option est activée, votre position sera mise à jour automatiquement.
+        </MudText>
+    </MudItem>
+    @if (UserProfile.LocalisationIsActive)
+    {
+        <MudItem xs="12" sm="6">
+            <MudNumericField T="double?" Label="Latitude" Variant="Variant.Outlined" 
+                            @bind-Value="UserProfile.Latitude" />
+        </MudItem>
+        <MudItem xs="12" sm="6">
+            <MudNumericField T="double?" Label="Longitude" Variant="Variant.Outlined" 
+                            @bind-Value="UserProfile.Longitude" />
+        </MudItem>
+    }
+</MudGrid>
+
+@code {
+    [Parameter]
+    public UserProfileDto UserProfile { get; set; }
+
+    [Parameter]
+    public List<Genre> Genres { get; set; }
+
+    [Parameter]
+    public List<PrefSex> PrefSexes { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OnLocalisationChanged { get; set; }
+
+    private async Task OnLocalisationSwitchChanged(bool value)
+    {
+        // Mettre à jour la valeur dans le modèle
+        UserProfile.LocalisationIsActive = value;
+        
+        // Log le changement de valeur
+        Console.WriteLine($"LocalisationIsActive changed to: {value}");
+        
+        // Afficher un message à l'utilisateur
+        if (value)
+        {
+            AlertService.ShowMessage("La géolocalisation a été activée. N'oubliez pas d'enregistrer pour appliquer les changements.", true);
+        }
+        else
+        {
+            AlertService.ShowMessage("La géolocalisation a été désactivée. N'oubliez pas d'enregistrer pour appliquer les changements.", true);
+        }
+
+        // Notifier le composant parent
+        await OnLocalisationChanged.InvokeAsync(value);
+    }
+
+    /** Structure pour récupérer les coordonnées depuis JS */
+    public class Geolocation
+    {
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+    }
+} 
