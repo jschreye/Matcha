@@ -13,5 +13,6 @@ namespace Core.Interfaces.Services
         Task<UserProfileDto?> GetUserProfileAsync(int userId);
         Task<bool> UpdateUserProfileAsync(UserProfileDto profileDto);
         Task<bool> UpdatePasswordAsync(int userId, string newPassword);
+        Task UpdateLocationAsync(int userId, double latitude, double longitude, bool localisationIsActive = false);
     }
 }

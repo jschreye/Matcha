@@ -114,7 +114,9 @@ public class UserService : IUserService
             Biography = user.Biography,
             Latitude = user.Latitude,
             Longitude = user.Longitude,
-            PopularityScore = user.PopularityScore
+            PopularityScore = user.PopularityScore,
+            ProfileComplete = user.ProfileComplete,
+            LocalisationIsActive = user.LocalisationIsActive
         };
     }
 
@@ -134,6 +136,7 @@ public class UserService : IUserService
         user.Biography = profileDto.Biography;
         user.Latitude = profileDto.Latitude;
         user.Longitude = profileDto.Longitude;
+        user.LocalisationIsActive = profileDto.LocalisationIsActive;
 
         bool isProfileComplete = !string.IsNullOrWhiteSpace(user.Firstname) &&
                              !string.IsNullOrWhiteSpace(user.Lastname) &&
@@ -166,5 +169,27 @@ public class UserService : IUserService
         user.PasswordHash = _passwordHasher.HashPassword(newPassword);
         await _userRepository.Update(user);
         return true;
+    }
+
+    /**
+    * Met à jour la localisation de l'utilisateur.
+    * @param userId L'ID de l'utilisateur.
+    * @param latitude La latitude de la position.
+    * @param longitude La longitude de la position.
+    * @param localisationIsActive Indique si la géolocalisation est active.
+    */
+    public async Task UpdateLocationAsync(int userId, double latitude, double longitude, bool localisationIsActive = false)
+    {
+        // Récupère l'utilisateur par son ID
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null) return; // Arrête si l'utilisateur n'existe pas
+
+        // Met à jour la localisation et le statut de géolocalisation
+        user.Latitude = latitude;
+        user.Longitude = longitude;
+        user.LocalisationIsActive = localisationIsActive;
+
+        // Persiste les modifications en base de données
+        await _userRepository.UpdateUserAsync(user);
     }
 }

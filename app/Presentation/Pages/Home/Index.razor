@@ -1,4 +1,5 @@
 ﻿@page "/"
+@using Microsoft.JSInterop
 
 <MudGrid class="d-flex flex-column mt-4">
     <MudText Typo="Typo.h3" Class="text-center responsive-h3">BIENVENU SUR MATCHA</MudText>
@@ -11,7 +12,7 @@
 <MudTimeline class="mt-20">
     <MudTimelineItem Color="Color.Primary">
         <MudText Typo="Typo.h5" Style="@($"color:{Colors.DeepPurple.Accent4};")">Inscription et Connexion Simplifiées</MudText>
-        <MudText class="mt-5">Rejoignez-nous en un clin d’œil ! Créez votre compte rapidement et connectez-vous en toute simplicité pour commencer votre aventure amoureuse sans tracas.</MudText>
+        <MudText class="mt-5">Rejoignez-nous en un clin d'œil ! Créez votre compte rapidement et connectez-vous en toute simplicité pour commencer votre aventure amoureuse sans tracas.</MudText>
     </MudTimelineItem>
     <MudTimelineItem Color="Color.Primary" TimelineAlign="@(isMobile ? TimelineAlign.End : TimelineAlign.Start)">
         <MudText Align="@(isMobile ? Align.Inherit : Align.End)" Typo="Typo.h5" Style="@($"color:{Colors.DeepPurple.Accent4};")">Profils Riches et Personnalisés</MudText>
@@ -23,7 +24,7 @@
     </MudTimelineItem>
     <MudTimelineItem Color="Color.Primary" TimelineAlign="@(isMobile ? TimelineAlign.End : TimelineAlign.Start)">
         <MudText Align="@(isMobile ? Align.Inherit : Align.End)" Typo="Typo.h5" Style="@($"color:{Colors.DeepPurple.Accent4};")">Recherche Avancée et Suggestions Intelligentes</MudText>
-        <MudText Align="@(isMobile ? Align.Inherit : Align.End)" class="mt-5">Trouver l’amour devient intelligent ! Utilisez nos outils de recherche sophistiqués et nos suggestions basées sur vos préférences pour découvrir des profils compatibles en un instant.</MudText>
+        <MudText Align="@(isMobile ? Align.Inherit : Align.End)" class="mt-5">Trouver l'amour devient intelligent ! Utilisez nos outils de recherche sophistiqués et nos suggestions basées sur vos préférences pour découvrir des profils compatibles en un instant.</MudText>
     </MudTimelineItem>
 </MudTimeline>
 
@@ -33,7 +34,7 @@
             <MudCardMedia Image="images/demon1.png" Style="height:200px; object-fit: cover;"/>
             <MudCardContent Style="height:100px; overflow-y: auto;" >
                 <MudText Typo="Typo.h5">Natcha</MudText>
-                <MudText Typo="Typo.body2">“Grâce à Matcha Web, j’ai enfin trouvé quelqu’un qui me comprend vraiment.”</MudText>
+                <MudText Typo="Typo.body2">"Grâce à Matcha Web, j'ai enfin trouvé quelqu'un qui me comprend vraiment."</MudText>
             </MudCardContent>
         </MudCard>
     </MudCarouselItem>
@@ -42,7 +43,7 @@
             <MudCardMedia Image="images/demon1.png" Style="height:200px; object-fit: cover;"/>
             <MudCardContent Style="height:100px;overflow-y: auto;">
                 <MudText Typo="Typo.h5">Sophia</MudText>
-                <MudText Typo="Typo.body2">“Matcha Web transforme les rencontres en une expérience authentique et enrichissante.”</MudText>
+                <MudText Typo="Typo.body2">"Matcha Web transforme les rencontres en une expérience authentique et enrichissante."</MudText>
             </MudCardContent>
         </MudCard>
     </MudCarouselItem>
@@ -51,7 +52,7 @@
             <MudCardMedia Image="images/demon1.png" Style="height:200px; object-fit: cover;"/>
             <MudCardContent Style="height:100px;overflow-y: auto;">
                 <MudText Typo="Typo.h5">Erga</MudText>
-                <MudText Typo="Typo.body2">“Avec Matcha Web, trouver l’amour est devenu simple et intuitif.”</MudText>
+                <MudText Typo="Typo.body2">"Avec Matcha Web, trouver l'amour est devenu simple et intuitif."</MudText>
             </MudCardContent>
         </MudCard>
     </MudCarouselItem>
@@ -86,10 +87,29 @@
 
     public async ValueTask DisposeAsync()
     {
-        if (dotNetRef != null)
+        try
         {
-            await JSRuntime.InvokeVoidAsync("removeResizeListener");
-            dotNetRef.Dispose();
+            if (dotNetRef != null)
+            {
+                await JSRuntime.InvokeVoidAsync("removeResizeListener");
+                dotNetRef.Dispose();
+            }
+        }
+        catch (JSDisconnectedException)
+        {
+            // Le circuit est déjà déconnecté, on ignore l'erreur
+            if (dotNetRef != null)
+            {
+                dotNetRef.Dispose();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Erreur lors de la suppression du listener de redimensionnement : {ex.Message}");
+            if (dotNetRef != null)
+            {
+                dotNetRef.Dispose();
+            }
         }
     }
 }

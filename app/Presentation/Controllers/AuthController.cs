@@ -179,5 +179,51 @@ namespace Presentation.Controllers // Remplacez par votre espace de noms appropr
             // On peut renvoyer l'info au client
             return Ok(new { ProfileComplete = user.ProfileComplete });
         }
+
+        [HttpGet("user-info")]
+        public async Task<IActionResult> GetUserInfo()
+        {
+            // Récupérer l'user ID depuis le claim NameIdentifier
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null) return Unauthorized("Pas d'utilisateur authentifié.");
+
+            if (!int.TryParse(userIdClaim.Value, out var userId))
+                return BadRequest("ID utilisateur invalide");
+
+            // Récupérer l'utilisateur depuis la base de données
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null) return NotFound("Utilisateur introuvable.");
+
+            // Renvoyer les informations nécessaires
+            return Ok(new { 
+                id = user.Id,
+                username = user.Username,
+                profileComplete = user.ProfileComplete,
+                localisationIsActive = user.LocalisationIsActive
+            });
+        }
+
+        [HttpPost("update-location")]
+        public async Task<IActionResult> UpdateLocation([FromBody] LocationUpdateModel model)
+        {
+            // Récupérer l'user ID depuis le claim NameIdentifier
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null) return Unauthorized("Pas d'utilisateur authentifié.");
+
+            if (!int.TryParse(userIdClaim.Value, out var userId))
+                return BadRequest("ID utilisateur invalide");
+
+            // Mettre à jour la localisation de l'utilisateur avec le statut de géolocalisation
+            await _userService.UpdateLocationAsync(userId, model.Latitude, model.Longitude, model.LocalisationIsActive);
+            
+            return Ok(new { success = true });
+        }
+    }
+
+    public class LocationUpdateModel
+    {
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+        public bool LocalisationIsActive { get; set; }
     }
 }

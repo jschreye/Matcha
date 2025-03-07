@@ -149,14 +149,26 @@
                 <MudTextField T="string" Label="Biographie" Variant="Variant.Outlined" Lines="3" 
                             @bind-Value="userProfile.Biography" Required="true" />
             </MudItem>
-            <MudItem xs="12" sm="6">
-                <MudNumericField T="double?" Label="Latitude" Variant="Variant.Outlined" 
-                                @bind-Value="userProfile.Latitude" />
+            <MudItem xs="12">
+                <MudSwitch T="bool" Value="@userProfile.LocalisationIsActive" Color="Color.Primary" 
+                           Label="Activer la géolocalisation" 
+                           LabelPosition="LabelPosition.End"
+                           ValueChanged="@((value) => { userProfile.LocalisationIsActive = value; OnLocalisationSwitchChanged(value); })" />
+                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                    Lorsque cette option est activée, votre position sera mise à jour automatiquement.
+                </MudText>
             </MudItem>
-            <MudItem xs="12" sm="6">
-                <MudNumericField T="double?" Label="Longitude" Variant="Variant.Outlined" 
-                                @bind-Value="userProfile.Longitude" />
-            </MudItem>
+            @if (userProfile.LocalisationIsActive)
+            {
+                <MudItem xs="12" sm="6">
+                    <MudNumericField T="double?" Label="Latitude" Variant="Variant.Outlined" 
+                                    @bind-Value="userProfile.Latitude" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudNumericField T="double?" Label="Longitude" Variant="Variant.Outlined" 
+                                    @bind-Value="userProfile.Longitude" />
+                </MudItem>
+            }
         </MudGrid>
 
         <!-- Boutons d'action -->
@@ -248,8 +260,7 @@
         userProfile = await UserService.GetUserProfileAsync(userId);
         genre = await GenreService.GetGenresAsync();
         prefSex = await PrefSexService.GetPrefSexAsync();
-        StateHasChanged();
-
+        
         // Charger la photo de profil existante
         var profilePhoto = await PhotoService.GetProfilePhotoAsync(userId);
         if (profilePhoto != null)
@@ -265,6 +276,30 @@
 
         // Initialisation du service d'état avec l'image actuelle (si présente)
         ProfileState.ProfileImageSrc = GetProfileImageSrc();
+    }
+
+    /** Appel dans OnAfterRenderAsync uniquement si le profil est chargé et LocalisationIsActive est true */
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // S'assurer que la valeur de LocalisationIsActive est correcte
+            // Cet appel est fait dans OnAfterRenderAsync pour éviter les erreurs de rendu statique
+            try
+            {
+                var serverStatus = await GetCurrentLocalisationStatus();
+                if (userProfile.LocalisationIsActive != serverStatus)
+                {
+                    Console.WriteLine($"Correction de LocalisationIsActive: {userProfile.LocalisationIsActive} -> {serverStatus}");
+                    userProfile.LocalisationIsActive = serverStatus;
+                    StateHasChanged();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur lors de l'initialisation du statut de localisation: {ex.Message}");
+            }
+        }
     }
 
     public void Dispose()
@@ -399,6 +434,9 @@
     /** Met à jour le profil utilisateur */
     private async Task UpdateUserProfile()
     {
+        // Log pour déboguer
+        Console.WriteLine($"Début UpdateUserProfile - LocalisationIsActive: {userProfile.LocalisationIsActive}");
+        
         var allErrors = new List<string>();
         allErrors.AddRange(ValidationService.ValidateUsername(userProfile.Username));
         allErrors.AddRange(ValidationService.ValidateName(userProfile.Firstname, "Le prénom"));
@@ -415,10 +453,54 @@
             return;
         }
 
+        // Si le statut de localisation a changé, mettre à jour les coordonnées
+        bool localisationStatusChanged = userProfile.LocalisationIsActive != await GetCurrentLocalisationStatus();
+        Console.WriteLine($"LocalisationStatusChanged: {localisationStatusChanged}, Nouvelle valeur: {userProfile.LocalisationIsActive}");
+        
+        if (localisationStatusChanged)
+        {
+            if (userProfile.LocalisationIsActive)
+            {
+                // Si l'utilisateur active la géolocalisation, demander sa position
+                try {
+                    var position = await JS.InvokeAsync<Geolocation>("getUserLocation");
+                    userProfile.Latitude = position.Latitude;
+                    userProfile.Longitude = position.Longitude;
+                    Console.WriteLine($"Position obtenue: {position.Latitude}, {position.Longitude}");
+                } catch (Exception ex) {
+                    Console.WriteLine($"Erreur lors de la géolocalisation: {ex.Message}");
+                    // En cas d'erreur, utiliser la localisation alternative
+                    var fallback = await JS.InvokeAsync<Geolocation>("getFallbackLocation");
+                    userProfile.Latitude = fallback.Latitude;
+                    userProfile.Longitude = fallback.Longitude;
+                    Console.WriteLine($"Position alternative: {fallback.Latitude}, {fallback.Longitude}");
+                }
+            }
+            else
+            {
+                // Si l'utilisateur désactive la géolocalisation, utiliser la localisation alternative
+                var fallback = await JS.InvokeAsync<Geolocation>("getFallbackLocation");
+                userProfile.Latitude = fallback.Latitude;
+                userProfile.Longitude = fallback.Longitude;
+                Console.WriteLine($"Position alternative (désactivation): {fallback.Latitude}, {fallback.Longitude}");
+            }
+        }
+
+        // Mettre à jour le profil utilisateur (y compris le statut de géolocalisation)
+        Console.WriteLine($"Avant UpdateUserProfileAsync - LocalisationIsActive: {userProfile.LocalisationIsActive}");
         var result = await UserService.UpdateUserProfileAsync(userProfile);
+        Console.WriteLine($"Résultat UpdateUserProfileAsync: {result}");
+        
+        // Afficher un message de confirmation ou d'erreur
         if (result)
         {
+            // Mettre à jour également la localisation pour s'assurer que le statut est bien enregistré
+            await UserService.UpdateLocationAsync(userProfile.Id, userProfile.Latitude.Value, userProfile.Longitude.Value, userProfile.LocalisationIsActive);
+            Console.WriteLine($"UpdateLocationAsync appelé avec LocalisationIsActive: {userProfile.LocalisationIsActive}");
+            
             bool refreshOk = await JS.InvokeAsync<bool>("refreshProfileClaim");
+            Console.WriteLine($"RefreshProfileClaim: {refreshOk}");
+            
             if (refreshOk)
             {
                 NavigationManager.NavigateTo("/", forceLoad: true);
@@ -432,6 +514,33 @@
         else
         {
             AlertService.ShowMessage("Échec de la mise à jour du profil.", false);
+        }
+    }
+
+    /** Récupère le statut actuel de la localisation depuis le serveur */
+    private async Task<bool> GetCurrentLocalisationStatus()
+    {
+        try
+        {
+            // Utiliser la fonction JavaScript nommée
+            var userInfoJson = await JS.InvokeAsync<string>("getUserLocalisationStatus");
+            
+            // Désérialiser manuellement la réponse JSON
+            var options = new System.Text.Json.JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+            
+            var userInfo = System.Text.Json.JsonSerializer.Deserialize<UserInfoDto>(userInfoJson, options);
+            
+            Console.WriteLine($"GetCurrentLocalisationStatus - userInfo.localisationIsActive: {userInfo.LocalisationIsActive}");
+            return userInfo.LocalisationIsActive;
+        }
+        catch (Exception ex)
+        {
+            // En cas d'erreur, retourner la valeur actuelle
+            Console.WriteLine($"Erreur dans GetCurrentLocalisationStatus: {ex.Message}");
+            return userProfile.LocalisationIsActive;
         }
     }
 
@@ -476,5 +585,37 @@
         {
             AlertService.ShowMessage("Erreur lors de la mise à jour du mot de passe.", false);
         }
+    }
+
+    /** Structure pour récupérer les coordonnées depuis JS */
+    public class Geolocation
+    {
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+    }
+
+    private void OnLocalisationSwitchChanged(bool value)
+    {
+        // Log le changement de valeur
+        Console.WriteLine($"LocalisationIsActive changed to: {value}");
+        
+        // Afficher un message à l'utilisateur
+        if (value)
+        {
+            AlertService.ShowMessage("La géolocalisation a été activée. N'oubliez pas d'enregistrer pour appliquer les changements.", true);
+        }
+        else
+        {
+            AlertService.ShowMessage("La géolocalisation a été désactivée. N'oubliez pas d'enregistrer pour appliquer les changements.", true);
+        }
+    }
+
+    // Classe pour désérialiser la réponse JSON
+    private class UserInfoDto
+    {
+        public int Id { get; set; }
+        public string Username { get; set; }
+        public bool ProfileComplete { get; set; }
+        public bool LocalisationIsActive { get; set; }
     }
 }

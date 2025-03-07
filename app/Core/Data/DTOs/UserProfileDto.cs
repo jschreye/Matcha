@@ -29,8 +29,7 @@ public class UserProfileDto
     public double? Latitude { get; set; }
 
     public double? Longitude { get; set; }
-
-    // Optionnel : Si vous souhaitez afficher le score de popularité sans le rendre éditable
     public int PopularityScore { get; set; }
     public bool ProfileComplete {get; set;}
+    public bool LocalisationIsActive { get; set; }
 }
