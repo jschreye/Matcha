@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 public interface INotificationService
 {
-    event Action<int, Notification>? OnNotify;
+    //event Action<int, Notification>? OnNotify;
     Task NotifyMessageReceivedAsync(int receiverId, int senderId);
     Task<List<NotificationDto>> GetNotificationsForUserAsync(int userId);
     Task DeleteNotificationAsync(int notificationId);
