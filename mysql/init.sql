@@ -28,7 +28,8 @@ CREATE TABLE IF NOT EXISTS users (
     lastname VARCHAR(50) NOT NULL,
     firstname VARCHAR(50) NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
-    genre_id INT,                
+    genre_id INT,
+    tag_id INT,                
     sexual_preferences_id INT, 
     biography TEXT,
     gps_location POINT,
@@ -41,7 +42,8 @@ CREATE TABLE IF NOT EXISTS users (
     profile_complete BOOLEAN DEFAULT FALSE,
     localisation_isactive BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (genre_id) REFERENCES genre(id),
-    FOREIGN KEY (sexual_preferences_id) REFERENCES prefsex(id)
+    FOREIGN KEY (sexual_preferences_id) REFERENCES prefsex(id),
+    FOREIGN KEY (tag_id) REFERENCES tags(id)
 ) ENGINE=InnoDB;
 
 -- Table Photos

@@ -22,7 +22,7 @@ public class UserProfileDto
 
     public int Age { get; set; }
     public int? Genre { get; set; }
-
+    public int? Tag { get; set; }
     public int? SexualPreferences { get; set; }
 
     public string? Biography { get; set; }

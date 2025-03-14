@@ -112,6 +112,7 @@ public class UserService : IUserService
             Lastname = user.Lastname,
             Firstname = user.Firstname,
             Genre = user.Genre,
+            Tag = user.Tag,
             SexualPreferences = user.SexualPreferences,
             Biography = user.Biography,
             Latitude = user.Latitude,
@@ -136,6 +137,7 @@ public class UserService : IUserService
         user.Age = profileDto.Age;
         user.NotifIsActive = profileDto.NotifIsActive;
         user.Genre = profileDto.Genre;
+        user.Tag = profileDto.Tag;
         user.SexualPreferences = profileDto.SexualPreferences;
         user.Biography = profileDto.Biography;
         user.Latitude = profileDto.Latitude;
