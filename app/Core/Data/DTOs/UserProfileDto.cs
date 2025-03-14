@@ -20,6 +20,7 @@ public class UserProfileDto
     [StringLength(50, MinimumLength = 1)]
     public string Firstname { get; set; } = string.Empty;
 
+    public int Age { get; set; }
     public int? Genre { get; set; }
 
     public int? SexualPreferences { get; set; }
@@ -31,5 +32,7 @@ public class UserProfileDto
     public double? Longitude { get; set; }
     public int PopularityScore { get; set; }
     public bool ProfileComplete {get; set;}
+    public bool NotifIsActive {get; set;}
+    public bool IsActive {get; set;}
     public bool LocalisationIsActive { get; set; }
 }

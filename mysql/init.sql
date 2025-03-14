@@ -23,6 +23,7 @@ INSERT INTO prefsex (libelle) VALUES
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     email VARCHAR(100) NOT NULL UNIQUE,
+    age INT,
     username VARCHAR(50) NOT NULL UNIQUE,
     lastname VARCHAR(50) NOT NULL,
     firstname VARCHAR(50) NOT NULL,
@@ -33,6 +34,7 @@ CREATE TABLE IF NOT EXISTS users (
     gps_location POINT,
     popularity_score INT DEFAULT 0,
     isactive BOOLEAN DEFAULT FALSE,
+    notifisactive BOOLEAN DEFAULT FALSE,
     activationtoken VARCHAR(255),
     passwordresettoken VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -88,6 +90,7 @@ CREATE TABLE IF NOT EXISTS likes (
 ) ENGINE=InnoDB;
 
 -- Table Matches
+
 CREATE TABLE IF NOT EXISTS matches (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user1_id INT NOT NULL,
@@ -96,10 +99,7 @@ CREATE TABLE IF NOT EXISTS matches (
     is_active BOOLEAN DEFAULT TRUE,
     FOREIGN KEY (user1_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (user2_id) REFERENCES users(id) ON DELETE CASCADE,
-    UNIQUE KEY unique_match (
-        LEAST(user1_id, user2_id),
-        GREATEST(user1_id, user2_id)
-    )
+    UNIQUE KEY unique_match (user1_id, user2_id)
 ) ENGINE=InnoDB;
 
 -- Table Visits

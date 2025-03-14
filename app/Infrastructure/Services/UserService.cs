@@ -106,6 +106,8 @@ public class UserService : IUserService
         {
             Id = user.Id,
             Email = user.Email,
+            Age = user.Age,
+            NotifIsActive = user.NotifIsActive,
             Username = user.Username,
             Lastname = user.Lastname,
             Firstname = user.Firstname,
@@ -131,13 +133,14 @@ public class UserService : IUserService
         user.Lastname = profileDto.Lastname;
         user.Username = profileDto.Username;
         user.Email = profileDto.Email;
+        user.Age = profileDto.Age;
+        user.NotifIsActive = profileDto.NotifIsActive;
         user.Genre = profileDto.Genre;
         user.SexualPreferences = profileDto.SexualPreferences;
         user.Biography = profileDto.Biography;
         user.Latitude = profileDto.Latitude;
         user.Longitude = profileDto.Longitude;
         user.LocalisationIsActive = profileDto.LocalisationIsActive;
-
         
         //TODO faire le check des tags pour la variable profilecomplete
         bool isProfileComplete = !string.IsNullOrWhiteSpace(user.Firstname) &&
