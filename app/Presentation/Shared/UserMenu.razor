@@ -110,12 +110,10 @@
 
     protected override async Task OnInitializedAsync()
     {
-
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         isAuthenticated = authState.User.Identity?.IsAuthenticated ?? false;
         var user = authState.User;
 
-        // Récupère le claim NameIdentifier (celui-ci correspond à user.Id dans votre code)
         var userIdClaim = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
         if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
         {
@@ -123,9 +121,9 @@
         }
         else
         {
-            // Gestion d'erreur si le claim n'est pas présent ou invalide
             CurrentUserId = 0;
         }
+        
         // Abonnement pour l'image de profil
         _onProfileImageChanged = () => InvokeAsync(StateHasChanged);
         ProfileState.OnChange += _onProfileImageChanged;
@@ -133,18 +131,32 @@
         // Récupération initiale du nombre de notifications non lues
         await UpdateNotificationsAsync();
 
-        // Optionnel : s'abonner à un éventuel événement de notification si vous l'implémentez dans NotificationService
+        // Abonnement à l'événement OnNotify (si nécessaire)
         NotificationService.OnNotify += OnNotificationReceived;
+
+        // Abonnement au nouvel événement de mise à jour des notifications
+        NotificationService.OnNotificationsUpdated += OnNotificationsUpdated;
 
         UpdateCurrentPage();
         NavigationManager.LocationChanged += OnLocationChanged;
     }
 
+    private async void OnNotificationsUpdated(int userId)
+    {
+        if (userId == CurrentUserId)
+        {
+            await UpdateNotificationsAsync();
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    // Le reste de votre code reste inchangé
     public void Dispose()
     {
         ProfileState.OnChange -= _onProfileImageChanged;
         NavigationManager.LocationChanged -= OnLocationChanged;
         NotificationService.OnNotify -= OnNotificationReceived;
+        NotificationService.OnNotificationsUpdated -= OnNotificationsUpdated;
     }
 
     private void OnLocationChanged(object sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
@@ -174,11 +186,8 @@
         }
     }
 
-    // Méthode appelée lorsque le service signale une nouvelle notification
     private void OnNotificationReceived(int receiverId)
     {
-        // Vous pouvez filtrer par utilisateur si besoin, ici par exemple :
-        // if (receiverId == currentUserId) { ... }
         _ = InvokeAsync(async () =>
         {
             await UpdateNotificationsAsync();
@@ -186,7 +195,6 @@
         });
     }
 
-    // Méthode pour récupérer le nombre de notifications non lues
     private async Task UpdateNotificationsAsync()
     {
         var notifications = await NotificationService.GetNotificationsForUserAsync(CurrentUserId);

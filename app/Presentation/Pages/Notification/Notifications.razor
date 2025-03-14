@@ -51,16 +51,10 @@ else
 
     private async Task DeleteNotification(int notificationId)
     {
-        await NotificationService.DeleteNotificationAsync(notificationId);
-        notifications.RemoveAll(n => n.Id == notificationId);
-        //await UpdateNotificationsAsync();
+        // Passage de currentUserId pour que l'événement OnNotificationsUpdated soit déclenché avec le bon utilisateur
+        await NotificationService.DeleteNotificationAsync(notificationId, currentUserId);
+        // Vous pouvez recharger la liste locale si nécessaire
+        notifications = await NotificationService.GetNotificationsForUserAsync(currentUserId);
         await InvokeAsync(StateHasChanged);
     }
-/*
-    private async Task UpdateNotificationsAsync()
-    {
-        var notifications = await NotificationService.GetNotificationsForUserAsync(currentUserId);
-        notificationCount = notifications.Count(n => !n.Lu);
-    }
-    */
 }

@@ -5,6 +5,9 @@ using Core.Interfaces.Repository;
 public class NotificationService : INotificationService
 {
     public event Action<int>? OnNotify;
+    // Nouvel événement pour notifier une mise à jour des notifications (ajout ou suppression)
+    public event Action<int>? OnNotificationsUpdated;
+    
     private readonly INotificationRepository _notificationRepository;
 
     public NotificationService(INotificationRepository notificationRepository)
@@ -27,6 +30,8 @@ public class NotificationService : INotificationService
 
         await _notificationRepository.SaveNotificationAsync(notification);
         OnNotify?.Invoke(receiverId);
+        // Optionnellement, vous pouvez notifier que la liste a été mise à jour
+        OnNotificationsUpdated?.Invoke(receiverId);
     }
     
     public async Task<List<NotificationDto>> GetNotificationsForUserAsync(int userId)
@@ -34,8 +39,10 @@ public class NotificationService : INotificationService
         return await _notificationRepository.GetNotificationsForUserAsync(userId);
     }
 
-    public async Task DeleteNotificationAsync(int notificationId)
+    public async Task DeleteNotificationAsync(int notificationId, int userId)
     {
         await _notificationRepository.DeleteNotificationAsync(notificationId);
+        // Après suppression, notifier que les notifications ont été mises à jour pour l'utilisateur concerné
+        OnNotificationsUpdated?.Invoke(userId);
     }
 }
