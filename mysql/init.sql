@@ -27,11 +27,11 @@ CREATE TABLE IF NOT EXISTS users (
     lastname VARCHAR(50) NOT NULL,
     firstname VARCHAR(50) NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
-    genre_id INT,                -- Genre de l'utilisateur
-    sexual_preferences_id INT,   -- Préférences sexuelles
-    biography TEXT,                    -- Biographie
-    gps_location POINT,                -- Localisation GPS (optionnel, peut utiliser lat/long séparément)
-    popularity_score INT DEFAULT 0,    -- Score de popularité
+    genre_id INT,                
+    sexual_preferences_id INT, 
+    biography TEXT,
+    gps_location POINT,
+    popularity_score INT DEFAULT 0,
     isactive BOOLEAN DEFAULT FALSE,
     activationtoken VARCHAR(255),
     passwordresettoken VARCHAR(255),
@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS photos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
-    image_data LONGBLOB NOT NULL,   -- Stockage binaire de la photo
+    image_data LONGBLOB NOT NULL,
     est_profil BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
@@ -87,6 +87,21 @@ CREATE TABLE IF NOT EXISTS likes (
     FOREIGN KEY (liked_user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+-- Table Matches
+CREATE TABLE IF NOT EXISTS matches (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user1_id INT NOT NULL,
+    user2_id INT NOT NULL,
+    matched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (user1_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (user2_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_match (
+        LEAST(user1_id, user2_id),
+        GREATEST(user1_id, user2_id)
+    )
+) ENGINE=InnoDB;
+
 -- Table Visits
 CREATE TABLE IF NOT EXISTS visits (
     user_id INT NOT NULL,
@@ -108,15 +123,26 @@ CREATE TABLE IF NOT EXISTS messages (
     FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS notification_types (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    libelle VARCHAR(50) NOT NULL UNIQUE
+) ENGINE=InnoDB;
+
+INSERT INTO notification_types (libelle) VALUES
+('Message'),
+('Like'),
+('Match');
+
 -- Table Notifications
 CREATE TABLE IF NOT EXISTS notifications (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
-    type VARCHAR(50),
-    contenu TEXT,
+    sender_id INT NOT NULL,
+    notification_type_id INT,
     lu BOOLEAN DEFAULT FALSE,
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (notification_type_id) REFERENCES notification_types(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
 -- Table BlocksReports (pour blocages et rapports)
