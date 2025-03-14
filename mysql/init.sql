@@ -19,6 +19,22 @@ INSERT INTO prefsex (libelle) VALUES
 ('Hetero'),
 ('Gay'),
 ('Bisexual');
+-- Table Tags
+CREATE TABLE IF NOT EXISTS tags (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    libelle VARCHAR(50) NOT NULL UNIQUE
+) ENGINE=InnoDB;
+
+INSERT INTO tags (libelle) VALUES
+('Jeux video'),
+('Grimpe'),
+('Shopping'),
+('Course a pied'),
+('Plaide et chocolat chaud'),
+('Rando'),
+('Volley'),
+('Foot'),
+('Ski');
 
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -54,23 +70,6 @@ CREATE TABLE IF NOT EXISTS photos (
     est_profil BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
-
--- Table Tags
-CREATE TABLE IF NOT EXISTS tags (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    libelle VARCHAR(50) NOT NULL UNIQUE
-) ENGINE=InnoDB;
-
-INSERT INTO tags (libelle) VALUES
-('Jeux video'),
-('Grimpe'),
-('Shopping'),
-('Course a pied'),
-('Plaide et chocolat chaud'),
-('Rando'),
-('Volley'),
-('Foot'),
-('Ski');
 
 -- Table UserTags (relation plusieurs-à-plusieurs entre Users et Tags)
 CREATE TABLE IF NOT EXISTS userTags (
