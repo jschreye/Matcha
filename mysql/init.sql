@@ -96,10 +96,7 @@ CREATE TABLE IF NOT EXISTS matches (
     is_active BOOLEAN DEFAULT TRUE,
     FOREIGN KEY (user1_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (user2_id) REFERENCES users(id) ON DELETE CASCADE,
-    UNIQUE KEY unique_match (
-        LEAST(user1_id, user2_id),
-        GREATEST(user1_id, user2_id)
-    )
+    UNIQUE KEY unique_match (user1_id, user2_id)
 ) ENGINE=InnoDB;
 
 -- Table Visits
@@ -157,7 +154,7 @@ CREATE TABLE IF NOT EXISTS blocksReports (
 ) ENGINE=InnoDB;
 
 -- Table Sessions (pour gérer les connexions des utilisateurs)
-CREATE TABLE IF NOT EXISTS sessions (
+CREATE TABLE IF NOT EXISTS `sessions` (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     session_token VARCHAR(255) NOT NULL UNIQUE,
