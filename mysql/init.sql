@@ -19,38 +19,6 @@ INSERT INTO prefsex (libelle) VALUES
 ('Hetero'),
 ('Gay'),
 ('Bisexual');
-
-CREATE TABLE IF NOT EXISTS users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    email VARCHAR(100) NOT NULL UNIQUE,
-    username VARCHAR(50) NOT NULL UNIQUE,
-    lastname VARCHAR(50) NOT NULL,
-    firstname VARCHAR(50) NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    genre_id INT,                
-    sexual_preferences_id INT, 
-    biography TEXT,
-    gps_location POINT,
-    popularity_score INT DEFAULT 0,
-    isactive BOOLEAN DEFAULT FALSE,
-    activationtoken VARCHAR(255),
-    passwordresettoken VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    profile_complete BOOLEAN DEFAULT FALSE,
-    localisation_isactive BOOLEAN DEFAULT FALSE,
-    FOREIGN KEY (genre_id) REFERENCES genre(id),
-    FOREIGN KEY (sexual_preferences_id) REFERENCES prefsex(id)
-) ENGINE=InnoDB;
-
--- Table Photos
-CREATE TABLE IF NOT EXISTS photos (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    image_data LONGBLOB NOT NULL,
-    est_profil BOOLEAN DEFAULT FALSE,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
-
 -- Table Tags
 CREATE TABLE IF NOT EXISTS tags (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -67,6 +35,41 @@ INSERT INTO tags (libelle) VALUES
 ('Volley'),
 ('Foot'),
 ('Ski');
+
+CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    age INT,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    lastname VARCHAR(50) NOT NULL,
+    firstname VARCHAR(50) NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    genre_id INT,
+    tag_id INT,                
+    sexual_preferences_id INT, 
+    biography TEXT,
+    gps_location POINT,
+    popularity_score INT DEFAULT 0,
+    isactive BOOLEAN DEFAULT FALSE,
+    notifisactive BOOLEAN DEFAULT FALSE,
+    activationtoken VARCHAR(255),
+    passwordresettoken VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    profile_complete BOOLEAN DEFAULT FALSE,
+    localisation_isactive BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (genre_id) REFERENCES genre(id),
+    FOREIGN KEY (sexual_preferences_id) REFERENCES prefsex(id),
+    FOREIGN KEY (tag_id) REFERENCES tags(id)
+) ENGINE=InnoDB;
+
+-- Table Photos
+CREATE TABLE IF NOT EXISTS photos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    image_data LONGBLOB NOT NULL,
+    est_profil BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
 
 -- Table UserTags (relation plusieurs-à-plusieurs entre Users et Tags)
 CREATE TABLE IF NOT EXISTS userTags (
@@ -88,6 +91,7 @@ CREATE TABLE IF NOT EXISTS likes (
 ) ENGINE=InnoDB;
 
 -- Table Matches
+
 CREATE TABLE IF NOT EXISTS matches (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user1_id INT NOT NULL,

@@ -23,7 +23,7 @@ namespace Infrastructure.Repository
             using var connection = new MySqlConnection(_connectionString);
             await connection.OpenAsync();
 
-            using var command = new MySqlCommand("SELECT id, username, email, created_at FROM users", connection);
+            using var command = new MySqlCommand("SELECT id, username, email, age, created_at FROM users", connection);
             using var reader = await command.ExecuteReaderAsync();
 
             while (await reader.ReadAsync())
@@ -33,6 +33,7 @@ namespace Infrastructure.Repository
                     Id = reader.GetInt32(reader.GetOrdinal("id")),
                     Username = reader.GetString(reader.GetOrdinal("username")),
                     Email = reader.GetString(reader.GetOrdinal("email")),
+                    Age = reader.GetInt32(reader.GetOrdinal("age")),
                     CreatedAt = reader.GetDateTime(reader.GetOrdinal("created_at"))
                 });
             }
@@ -47,7 +48,7 @@ namespace Infrastructure.Repository
 
             var command = new MySqlCommand(@"
                 SELECT 
-                    id, firstname, lastname, username, email, 
+                    id, firstname, lastname, username, email,
                     password_hash, isactive, activationtoken, passwordresettoken, created_at 
                 FROM users 
                 WHERE email = @Email", connection);
@@ -87,7 +88,7 @@ namespace Infrastructure.Repository
 
             var command = new MySqlCommand(@"
                 SELECT 
-                    id, firstname, lastname, username, email, 
+                    id, firstname, lastname, username, email,
                     password_hash, isactive, activationtoken, profile_complete, 
                     localisation_isactive, created_at 
                 FROM users 
@@ -158,6 +159,7 @@ namespace Infrastructure.Repository
                     lastname = @Lastname,
                     username = @Username,
                     email = @Email,
+                    age = @Age,
                     password_hash = @PasswordHash,
                     isactive = @IsActive,
                     activationtoken = @ActivationToken,
@@ -169,6 +171,7 @@ namespace Infrastructure.Repository
             command.Parameters.AddWithValue("@Lastname", user.Lastname ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@Username", user.Username ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@Email", user.Email ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@Age", user.Age);
             command.Parameters.AddWithValue("@PasswordHash", user.PasswordHash ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@IsActive", user.IsActive);
             command.Parameters.AddWithValue("@ActivationToken", user.ActivationToken ?? (object)DBNull.Value);
@@ -196,11 +199,11 @@ namespace Infrastructure.Repository
 
             var command = new MySqlCommand(@"
                 SELECT 
-                    id, firstname, lastname, username, email, 
+                    id, firstname, lastname, username, email, age,
                     password_hash, isactive, activationtoken, passwordresettoken, 
-                    genre_id, sexual_preferences_id, biography, 
+                    genre_id, tag_id, sexual_preferences_id, biography, 
                     ST_AsText(gps_location) as gps_location,
-                    popularity_score, profile_complete, localisation_isactive,
+                    popularity_score, notifisactive, profile_complete, localisation_isactive,
                     created_at 
                 FROM users 
                 WHERE id = @Id", connection);
@@ -216,16 +219,19 @@ namespace Infrastructure.Repository
                     Lastname = reader.GetString(reader.GetOrdinal("lastname")),
                     Username = reader.GetString(reader.GetOrdinal("username")),
                     Email = reader.GetString(reader.GetOrdinal("email")),
+                    Age = reader.GetInt32(reader.GetOrdinal("age")),
                     PasswordHash = reader.IsDBNull(reader.GetOrdinal("password_hash")) ? null : reader.GetString(reader.GetOrdinal("password_hash")),
                     IsActive = !reader.IsDBNull(reader.GetOrdinal("isactive")) && reader.GetBoolean(reader.GetOrdinal("isactive")),
                     ActivationToken = reader.IsDBNull(reader.GetOrdinal("activationtoken")) ? null : reader.GetString(reader.GetOrdinal("activationtoken")),
                     PasswordResetToken = reader.IsDBNull(reader.GetOrdinal("passwordresettoken")) ? null : reader.GetString(reader.GetOrdinal("passwordresettoken")),
                     Genre = reader.IsDBNull(reader.GetOrdinal("genre_id")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("genre_id")),
+                    Tag = reader.IsDBNull(reader.GetOrdinal("tag_id")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("tag_id")),
                     SexualPreferences = reader.IsDBNull(reader.GetOrdinal("sexual_preferences_id")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("sexual_preferences_id")),
                     Biography = reader.IsDBNull(reader.GetOrdinal("biography")) ? null : reader.GetString(reader.GetOrdinal("biography")),
                     Latitude = reader.IsDBNull(reader.GetOrdinal("gps_location")) ? (double?)null : ParseLatitude(reader.GetString(reader.GetOrdinal("gps_location"))),
                     Longitude = reader.IsDBNull(reader.GetOrdinal("gps_location")) ? (double?)null : ParseLongitude(reader.GetString(reader.GetOrdinal("gps_location"))),
                     PopularityScore = reader.GetInt32(reader.GetOrdinal("popularity_score")),
+                    NotifIsActive = !reader.IsDBNull(reader.GetOrdinal("notifisactive")) && reader.GetBoolean(reader.GetOrdinal("notifisactive")),
                     ProfileComplete = !reader.IsDBNull(reader.GetOrdinal("profile_complete")) && reader.GetBoolean(reader.GetOrdinal("profile_complete")),
                     LocalisationIsActive = !reader.IsDBNull(reader.GetOrdinal("localisation_isactive")) && reader.GetBoolean(reader.GetOrdinal("localisation_isactive")),
                     CreatedAt = reader.GetDateTime(reader.GetOrdinal("created_at"))
@@ -263,11 +269,14 @@ namespace Infrastructure.Repository
                     lastname = @Lastname,
                     username = @Username,
                     email = @Email,
+                    age = @Age,
                     genre_id = @Genre,
+                    tag_id = @Tag,
                     sexual_preferences_id = @SexualPreferences,
                     biography = @Biography,
                     gps_location = ST_GeomFromText(@GpsLocation),
                     profile_complete = @ProfileComplete,
+                    notifisactive = @NotifIsActive,
                     localisation_isactive = @LocalisationIsActive
                 WHERE id = @Id";
 
@@ -276,7 +285,9 @@ namespace Infrastructure.Repository
             command.Parameters.AddWithValue("@Lastname", user.Lastname ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@Username", user.Username ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@Email", user.Email ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@Age", user.Age);
             command.Parameters.AddWithValue("@Genre", user.Genre ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@Tag", user.Tag ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@SexualPreferences", user.SexualPreferences ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@Biography", user.Biography ?? (object)DBNull.Value);
             if (user.Latitude.HasValue && user.Longitude.HasValue)
@@ -289,6 +300,7 @@ namespace Infrastructure.Repository
             }
             command.Parameters.AddWithValue("@ProfileComplete", user.ProfileComplete);
             command.Parameters.AddWithValue("@LocalisationIsActive", user.LocalisationIsActive);
+            command.Parameters.AddWithValue("@NotifIsActive", user.NotifIsActive);
             command.Parameters.AddWithValue("@Id", user.Id);
 
             await command.ExecuteNonQueryAsync();
