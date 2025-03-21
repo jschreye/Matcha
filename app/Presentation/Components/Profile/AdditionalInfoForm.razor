@@ -30,6 +30,36 @@
             }
         </MudSelect>
     </MudItem>
+    
+    <!-- Centres d'intérêt (Tags) -->
+    <MudItem xs="12">
+        <MudCard>
+            <MudCardHeader class="pb-0">
+                <MudText Typo="Typo.h6">Centres d'intérêt</MudText>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudText Typo="Typo.subtitle2" Class="mb-2">Cliquez sur les centres d'intérêt pour les sélectionner :</MudText>
+                <MudPaper Class="d-flex flex-wrap gap-2 " Elevation="0">
+                    @if (Tags != null)
+                    {
+                        @foreach (var tag in Tags)
+                        {
+                            var isSelected = selectedTags.Any(t => t.Id == tag.Id);
+                            <MudChip T="string" 
+                                    Color="@(isSelected ? Color.Primary : Color.Default)" 
+                                    OnClick="@(() => ToggleTagSelection(tag))"
+                                    Variant="@(isSelected ? Variant.Filled : Variant.Outlined)"
+                                    Size="Size.Medium"
+                                    Class="ma-1">
+                                @tag.Libelle
+                            </MudChip>
+                        }
+                    }
+                </MudPaper>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+    
     <!-- Biographie en pleine largeur -->
     <MudItem xs="12">
         <MudTextField T="string" Label="Biographie" Variant="Variant.Outlined" Lines="3" 
@@ -66,10 +96,52 @@
 
     [Parameter]
     public List<PrefSex> PrefSexes { get; set; }
+    
+    [Parameter]
+    public List<Tag> Tags { get; set; }
+    
+    [Parameter]
+    public IEnumerable<int> SelectedTagIds { get; set; }
+    
+    [Parameter]
+    public EventCallback<IEnumerable<int>> OnTagsChanged { get; set; }
 
     [Parameter]
     public EventCallback<bool> OnLocalisationChanged { get; set; }
-
+    
+    private HashSet<Tag> selectedTags = new HashSet<Tag>();
+    
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        
+        // Initialiser les tags sélectionnés à partir des IDs
+        if (SelectedTagIds != null && Tags != null)
+        {
+            selectedTags = new HashSet<Tag>(
+                Tags.Where(t => SelectedTagIds.Contains(t.Id))
+            );
+        }
+    }
+    
+    private async Task ToggleTagSelection(Tag tag)
+    {
+        // Si le tag est déjà sélectionné, le supprimer
+        if (selectedTags.Any(t => t.Id == tag.Id))
+        {
+            selectedTags.RemoveWhere(t => t.Id == tag.Id);
+        }
+        // Sinon, l'ajouter
+        else
+        {
+            selectedTags.Add(tag);
+        }
+        
+        // Notifier le composant parent du changement
+        var tagIds = selectedTags.Select(t => t.Id);
+        await OnTagsChanged.InvokeAsync(tagIds);
+    }
+    
     private async Task OnLocalisationSwitchChanged(bool value)
     {
         // Mettre à jour la valeur dans le modèle
