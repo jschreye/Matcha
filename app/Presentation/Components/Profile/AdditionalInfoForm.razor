@@ -6,6 +6,13 @@
 
 <MudText Typo="Typo.h5" Class="mt-10 mb-4">Information complémentaire</MudText>
 <MudGrid Spacing="2">
+    <!-- Biographie en pleine largeur -->
+    <MudItem xs="12">
+        <MudTextField T="string" Label="Biographie" Variant="Variant.Outlined" Lines="3" 
+                    @bind-Value="UserProfile.Biography" Required="true" />
+    </MudItem>
+
+    <!-- Genre -->
     <MudItem xs="12" sm="6">
         <MudSelect T="int?" Label="Genre" Variant="Variant.Outlined" 
                 @bind-Value="UserProfile.Genre" Required="true">
@@ -18,6 +25,8 @@
             }
         </MudSelect>
     </MudItem>
+
+    <!-- Sexual Preferences -->
     <MudItem xs="12" sm="6">
         <MudSelect T="int?" Label="Sexual Preferences" Variant="Variant.Outlined" 
                 @bind-Value="UserProfile.SexualPreferences" Required="true">
@@ -30,6 +39,29 @@
             }
         </MudSelect>
     </MudItem>
+
+    <!-- Switch pour la géolocalisation -->
+    <MudItem xs="12">
+        <MudSwitch T="bool" Value="@UserProfile.LocalisationIsActive" Color="Color.Primary" 
+                   Label="Activer la géolocalisation" 
+                   LabelPosition="LabelPosition.End"
+                   ValueChanged="@OnLocalisationSwitchChanged" />
+        <MudText Typo="Typo.caption" Color="Color.Secondary">
+            Lorsque cette option est activée, votre position sera mise à jour automatiquement.
+        </MudText>
+    </MudItem>
+    
+    @if (UserProfile.LocalisationIsActive)
+    {
+        <MudItem xs="12" sm="6">
+            <MudNumericField T="double?" Label="Latitude" Variant="Variant.Outlined" 
+                            @bind-Value="UserProfile.Latitude" />
+        </MudItem>
+        <MudItem xs="12" sm="6">
+            <MudNumericField T="double?" Label="Longitude" Variant="Variant.Outlined" 
+                            @bind-Value="UserProfile.Longitude" />
+        </MudItem>
+    }
     
     <!-- Centres d'intérêt (Tags) -->
     <MudItem xs="12">
@@ -60,12 +92,6 @@
         </MudCard>
     </MudItem>
     
-    <!-- Biographie en pleine largeur -->
-    <MudItem xs="12">
-        <MudTextField T="string" Label="Biographie" Variant="Variant.Outlined" Lines="3" 
-                    @bind-Value="UserProfile.Biography" Required="true" />
-    </MudItem>
-    
     <!-- Switch pour les notifications -->
     <MudItem xs="12">
         <MudSwitch T="bool" Value="@UserProfile.NotifIsActive" Color="Color.Secondary" 
@@ -76,29 +102,6 @@
             Lorsque cette option est activée, vous recevrez des notifications pour les nouveaux messages, likes et matchs.
         </MudText>
     </MudItem>
-    
-    <!-- Switch pour la géolocalisation -->
-    <MudItem xs="12">
-        <MudSwitch T="bool" Value="@UserProfile.LocalisationIsActive" Color="Color.Primary" 
-                   Label="Activer la géolocalisation" 
-                   LabelPosition="LabelPosition.End"
-                   ValueChanged="@OnLocalisationSwitchChanged" />
-        <MudText Typo="Typo.caption" Color="Color.Secondary">
-            Lorsque cette option est activée, votre position sera mise à jour automatiquement.
-        </MudText>
-    </MudItem>
-    
-    @if (UserProfile.LocalisationIsActive)
-    {
-        <MudItem xs="12" sm="6">
-            <MudNumericField T="double?" Label="Latitude" Variant="Variant.Outlined" 
-                            @bind-Value="UserProfile.Latitude" />
-        </MudItem>
-        <MudItem xs="12" sm="6">
-            <MudNumericField T="double?" Label="Longitude" Variant="Variant.Outlined" 
-                            @bind-Value="UserProfile.Longitude" />
-        </MudItem>
-    }
 </MudGrid>
 
 @code {
