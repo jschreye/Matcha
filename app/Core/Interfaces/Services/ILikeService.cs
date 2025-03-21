@@ -1,8 +1,7 @@
-using Core.Data.Entity;
 
-namespace Core.Interfaces.Repository
+namespace Infrastructure.Services
 {
-    public interface ILikeRepository
+    public interface ILikeService
     {
         Task LikeProfileAsync(int userId, int likedUserId);
         Task UnlikeProfileAsync(int userId, int likedUserId);
