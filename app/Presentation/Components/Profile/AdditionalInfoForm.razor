@@ -27,6 +27,16 @@
         </MudSelect>
     </MudItem>
 
+    <!-- Âge -->
+    <MudItem xs="12" sm="6">
+        <MudNumericField T="int" Label="Âge" Variant="Variant.Outlined"
+                      Value="GetAgeValue()" ValueChanged="OnAgeChanged"
+                      Min="18" Max="99" Required="true" />
+        <MudText Typo="Typo.caption" Color="Color.Secondary">
+            Veuillez indiquer votre âge (18 ans minimum)
+        </MudText>
+    </MudItem>
+
     <!-- Sexual Preferences -->
     <MudItem xs="12" sm="6">
         <MudSelect T="int?" Label="Sexual Preferences" Variant="Variant.Outlined" 
@@ -133,6 +143,11 @@
     
     private HashSet<Tag> selectedTags = new HashSet<Tag>();
     
+    protected override void OnInitialized()
+    {
+        // Ne rien faire ici
+    }
+    
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
@@ -144,6 +159,19 @@
                 Tags.Where(t => SelectedTagIds.Contains(t.Id))
             );
         }
+        
+        // L'initialisation de l'âge est maintenant gérée par GetAgeValue()
+    }
+    
+    private int GetAgeValue()
+    {
+        // Retourner l'âge de l'utilisateur ou 18 s'il n'est pas défini
+        return UserProfile.Age <= 0 ? 18 : UserProfile.Age;
+    }
+    
+    private void OnAgeChanged(int newAge)
+    {
+        UserProfile.Age = newAge;
     }
     
     private async Task ToggleTagSelection(Tag tag)
