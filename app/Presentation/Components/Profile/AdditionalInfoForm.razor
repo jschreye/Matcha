@@ -15,7 +15,8 @@
     <!-- Genre -->
     <MudItem xs="12" sm="6">
         <MudSelect T="int?" Label="Genre" Variant="Variant.Outlined" 
-                @bind-Value="UserProfile.Genre" Required="true">
+                @bind-Value="UserProfile.Genre" Required="true"
+                ToStringFunc="@(id => GetGenreLibelle(id))">
             @if (Genres != null)
             {
                 @foreach (var g in Genres)
@@ -29,7 +30,8 @@
     <!-- Sexual Preferences -->
     <MudItem xs="12" sm="6">
         <MudSelect T="int?" Label="Sexual Preferences" Variant="Variant.Outlined" 
-                @bind-Value="UserProfile.SexualPreferences" Required="true">
+                @bind-Value="UserProfile.SexualPreferences" Required="true"
+                ToStringFunc="@(id => GetPrefSexLibelle(id))">
             @if (PrefSexes != null)
             {
                 @foreach (var p in PrefSexes)
@@ -204,6 +206,24 @@
 
         // Notifier le composant parent
         await OnLocalisationChanged.InvokeAsync(value);
+    }
+
+    private string GetGenreLibelle(int? genreId)
+    {
+        if (genreId == null || Genres == null)
+            return "";
+            
+        var genre = Genres.FirstOrDefault(g => g.Id == genreId.Value);
+        return genre?.Libelle ?? "";
+    }
+    
+    private string GetPrefSexLibelle(int? prefSexId)
+    {
+        if (prefSexId == null || PrefSexes == null)
+            return "";
+            
+        var prefSex = PrefSexes.FirstOrDefault(p => p.Id == prefSexId.Value);
+        return prefSex?.Libelle ?? "";
     }
 
     /** Structure pour récupérer les coordonnées depuis JS */
