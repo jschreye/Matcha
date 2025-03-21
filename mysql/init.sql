@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS users (
     age INT,
     username VARCHAR(50) NOT NULL UNIQUE,
     lastname VARCHAR(50) NOT NULL,
-    firstname VARCHAR(50) NOT NULL,
+    firstname VARCHAR(50) NOT NULL, 
     password_hash VARCHAR(255) NOT NULL,
     genre_id INT,
     tag_id INT,                

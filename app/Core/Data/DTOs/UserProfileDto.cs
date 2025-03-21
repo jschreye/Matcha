@@ -30,7 +30,7 @@ public class UserProfileDto
     public double? Latitude { get; set; }
 
     public double? Longitude { get; set; }
-    public int PopularityScore { get; set; }
+    public int PopularityScore { get; set; }    
     public bool ProfileComplete {get; set;}
     public bool NotifIsActive {get; set;}
     public bool IsActive {get; set;}

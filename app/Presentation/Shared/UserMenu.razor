@@ -1,9 +1,11 @@
 @using Microsoft.AspNetCore.Components.Authorization
+@using Core.Data.DTOs
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 @inject IPhotoService PhotoService
 @inject IProfileImageStateService ProfileState
 @inject INotificationService NotificationService
+@inject IUserService UserService
 
 <MudAppBar Elevation="1" Style="@($"background:{Colors.Gray.Lighten3};")">
     <MudIconButton Icon="@Icons.Material.Filled.Menu" Edge="Edge.Start" OnClick="@ToggleDrawerAsync" Style="@($"color:{Colors.DeepPurple.Accent4};")"/>
@@ -186,18 +188,26 @@
         }
     }
 
-    private void OnNotificationReceived(int receiverId)
+    private async void OnNotificationReceived(int receiverId)
     {
-        _ = InvokeAsync(async () =>
+        UserProfileDto userForNotif = await UserService.GetUserProfileAsync(CurrentUserId);
+        if (userForNotif.NotifIsActive == true)
         {
-            await UpdateNotificationsAsync();
-            StateHasChanged();
-        });
+            _ = InvokeAsync(async () =>
+            {
+                await UpdateNotificationsAsync();
+                StateHasChanged();
+            });
+        }
     }
 
     private async Task UpdateNotificationsAsync()
     {
-        var notifications = await NotificationService.GetNotificationsForUserAsync(CurrentUserId);
-        notificationCount = notifications.Count(n => !n.Lu);
+        UserProfileDto userForNotif = await UserService.GetUserProfileAsync(CurrentUserId);
+        if (userForNotif.NotifIsActive == true)
+        {
+            var notifications = await NotificationService.GetNotificationsForUserAsync(CurrentUserId);
+            notificationCount = notifications.Count(n => !n.Lu);
+        }
     }
 }

@@ -1,7 +1,7 @@
 using Core.Data.Entity;
 using Core.Data.DTOs;
-
 using Core.Interfaces.Repository;
+
 public class NotificationService : INotificationService
 {
     public event Action<int>? OnNotify;
@@ -18,7 +18,6 @@ public class NotificationService : INotificationService
     public async Task NotifyMessageReceivedAsync(int receiverId, int senderId)
     {
         int messageTypeId = 1;
-
         var notification = new Notification
         {
             UserId = receiverId,
@@ -41,6 +40,7 @@ public class NotificationService : INotificationService
 
     public async Task DeleteNotificationAsync(int notificationId, int userId)
     {
+
         await _notificationRepository.DeleteNotificationAsync(notificationId);
         // Après suppression, notifier que les notifications ont été mises à jour pour l'utilisateur concerné
         OnNotificationsUpdated?.Invoke(userId);
