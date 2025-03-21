@@ -191,23 +191,29 @@
     private async void OnNotificationReceived(int receiverId)
     {
         UserProfileDto userForNotif = await UserService.GetUserProfileAsync(CurrentUserId);
-        if (userForNotif.NotifIsActive == true)
+        if (userForNotif != null)
         {
-            _ = InvokeAsync(async () =>
+            if (userForNotif.NotifIsActive == true)
             {
-                await UpdateNotificationsAsync();
-                StateHasChanged();
-            });
+                _ = InvokeAsync(async () =>
+                {
+                    await UpdateNotificationsAsync();
+                    StateHasChanged();
+                });
+            }
         }
     }
 
     private async Task UpdateNotificationsAsync()
     {
         UserProfileDto userForNotif = await UserService.GetUserProfileAsync(CurrentUserId);
-        if (userForNotif.NotifIsActive == true)
+        if (userForNotif != null)
         {
-            var notifications = await NotificationService.GetNotificationsForUserAsync(CurrentUserId);
-            notificationCount = notifications.Count(n => !n.Lu);
+            if (userForNotif.NotifIsActive == true)
+            {
+                var notifications = await NotificationService.GetNotificationsForUserAsync(CurrentUserId);
+                notificationCount = notifications.Count(n => !n.Lu);
+            }
         }
     }
 }
