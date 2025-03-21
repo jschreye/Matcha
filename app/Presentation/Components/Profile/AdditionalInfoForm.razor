@@ -108,19 +108,19 @@
 
 @code {
     [Parameter]
-    public UserProfileDto UserProfile { get; set; }
+    public UserProfileDto UserProfile { get; set; } = new();
 
     [Parameter]
-    public List<Genre> Genres { get; set; }
+    public List<Genre> Genres { get; set; } = new();
 
     [Parameter]
-    public List<PrefSex> PrefSexes { get; set; }
+    public List<PrefSex> PrefSexes { get; set; } = new();
     
     [Parameter]
-    public List<Tag> Tags { get; set; }
+    public List<Tag> Tags { get; set; } = new();
     
     [Parameter]
-    public IEnumerable<int> SelectedTagIds { get; set; }
+    public IEnumerable<int> SelectedTagIds { get; set; } = Array.Empty<int>();
     
     [Parameter]
     public EventCallback<IEnumerable<int>> OnTagsChanged { get; set; }

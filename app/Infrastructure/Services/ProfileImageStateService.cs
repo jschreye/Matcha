@@ -8,9 +8,9 @@ namespace Infrastructure.Services
     public class ProfileImageStateService  : IProfileImageStateService
     {
         // Événement déclenché lors d'un changement d'image
-        public event Action OnChange;
+        public event Action OnChange = delegate { };
 
-        private string _profileImageSrc;
+        private string _profileImageSrc = string.Empty;
         
         // Propriété de l'image de profil qui notifie lors d'un changement
         public string ProfileImageSrc

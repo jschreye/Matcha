@@ -45,9 +45,9 @@
     private bool isSuccess;
     private bool isVisible = false;
 
-    private CancellationTokenSource _cancellationTokenSource;
+    private CancellationTokenSource _cancellationTokenSource = new();
 
-    [Inject] private Core.Interfaces.Services.IAlertService AlertService { get; set; }
+    [Inject] private Core.Interfaces.Services.IAlertService AlertService { get; set; } = default!;
 
     protected override void OnInitialized()
     {

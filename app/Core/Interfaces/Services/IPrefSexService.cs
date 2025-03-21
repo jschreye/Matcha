@@ -5,6 +5,6 @@ namespace Core.Interfaces.Services
     public interface IPrefSexService
     {
         Task<List<PrefSex>> GetPrefSexAsync();
-        Task<PrefSex> GetPrefSexByIdAsync(int id);
+        Task<PrefSex?> GetPrefSexByIdAsync(int id);
     }
 }

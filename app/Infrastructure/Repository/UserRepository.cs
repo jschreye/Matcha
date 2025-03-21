@@ -60,15 +60,12 @@ namespace Infrastructure.Repository
                 return new User
                 {
                     Id = reader.GetInt32(reader.GetOrdinal("id")),
-                    Firstname = reader.GetString(reader.GetOrdinal("firstname")),
-                    Lastname = reader.GetString(reader.GetOrdinal("lastname")),
-                    Username = reader.GetString(reader.GetOrdinal("username")),
-                    Email = reader.GetString(reader.GetOrdinal("email")),
-                    PasswordHash = reader.IsDBNull(reader.GetOrdinal("password_hash"))
-                                    ? null 
-                                    : reader.GetString(reader.GetOrdinal("password_hash")),
-                    IsActive = !reader.IsDBNull(reader.GetOrdinal("isactive")) 
-                                    && reader.GetBoolean(reader.GetOrdinal("isactive")),
+                    Firstname = reader.IsDBNull(reader.GetOrdinal("firstname")) ? string.Empty : reader.GetString(reader.GetOrdinal("firstname")),
+                    Lastname = reader.IsDBNull(reader.GetOrdinal("lastname")) ? string.Empty : reader.GetString(reader.GetOrdinal("lastname")),
+                    Username = reader.IsDBNull(reader.GetOrdinal("username")) ? string.Empty : reader.GetString(reader.GetOrdinal("username")),
+                    Email = reader.IsDBNull(reader.GetOrdinal("email")) ? string.Empty : reader.GetString(reader.GetOrdinal("email")),
+                    PasswordHash = reader.IsDBNull(reader.GetOrdinal("password_hash")) ? string.Empty : reader.GetString(reader.GetOrdinal("password_hash")),
+                    IsActive = !reader.IsDBNull(reader.GetOrdinal("isactive")) && reader.GetBoolean(reader.GetOrdinal("isactive")),
                     ActivationToken = reader.IsDBNull(reader.GetOrdinal("activationtoken"))
                                     ? null 
                                     : reader.GetString(reader.GetOrdinal("activationtoken")),
@@ -101,13 +98,11 @@ namespace Infrastructure.Repository
                 return new User
                 {
                     Id = reader.GetInt32(reader.GetOrdinal("id")),
-                    Firstname = reader.GetString(reader.GetOrdinal("firstname")),
-                    Lastname = reader.GetString(reader.GetOrdinal("lastname")),
-                    Username = reader.GetString(reader.GetOrdinal("username")),
-                    Email = reader.GetString(reader.GetOrdinal("email")),
-                    PasswordHash = reader.IsDBNull(reader.GetOrdinal("password_hash"))
-                                    ? null 
-                                    : reader.GetString(reader.GetOrdinal("password_hash")),
+                    Firstname = reader.IsDBNull(reader.GetOrdinal("firstname")) ? string.Empty : reader.GetString(reader.GetOrdinal("firstname")),
+                    Lastname = reader.IsDBNull(reader.GetOrdinal("lastname")) ? string.Empty : reader.GetString(reader.GetOrdinal("lastname")),
+                    Username = reader.IsDBNull(reader.GetOrdinal("username")) ? string.Empty : reader.GetString(reader.GetOrdinal("username")),
+                    Email = reader.IsDBNull(reader.GetOrdinal("email")) ? string.Empty : reader.GetString(reader.GetOrdinal("email")),
+                    PasswordHash = reader.IsDBNull(reader.GetOrdinal("password_hash")) ? string.Empty : reader.GetString(reader.GetOrdinal("password_hash")),
                     IsActive = !reader.IsDBNull(reader.GetOrdinal("isactive"))
                                     && reader.GetBoolean(reader.GetOrdinal("isactive")),
                     ActivationToken = reader.IsDBNull(reader.GetOrdinal("activationtoken")) 
@@ -215,12 +210,12 @@ namespace Infrastructure.Repository
                 var user = new User
                 {
                     Id = reader.GetInt32(reader.GetOrdinal("id")),
-                    Firstname = reader.GetString(reader.GetOrdinal("firstname")),
-                    Lastname = reader.GetString(reader.GetOrdinal("lastname")),
-                    Username = reader.GetString(reader.GetOrdinal("username")),
-                    Email = reader.GetString(reader.GetOrdinal("email")),
+                    Firstname = reader.IsDBNull(reader.GetOrdinal("firstname")) ? string.Empty : reader.GetString(reader.GetOrdinal("firstname")),
+                    Lastname = reader.IsDBNull(reader.GetOrdinal("lastname")) ? string.Empty : reader.GetString(reader.GetOrdinal("lastname")),
+                    Username = reader.IsDBNull(reader.GetOrdinal("username")) ? string.Empty : reader.GetString(reader.GetOrdinal("username")),
+                    Email = reader.IsDBNull(reader.GetOrdinal("email")) ? string.Empty : reader.GetString(reader.GetOrdinal("email")),
                     Age = reader.GetInt32(reader.GetOrdinal("age")),
-                    PasswordHash = reader.IsDBNull(reader.GetOrdinal("password_hash")) ? null : reader.GetString(reader.GetOrdinal("password_hash")),
+                    PasswordHash = reader.IsDBNull(reader.GetOrdinal("password_hash")) ? string.Empty : reader.GetString(reader.GetOrdinal("password_hash")),
                     IsActive = !reader.IsDBNull(reader.GetOrdinal("isactive")) && reader.GetBoolean(reader.GetOrdinal("isactive")),
                     ActivationToken = reader.IsDBNull(reader.GetOrdinal("activationtoken")) ? null : reader.GetString(reader.GetOrdinal("activationtoken")),
                     PasswordResetToken = reader.IsDBNull(reader.GetOrdinal("passwordresettoken")) ? null : reader.GetString(reader.GetOrdinal("passwordresettoken")),
