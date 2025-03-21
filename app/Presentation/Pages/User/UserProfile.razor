@@ -1,7 +1,9 @@
 @page "/profile/{UserId:int}"
 @using Core.Data.DTOs
+@using Core.Data.Entity
 @using Core.Interfaces.Services
 @inject IUserService UserService
+@inject IPhotoService PhotoService
 @inject NavigationManager NavigationManager
 
 <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4">
@@ -16,7 +18,26 @@
     else
     {
         <MudPaper Elevation="3" Class="pa-4">
-            <MudText Typo="Typo.h4" Class="mb-4">Profil de @_userProfile.Username</MudText>
+            <MudGrid>
+                <MudItem xs="12" Class="d-flex justify-center mb-4">
+                    @if (!string.IsNullOrEmpty(_profilePhotoUrl))
+                    {
+                        <MudAvatar Style="height: 150px; width: 150px; margin-bottom: 16px;">
+                            <img src="@_profilePhotoUrl" alt="@_userProfile.Username" style="object-fit: contain; width: 100%; height: 100%;" />
+                        </MudAvatar>
+                    }
+                    else
+                    {
+                        <MudAvatar Style="height: 150px; width: 150px; margin-bottom: 16px;" Color="Color.Primary">
+                            <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Large" />
+                        </MudAvatar>
+                    }
+                </MudItem>
+                
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h4" Class="mb-4 text-center">Profil de @_userProfile.Username</MudText>
+                </MudItem>
+            </MudGrid>
             
             <MudGrid>
                 <MudItem xs="12" md="6">
@@ -42,7 +63,7 @@
                             <MudText Typo="Typo.h6">Biographie</MudText>
                         </MudCardHeader>
                         <MudCardContent>
-                            <MudText>@_userProfile.Biography</MudText>
+                            <MudText>@(_userProfile.Biography ?? "Aucune biographie disponible")</MudText>
                         </MudCardContent>
                     </MudCard>
                     
@@ -67,6 +88,7 @@
     public int UserId { get; set; }
     
     private UserProfileDto? _userProfile;
+    private string _profilePhotoUrl = string.Empty;
     private bool _loading = true;
     
     protected override async Task OnInitializedAsync()
@@ -85,15 +107,37 @@
         try
         {
             _userProfile = await UserService.GetUserProfileAsync(UserId);
+            if (_userProfile != null)
+            {
+                await LoadProfilePhoto();
+            }
         }
         catch (Exception ex)
         {
-            // Gérer l'erreur ici (vous pourriez vouloir ajouter un service de journalisation)
+            // Gérer l'erreur ici
             Console.WriteLine($"Erreur lors du chargement du profil: {ex.Message}");
         }
         finally
         {
             _loading = false;
+        }
+    }
+    
+    private async Task LoadProfilePhoto()
+    {
+        try
+        {
+            var photo = await PhotoService.GetProfilePhotoAsync(UserId);
+            if (photo != null && photo.ImageData != null && photo.ImageData.Length > 0)
+            {
+                var base64 = Convert.ToBase64String(photo.ImageData);
+                _profilePhotoUrl = $"data:image/jpeg;base64,{base64}";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erreur lors du chargement de la photo: {ex.Message}");
+            _profilePhotoUrl = string.Empty;
         }
     }
     

@@ -1,8 +1,10 @@
 @page "/users"
 @using Core.Data.DTOs
+@using Core.Data.Entity
 @using System.ComponentModel
 @inject IUserService UserService
 @inject NavigationManager NavigationManager
+@inject IPhotoService PhotoService
 
 <h3>Liste des utilisateurs</h3>
 
@@ -19,10 +21,12 @@ else
     <table class="table">
         <thead>
             <tr>
+                <th>Photo</th>
                 <th>Id</th>
                 <th>@(GetDisplayName(nameof(UserDto.Username)))</th>
                 <th>Email</th>
                 <th>Date de création</th>
+                <th>Actions</th>
             </tr>
         </thead>
 
@@ -30,6 +34,20 @@ else
             @foreach (var user in users)
             {
                 <tr>
+                    <td>
+                        @if (userPhotos.ContainsKey(user.Id) && userPhotos[user.Id] != null)
+                        {
+                            <MudAvatar Style="height:50px; width:50px;">
+                                <img src="@GetImageUrl(userPhotos[user.Id])" alt="@user.Username" style="object-fit: contain; width: 100%; height: 100%;" />
+                            </MudAvatar>
+                        }
+                        else
+                        {
+                            <MudAvatar Style="height:50px; width:50px;">
+                                <MudIcon Icon="@Icons.Material.Filled.Person" />
+                            </MudAvatar>
+                        }
+                    </td>
                     <td>@user.Id</td>
                     <td>@user.Username</td>
                     <td>@user.Email</td>
@@ -49,16 +67,35 @@ else
                 </tr>
             }
         </tbody>
-
     </table>
 }
 
 @code {
     private List<UserDto> users;
+    private Dictionary<int, Core.Data.Entity.Photo> userPhotos = new Dictionary<int, Core.Data.Entity.Photo>();
 
     protected override async Task OnInitializedAsync()
     {
         users = await UserService.GetAllUsersAsync();
+        await LoadProfilePhotos();
+    }
+
+    private async Task LoadProfilePhotos()
+    {
+        foreach (var user in users)
+        {
+            var photo = await PhotoService.GetProfilePhotoAsync(user.Id);
+            userPhotos[user.Id] = photo;
+        }
+    }
+
+    private string GetImageUrl(Core.Data.Entity.Photo photo)
+    {
+        if (photo == null || photo.ImageData == null || photo.ImageData.Length == 0)
+            return string.Empty;
+
+        var base64 = Convert.ToBase64String(photo.ImageData);
+        return $"data:image/jpeg;base64,{base64}";
     }
 
     /// <summary>
