@@ -31,6 +31,7 @@
             Tags="@tags"
             SelectedTagIds="@selectedTagIds"
             OnTagsChanged="@OnTagsChanged"
+            OnNotificationChanged="@OnNotificationSwitchChanged"
             OnLocalisationChanged="@OnLocalisationSwitchChanged" />
 
         <!-- Boutons d'action -->
@@ -248,6 +249,12 @@
     private void OnTagsChanged(IEnumerable<int> newValues)
     {
         selectedTagIds = newValues;
+    }
+
+    private void OnNotificationSwitchChanged(bool value)
+    {
+        // Log le changement de valeur
+        Console.WriteLine($"NotifIsActive changed to: {value}");
     }
 
     /** Structure pour récupérer les coordonnées depuis JS */

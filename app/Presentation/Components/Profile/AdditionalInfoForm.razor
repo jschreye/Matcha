@@ -65,6 +65,19 @@
         <MudTextField T="string" Label="Biographie" Variant="Variant.Outlined" Lines="3" 
                     @bind-Value="UserProfile.Biography" Required="true" />
     </MudItem>
+    
+    <!-- Switch pour les notifications -->
+    <MudItem xs="12">
+        <MudSwitch T="bool" Value="@UserProfile.NotifIsActive" Color="Color.Secondary" 
+                   Label="Activer les notifications" 
+                   LabelPosition="LabelPosition.End"
+                   ValueChanged="@OnNotificationSwitchChanged" />
+        <MudText Typo="Typo.caption" Color="Color.Secondary">
+            Lorsque cette option est activée, vous recevrez des notifications pour les nouveaux messages, likes et matchs.
+        </MudText>
+    </MudItem>
+    
+    <!-- Switch pour la géolocalisation -->
     <MudItem xs="12">
         <MudSwitch T="bool" Value="@UserProfile.LocalisationIsActive" Color="Color.Primary" 
                    Label="Activer la géolocalisation" 
@@ -74,6 +87,7 @@
             Lorsque cette option est activée, votre position sera mise à jour automatiquement.
         </MudText>
     </MudItem>
+    
     @if (UserProfile.LocalisationIsActive)
     {
         <MudItem xs="12" sm="6">
@@ -109,6 +123,9 @@
     [Parameter]
     public EventCallback<bool> OnLocalisationChanged { get; set; }
     
+    [Parameter]
+    public EventCallback<bool> OnNotificationChanged { get; set; }
+    
     private HashSet<Tag> selectedTags = new HashSet<Tag>();
     
     protected override void OnParametersSet()
@@ -140,6 +157,28 @@
         // Notifier le composant parent du changement
         var tagIds = selectedTags.Select(t => t.Id);
         await OnTagsChanged.InvokeAsync(tagIds);
+    }
+    
+    private async Task OnNotificationSwitchChanged(bool value)
+    {
+        // Mettre à jour la valeur dans le modèle
+        UserProfile.NotifIsActive = value;
+        
+        // Log le changement de valeur
+        Console.WriteLine($"NotifIsActive changed to: {value}");
+        
+        // Afficher un message à l'utilisateur
+        if (value)
+        {
+            AlertService.ShowMessage("Les notifications ont été activées. N'oubliez pas d'enregistrer pour appliquer les changements.", true);
+        }
+        else
+        {
+            AlertService.ShowMessage("Les notifications ont été désactivées. N'oubliez pas d'enregistrer pour appliquer les changements.", true);
+        }
+
+        // Notifier le composant parent
+        await OnNotificationChanged.InvokeAsync(value);
     }
     
     private async Task OnLocalisationSwitchChanged(bool value)
