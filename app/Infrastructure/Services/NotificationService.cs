@@ -40,9 +40,15 @@ public class NotificationService : INotificationService
 
     public async Task DeleteNotificationAsync(int notificationId, int userId)
     {
-
         await _notificationRepository.DeleteNotificationAsync(notificationId);
-        // Après suppression, notifier que les notifications ont été mises à jour pour l'utilisateur concerné
+
+        OnNotificationsUpdated?.Invoke(userId);
+    }
+
+    public async Task DeleteNotificationsByUserIdAsync(int userId)
+    {
+        await _notificationRepository.DeleteNotificationsByUserIdAsync(userId);
+
         OnNotificationsUpdated?.Invoke(userId);
     }
 }

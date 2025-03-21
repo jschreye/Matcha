@@ -85,6 +85,17 @@ public class NotificationRepository : INotificationRepository
         command.Parameters.AddWithValue("@id", notificationId);
         await command.ExecuteNonQueryAsync();
     }
+    public async Task DeleteNotificationsByUserIdAsync(int userId)
+    {
+        using var connection = new MySqlConnection(_connectionString);
+        await connection.OpenAsync();
+        
+        using var command = new MySqlCommand(
+            "DELETE FROM notifications WHERE user_id = @userId", connection);
+        command.Parameters.AddWithValue("@userId", userId);
+        
+        await command.ExecuteNonQueryAsync();
+    }
 
     public async Task MarkAsReadAsync(int notificationId)
     {

@@ -10,5 +10,6 @@ public interface INotificationService
     Task NotifyMessageReceivedAsync(int receiverId, int senderId);
     Task<List<NotificationDto>> GetNotificationsForUserAsync(int userId);
     Task DeleteNotificationAsync(int notificationId, int userId);
+    Task DeleteNotificationsByUserIdAsync(int userId);
 }
 
