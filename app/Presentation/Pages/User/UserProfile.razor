@@ -1,0 +1,121 @@
+@page "/profile/{UserId:int}"
+@using Core.Data.DTOs
+@using Core.Interfaces.Services
+@inject IUserService UserService
+@inject NavigationManager NavigationManager
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4">
+    @if (_loading)
+    {
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+    }
+    else if (_userProfile == null)
+    {
+        <MudAlert Severity="Severity.Error">Utilisateur non trouvé.</MudAlert>
+    }
+    else
+    {
+        <MudPaper Elevation="3" Class="pa-4">
+            <MudText Typo="Typo.h4" Class="mb-4">Profil de @_userProfile.Username</MudText>
+            
+            <MudGrid>
+                <MudItem xs="12" md="6">
+                    <MudCard>
+                        <MudCardHeader>
+                            <MudText Typo="Typo.h6">Informations personnelles</MudText>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudField Label="Prénom" Variant="Variant.Outlined">@_userProfile.Firstname</MudField>
+                            <MudField Label="Nom" Variant="Variant.Outlined">@_userProfile.Lastname</MudField>
+                            <MudField Label="Âge" Variant="Variant.Outlined">@_userProfile.Age</MudField>
+                            <MudField Label="Email" Variant="Variant.Outlined">@_userProfile.Email</MudField>
+                            <MudDivider Class="my-4" />
+                            <MudField Label="Genre" Variant="Variant.Outlined">@GetGenreDescription(_userProfile.Genre)</MudField>
+                            <MudField Label="Préférences" Variant="Variant.Outlined">@GetPreferenceDescription(_userProfile.SexualPreferences)</MudField>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+                
+                <MudItem xs="12" md="6">
+                    <MudCard>
+                        <MudCardHeader>
+                            <MudText Typo="Typo.h6">Biographie</MudText>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudText>@_userProfile.Biography</MudText>
+                        </MudCardContent>
+                    </MudCard>
+                    
+                    <MudCard Class="mt-4">
+                        <MudCardHeader>
+                            <MudText Typo="Typo.h6">Statistiques</MudText>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudField Label="Score de popularité" Variant="Variant.Outlined">@_userProfile.PopularityScore</MudField>
+                            <MudField Label="Profil complété" Variant="Variant.Outlined">@(_userProfile.ProfileComplete ? "Oui" : "Non")</MudField>
+                            <MudField Label="Localisation active" Variant="Variant.Outlined">@(_userProfile.LocalisationIsActive ? "Oui" : "Non")</MudField>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+    }
+</MudContainer>
+
+@code {
+    [Parameter]
+    public int UserId { get; set; }
+    
+    private UserProfileDto? _userProfile;
+    private bool _loading = true;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUserProfile();
+    }
+    
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadUserProfile();
+    }
+    
+    private async Task LoadUserProfile()
+    {
+        _loading = true;
+        try
+        {
+            _userProfile = await UserService.GetUserProfileAsync(UserId);
+        }
+        catch (Exception ex)
+        {
+            // Gérer l'erreur ici (vous pourriez vouloir ajouter un service de journalisation)
+            Console.WriteLine($"Erreur lors du chargement du profil: {ex.Message}");
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+    
+    private string GetGenreDescription(int? genreId)
+    {
+        return genreId switch
+        {
+            1 => "Homme",
+            2 => "Femme",
+            3 => "Non-binaire",
+            _ => "Non spécifié"
+        };
+    }
+    
+    private string GetPreferenceDescription(int? preferenceId)
+    {
+        return preferenceId switch
+        {
+            1 => "Hétérosexuel",
+            2 => "Homosexuel",
+            3 => "Bisexuel",
+            _ => "Non spécifié"
+        };
+    }
+} 

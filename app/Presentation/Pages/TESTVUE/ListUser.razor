@@ -2,6 +2,7 @@
 @using Core.Data.DTOs
 @using System.ComponentModel
 @inject IUserService UserService
+@inject NavigationManager NavigationManager
 
 <h3>Liste des utilisateurs</h3>
 
@@ -34,9 +35,16 @@ else
                     <td>@user.Email</td>
                     <td>@user.CreatedAt.ToString("dd/MM/yyyy")</td>
                     <td>
-                    <MudNavLink Href="@($"/chat/{user.Id}")">
-                        Chat privé
-                    </MudNavLink>
+                        <MudButtonGroup>
+                            <MudNavLink Href="@($"/chat/{user.Id}")">
+                                Chat privé
+                            </MudNavLink>
+                            <MudButton Variant="Variant.Filled" 
+                                      Color="Color.Primary" 
+                                      OnClick="@(() => NavigateToUserProfile(user.Id))">
+                                Voir profil
+                            </MudButton>
+                        </MudButtonGroup>
                     </td>
                 </tr>
             }
@@ -71,5 +79,10 @@ else
             }
         }
         return propertyName;
+    }
+
+    private void NavigateToUserProfile(int userId)
+    {
+        NavigationManager.NavigateTo($"/profile/{userId}");
     }
 }
