@@ -158,7 +158,7 @@ CREATE TABLE IF NOT EXISTS blocksReports (
 ) ENGINE=InnoDB;
 
 -- Table Sessions (pour gérer les connexions des utilisateurs)
-CREATE TABLE IF NOT EXISTS sessions (
+CREATE TABLE IF NOT EXISTS `sessions` (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     session_token VARCHAR(255) NOT NULL UNIQUE,

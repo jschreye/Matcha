@@ -6,9 +6,17 @@
 
 <MudText Typo="Typo.h5" Class="mt-10 mb-4">Information complémentaire</MudText>
 <MudGrid Spacing="2">
+    <!-- Biographie en pleine largeur -->
+    <MudItem xs="12">
+        <MudTextField T="string" Label="Biographie" Variant="Variant.Outlined" Lines="3" 
+                    @bind-Value="UserProfile.Biography" Required="true" />
+    </MudItem>
+
+    <!-- Genre -->
     <MudItem xs="12" sm="6">
         <MudSelect T="int?" Label="Genre" Variant="Variant.Outlined" 
-                @bind-Value="UserProfile.Genre" Required="true">
+                @bind-Value="UserProfile.Genre" Required="true"
+                ToStringFunc="@(id => GetGenreLibelle(id))">
             @if (Genres != null)
             {
                 @foreach (var g in Genres)
@@ -18,9 +26,12 @@
             }
         </MudSelect>
     </MudItem>
+
+    <!-- Sexual Preferences -->
     <MudItem xs="12" sm="6">
         <MudSelect T="int?" Label="Sexual Preferences" Variant="Variant.Outlined" 
-                @bind-Value="UserProfile.SexualPreferences" Required="true">
+                @bind-Value="UserProfile.SexualPreferences" Required="true"
+                ToStringFunc="@(id => GetPrefSexLibelle(id))">
             @if (PrefSexes != null)
             {
                 @foreach (var p in PrefSexes)
@@ -30,11 +41,8 @@
             }
         </MudSelect>
     </MudItem>
-    <!-- Biographie en pleine largeur -->
-    <MudItem xs="12">
-        <MudTextField T="string" Label="Biographie" Variant="Variant.Outlined" Lines="3" 
-                    @bind-Value="UserProfile.Biography" Required="true" />
-    </MudItem>
+
+    <!-- Switch pour la géolocalisation -->
     <MudItem xs="12">
         <MudSwitch T="bool" Value="@UserProfile.LocalisationIsActive" Color="Color.Primary" 
                    Label="Activer la géolocalisation" 
@@ -44,6 +52,7 @@
             Lorsque cette option est activée, votre position sera mise à jour automatiquement.
         </MudText>
     </MudItem>
+    
     @if (UserProfile.LocalisationIsActive)
     {
         <MudItem xs="12" sm="6">
@@ -55,21 +64,128 @@
                             @bind-Value="UserProfile.Longitude" />
         </MudItem>
     }
+    
+    <!-- Centres d'intérêt (Tags) -->
+    <MudItem xs="12">
+        <MudCard>
+            <MudCardHeader class="pb-0">
+                <MudText Typo="Typo.h6">Centres d'intérêt</MudText>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudText Typo="Typo.subtitle2" Class="mb-2">Cliquez sur les centres d'intérêt pour les sélectionner :</MudText>
+                <MudPaper Class="d-flex flex-wrap gap-2 " Elevation="0">
+                    @if (Tags != null)
+                    {
+                        @foreach (var tag in Tags)
+                        {
+                            var isSelected = selectedTags.Any(t => t.Id == tag.Id);
+                            <MudChip T="string" 
+                                    Color="@(isSelected ? Color.Primary : Color.Default)" 
+                                    OnClick="@(() => ToggleTagSelection(tag))"
+                                    Variant="@(isSelected ? Variant.Filled : Variant.Outlined)"
+                                    Size="Size.Medium"
+                                    Class="ma-1">
+                                @tag.Libelle
+                            </MudChip>
+                        }
+                    }
+                </MudPaper>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+    
+    <!-- Switch pour les notifications -->
+    <MudItem xs="12">
+        <MudSwitch T="bool" Value="@UserProfile.NotifIsActive" Color="Color.Secondary" 
+                   Label="Activer les notifications" 
+                   LabelPosition="LabelPosition.End"
+                   ValueChanged="@OnNotificationSwitchChanged" />
+        <MudText Typo="Typo.caption" Color="Color.Secondary">
+            Lorsque cette option est activée, vous recevrez des notifications pour les nouveaux messages, likes et matchs.
+        </MudText>
+    </MudItem>
 </MudGrid>
 
 @code {
     [Parameter]
-    public UserProfileDto UserProfile { get; set; }
+    public UserProfileDto UserProfile { get; set; } = new();
 
     [Parameter]
-    public List<Genre> Genres { get; set; }
+    public List<Genre> Genres { get; set; } = new();
 
     [Parameter]
-    public List<PrefSex> PrefSexes { get; set; }
+    public List<PrefSex> PrefSexes { get; set; } = new();
+    
+    [Parameter]
+    public List<Tag> Tags { get; set; } = new();
+    
+    [Parameter]
+    public IEnumerable<int> SelectedTagIds { get; set; } = Array.Empty<int>();
+    
+    [Parameter]
+    public EventCallback<IEnumerable<int>> OnTagsChanged { get; set; }
 
     [Parameter]
     public EventCallback<bool> OnLocalisationChanged { get; set; }
+    
+    [Parameter]
+    public EventCallback<bool> OnNotificationChanged { get; set; }
+    
+    private HashSet<Tag> selectedTags = new HashSet<Tag>();
+    
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        
+        // Initialiser les tags sélectionnés à partir des IDs
+        if (SelectedTagIds != null && Tags != null)
+        {
+            selectedTags = new HashSet<Tag>(
+                Tags.Where(t => SelectedTagIds.Contains(t.Id))
+            );
+        }
+    }
+    
+    private async Task ToggleTagSelection(Tag tag)
+    {
+        // Si le tag est déjà sélectionné, le supprimer
+        if (selectedTags.Any(t => t.Id == tag.Id))
+        {
+            selectedTags.RemoveWhere(t => t.Id == tag.Id);
+        }
+        // Sinon, l'ajouter
+        else
+        {
+            selectedTags.Add(tag);
+        }
+        
+        // Notifier le composant parent du changement
+        var tagIds = selectedTags.Select(t => t.Id);
+        await OnTagsChanged.InvokeAsync(tagIds);
+    }
+    
+    private async Task OnNotificationSwitchChanged(bool value)
+    {
+        // Mettre à jour la valeur dans le modèle
+        UserProfile.NotifIsActive = value;
+        
+        // Log le changement de valeur
+        Console.WriteLine($"NotifIsActive changed to: {value}");
+        
+        // Afficher un message à l'utilisateur
+        if (value)
+        {
+            AlertService.ShowMessage("Les notifications ont été activées. N'oubliez pas d'enregistrer pour appliquer les changements.", true);
+        }
+        else
+        {
+            AlertService.ShowMessage("Les notifications ont été désactivées. N'oubliez pas d'enregistrer pour appliquer les changements.", true);
+        }
 
+        // Notifier le composant parent
+        await OnNotificationChanged.InvokeAsync(value);
+    }
+    
     private async Task OnLocalisationSwitchChanged(bool value)
     {
         // Mettre à jour la valeur dans le modèle
@@ -90,6 +206,24 @@
 
         // Notifier le composant parent
         await OnLocalisationChanged.InvokeAsync(value);
+    }
+
+    private string GetGenreLibelle(int? genreId)
+    {
+        if (genreId == null || Genres == null)
+            return "";
+            
+        var genre = Genres.FirstOrDefault(g => g.Id == genreId.Value);
+        return genre?.Libelle ?? "";
+    }
+    
+    private string GetPrefSexLibelle(int? prefSexId)
+    {
+        if (prefSexId == null || PrefSexes == null)
+            return "";
+            
+        var prefSex = PrefSexes.FirstOrDefault(p => p.Id == prefSexId.Value);
+        return prefSex?.Libelle ?? "";
     }
 
     /** Structure pour récupérer les coordonnées depuis JS */

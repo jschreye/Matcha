@@ -60,9 +60,9 @@ public class UserService : IUserService
         var passwordHash = _passwordHasher.HashPassword(registerDto.Password);
         var user = new User
         {
-            Firstname = registerDto.Firstname,
-            Lastname = registerDto.Lastname,
-            Username = registerDto.Username,
+            Firstname = registerDto.Firstname ?? string.Empty,
+            Lastname = registerDto.Lastname ?? string.Empty,
+            Username = registerDto.Username ?? string.Empty,
             Email = registerDto.Email,
             PasswordHash = passwordHash,
             ActivationToken = Guid.NewGuid().ToString()  // Génère un token unique

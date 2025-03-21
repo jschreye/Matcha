@@ -8,13 +8,14 @@
 @inject IAlertService AlertService
 @inject IGenreService GenreService
 @inject IPrefSexService PrefSexService
+@inject ITagService TagService
 @inject IJSRuntime JS
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager NavigationManager
 @inject IValidationService ValidationService
 @inject IProfileImageStateService ProfileState
 
-<MudPaper Class="p-4">
+<MudPaper Class="p-4 mb-8">
     <!-- Gestionnaire de photos de profil -->
     <ProfilePhotoManager UserId="@userId" />
 
@@ -27,6 +28,10 @@
             UserProfile="@userProfile" 
             Genres="@genre" 
             PrefSexes="@prefSex"
+            Tags="@tags"
+            SelectedTagIds="@selectedTagIds"
+            OnTagsChanged="@OnTagsChanged"
+            OnNotificationChanged="@OnNotificationSwitchChanged"
             OnLocalisationChanged="@OnLocalisationSwitchChanged" />
 
         <!-- Boutons d'action -->
@@ -67,6 +72,10 @@
     /** Listes des genres et préférences sexuelles */
     private List<Genre> genre;
     private List<PrefSex> prefSex;
+    /** Liste des tags disponibles */
+    private List<Tag> tags = new();
+    /** IDs des tags sélectionnés */
+    private IEnumerable<int> selectedTagIds = new List<int>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -84,6 +93,12 @@
         userProfile = await UserService.GetUserProfileAsync(userId);
         genre = await GenreService.GetGenresAsync();
         prefSex = await PrefSexService.GetPrefSexAsync();
+        
+        // Charger les tags disponibles
+        tags = await TagService.GetTagsAsync();
+        
+        // Récupérer les tags actuels de l'utilisateur
+        selectedTagIds = await TagService.GetTagUserAsync(userId);
     }
 
     /** Appel dans OnAfterRenderAsync uniquement si le profil est chargé et LocalisationIsActive est true */
@@ -170,12 +185,14 @@
         var result = await UserService.UpdateUserProfileAsync(userProfile);
         Console.WriteLine($"Résultat UpdateUserProfileAsync: {result}");
         
-        // Afficher un message de confirmation ou d'erreur
         if (result)
         {
             // Mettre à jour également la localisation pour s'assurer que le statut est bien enregistré
             await UserService.UpdateLocationAsync(userProfile.Id, userProfile.Latitude.Value, userProfile.Longitude.Value, userProfile.LocalisationIsActive);
             Console.WriteLine($"UpdateLocationAsync appelé avec LocalisationIsActive: {userProfile.LocalisationIsActive}");
+            
+            // Mettre à jour également les tags de l'utilisateur
+            await TagService.SaveUserTagsAsync(userProfile.Id, selectedTagIds.ToList());
             
             bool refreshOk = await JS.InvokeAsync<bool>("refreshProfileClaim");
             Console.WriteLine($"RefreshProfileClaim: {refreshOk}");
@@ -227,6 +244,17 @@
     {
         // Log le changement de valeur
         Console.WriteLine($"LocalisationIsActive changed to: {value}");
+    }
+
+    private void OnTagsChanged(IEnumerable<int> newValues)
+    {
+        selectedTagIds = newValues;
+    }
+
+    private void OnNotificationSwitchChanged(bool value)
+    {
+        // Log le changement de valeur
+        Console.WriteLine($"NotifIsActive changed to: {value}");
     }
 
     /** Structure pour récupérer les coordonnées depuis JS */

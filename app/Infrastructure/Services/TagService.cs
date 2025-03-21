@@ -22,5 +22,10 @@ namespace Infrastructure.Services
         {
             await _tagRepository.SaveUserTagsAsync(userId, tagIds);
         }
+
+        public async Task<List<int>> GetTagUserAsync(int userId)
+        {
+            return await _tagRepository.GetTagUserAsync(userId);
+        }
     }
 }

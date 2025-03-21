@@ -68,8 +68,8 @@ namespace Infrastructure.Repository
             using (var connection = new MySqlConnection(_connectionString))
             {
                 await connection.OpenAsync();
-                var query = "SELECT TagId FROM UserTags WHERE UserId = @UserId";
-                var tagIds = await connection.QueryAsync<int>(query, new { UserId = userId });
+                var query = "SELECT tag_id FROM userTags WHERE user_id = @userId";
+                var tagIds = await connection.QueryAsync<int>(query, new { userId });
                 return tagIds.ToList();
             }
         }
