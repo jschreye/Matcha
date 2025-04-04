@@ -73,5 +73,22 @@ namespace Infrastructure.Repository
                 return tagIds.ToList();
             }
         }
+
+        public async Task<List<string>> GetTagNamesForUserAsync(int userId)
+        {
+            using (var connection = new MySqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+
+                var query = @"
+                    SELECT t.libelle
+                    FROM userTags ut
+                    INNER JOIN tags t ON ut.tag_id = t.id
+                    WHERE ut.user_id = @userId";
+
+                var tagNames = await connection.QueryAsync<string>(query, new { userId });
+                return tagNames.ToList();
+            }
+        }
     }
 }

@@ -27,5 +27,9 @@ namespace Infrastructure.Services
         {
             return await _tagRepository.GetTagUserAsync(userId);
         }
+        public async Task<List<string>> GetTagNamesForUserAsync(int userId)
+        {
+            return await _tagRepository.GetTagNamesForUserAsync(userId);
+        }
     }
 }

@@ -1,32 +1,50 @@
 @page "/chat/{ReceiverId:int}"
 @using System.Security.Claims
 @using Core.Data.Entity
+@using Microsoft.AspNetCore.Components.Web
 @inject IChatService ChatService
 @inject AuthenticationStateProvider AuthStateProvider
 @inject INotificationService NotificationService
-<h3>Chat privé</h3>
 
-<div class="mb-3">
-    <label for="messageInput">Votre message :</label>
-    <input id="messageInput" placeholder="Entrez votre message" @bind="message" class="form-control" @onkeydown="HandleKeyDown" />
-</div>
-<button class="btn btn-primary" @onclick="SendMessage">Envoyer</button>
+<MudPaper Class="p-4 mx-auto my-5" Elevation="3" MaxWidth="800px">
+    <MudText Typo="Typo.h5">Chat privé</MudText>
 
-<hr />
+    <MudDivider Class="my-2" />
 
-<ul class="list-unstyled">
-    @foreach (var msg in conversationMessages)
-    {
-        <li>
-            <strong>@(msg.SenderId == currentUserId ? "Moi" : "Lui")</strong> : @msg.Contenu
-            <span class="text-muted">(@msg.Timestamp.ToString("HH:mm:ss"))</span>
-        </li>
-    }
-</ul>
+    <MudPaper Class="chat-box p-3 mb-4" Elevation="1" Style="max-height: 400px; overflow-y: auto;">
+        @if (conversationMessages.Count == 0)
+        {
+            <MudText Class="text-muted">Aucun message pour le moment.</MudText>
+        }
+        else
+        {
+            @foreach (var msg in conversationMessages)
+            {
+                <MudPaper Class="p-2 my-1" Color="@(msg.SenderId == currentUserId ? Color.Primary : Color.Secondary)" Elevation="0">
+                    <MudText Typo="Typo.body2" Class="fw-bold">@((msg.SenderId == currentUserId) ? "Moi" : "Lui")</MudText>
+                    <MudText Typo="Typo.body1">@msg.Contenu</MudText>
+                    <MudText Typo="Typo.caption" Class="text-muted">(@msg.Timestamp.ToString("HH:mm:ss"))</MudText>
+                </MudPaper>
+            }
+        }
+    </MudPaper>
+
+    <MudTextField @bind-Value="message"
+                  Placeholder="Entrez votre message..."
+                  FullWidth="true"
+                  Label="Votre message"
+                  Variant="Variant.Outlined"
+                  Adornment="Adornment.End"
+                  AdornmentIcon="@Icons.Material.Filled.Send"
+                  OnAdornmentClick="SendMessage"
+                  OnKeyDown="HandleKeyDown" />
+
+    <MudButton Class="mt-2" Color="Color.Primary" Variant="Variant.Filled" OnClick="SendMessage">Envoyer</MudButton>
+</MudPaper>
 
 @code {
     [Parameter]
-    public int ReceiverId { get; set; }  // ID de l'utilisateur avec qui discuter
+    public int ReceiverId { get; set; }
 
     private int currentUserId;
     private string message = string.Empty;
@@ -34,20 +52,16 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // Récupérer l'utilisateur connecté et son ID
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
         var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier);
         if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out currentUserId))
         {
-            // Vous pouvez afficher un message ou rediriger l'utilisateur non authentifié
             return;
         }
 
-        // Abonnement à l'événement pour recevoir les nouveaux messages
         ChatService.OnMessageReceived += OnMessageReceived;
 
-        // Charger les messages déjà envoyés concernant cette conversation
         conversationMessages = ChatService.Messages
             .Where(m => (m.SenderId == currentUserId && m.ReceiverId == ReceiverId) ||
                         (m.SenderId == ReceiverId && m.ReceiverId == currentUserId))
@@ -57,7 +71,6 @@
 
     private void OnMessageReceived(Message newMsg)
     {
-        // Filtrer pour n'afficher que les messages appartenant à cette conversation
         if ((newMsg.SenderId == currentUserId && newMsg.ReceiverId == ReceiverId) ||
             (newMsg.SenderId == ReceiverId && newMsg.ReceiverId == currentUserId))
         {
@@ -80,7 +93,13 @@
     {
         if (e.Key == "Enter")
         {
-            SendMessage();
+            await SendMessage();
         }
     }
 }
+<style>
+    .chat-box {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+</style>
