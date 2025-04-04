@@ -5,6 +5,8 @@
 @inject IPhotoService PhotoService
 @inject NavigationManager NavigationManager
 @inject ITagService TagService
+@inject IGenreService GenreService
+@inject IPrefSexService PrefSex
 
 <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4">
     @if (_loading)
@@ -64,8 +66,8 @@
                                 <MudListItem T="string">Prénom : @_userProfile.Firstname</MudListItem>
                                 <MudListItem T="string">Nom : @_userProfile.Lastname</MudListItem>
                                 <MudListItem T="string">Âge : @_userProfile.Age</MudListItem>
-                                <MudListItem T="string">Genre : @GetGenreDescription(_userProfile.Genre)</MudListItem>
-                                <MudListItem T="string">Préférences : @GetPreferenceDescription(_userProfile.SexualPreferences)</MudListItem>
+                                <MudListItem T="string">Genre : @_userProfile.Genre</MudListItem>
+                                <MudListItem T="string">Préférences : @_userProfile.SexualPreferences</MudListItem>
                             </MudList>
                         </MudExpansionPanel>
 
@@ -165,13 +167,6 @@
         // Appel réel possible ici : await LikeService.ToggleLikeAsync(UserId);
     }
 
-    private string GetGenreDescription(int? genreId) => genreId switch
-    {
-        1 => "Homme",
-        2 => "Femme",
-        3 => "Non-binaire",
-        _ => "Non spécifié"
-    };
 
     private string GetPreferenceDescription(int? preferenceId) => preferenceId switch
     {
