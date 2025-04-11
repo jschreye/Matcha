@@ -51,4 +51,21 @@ public class NotificationService : INotificationService
 
         OnNotificationsUpdated?.Invoke(userId);
     }
+    public async Task NotifyProfileLikedAsync(int likedUserId, int likerUserId)
+    {
+        int notificationTypeId = 2;
+
+        var notification = new Notification
+        {
+            UserId = likedUserId,
+            SenderId = likerUserId,
+            NotificationTypeId = notificationTypeId,
+            Lu = false,
+            Timestamp = DateTime.Now
+        };
+
+        await _notificationRepository.SaveNotificationAsync(notification);
+        OnNotify?.Invoke(likedUserId);
+        OnNotificationsUpdated?.Invoke(likedUserId);
+    }
 }

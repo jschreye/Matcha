@@ -10,6 +10,7 @@
 @inject IGenreService GenreService
 @inject IPrefSexService PrefSex
 @inject ILikeService LikeService
+@inject INotificationService NotificationService
 
 <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4">
     @if (_loading)
@@ -206,6 +207,10 @@
                 // L'utilisateur n'a pas encore liké, on l'ajoute
                 await LikeService.LikeProfileAsync(UserId, _userProfile?.Id ?? 0);
                 _hasLiked = true;
+                if (_userProfile != null)
+                {
+                    await NotificationService.NotifyProfileLikedAsync(_userProfile.Id, currentUserId);
+                }
             }
         }
         catch (Exception ex)

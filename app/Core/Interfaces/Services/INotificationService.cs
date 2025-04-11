@@ -11,5 +11,6 @@ public interface INotificationService
     Task<List<NotificationDto>> GetNotificationsForUserAsync(int userId);
     Task DeleteNotificationAsync(int notificationId, int userId);
     Task DeleteNotificationsByUserIdAsync(int userId);
+    Task NotifyProfileLikedAsync(int likedUserId, int likerUserId);
 }
 
