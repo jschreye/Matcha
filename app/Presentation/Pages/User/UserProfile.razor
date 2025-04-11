@@ -70,8 +70,8 @@
                                 <MudListItem T="string">Prénom : @_userProfile.Firstname</MudListItem>
                                 <MudListItem T="string">Nom : @_userProfile.Lastname</MudListItem>
                                 <MudListItem T="string">Âge : @_userProfile.Age</MudListItem>
-                                <MudListItem T="string">Genre : @_userProfile.Genre</MudListItem>
-                                <MudListItem T="string">Préférences : @_userProfile.SexualPreferences</MudListItem>
+                                <MudListItem T="string">Genre : @GetGenreLibelle(_userProfile.Genre)</MudListItem>
+                                <MudListItem T="string">Préférences : @GetPrefSexLibelle(_userProfile.SexualPreferences)</MudListItem>
                             </MudList>
                         </MudExpansionPanel>
 
@@ -79,7 +79,7 @@
                             <MudText>@(_userProfile.Biography ?? "Aucune biographie disponible.")</MudText>
                         </MudExpansionPanel>
 
-                        <MudExpansionPanel Text="Centres d’intérêt">
+                        <MudExpansionPanel Text="Centres d'intérêt">
                             @if (_userTags.Any())
                             {
                                 <MudChipSet T="string">
@@ -117,12 +117,19 @@
     private bool _loading = true;
     private bool _hasLiked = false;
     private string _likeButtonLabel => _hasLiked ? "Profil liké" : "Liker ce profil";
+    
+    // S'assurer que ces listes ne sont jamais null
+    private List<Core.Data.Entity.Genre> _genres = new();
+    private List<Core.Data.Entity.PrefSex> _prefSexes = new();
 
     protected override async Task OnInitializedAsync()
     {
         await LoadUserProfile();
         await GetCurrentUserIdAsync();
-
+        
+        // Chargement des genres et préférences sexuelles
+        _genres = await GenreService.GetGenresAsync();
+        _prefSexes = await PrefSex.GetPrefSexAsync();
     }
     private async Task GetCurrentUserIdAsync()
     {
@@ -220,12 +227,29 @@
         }
     }
 
-
-    private string GetPreferenceDescription(int? preferenceId) => preferenceId switch
+    private string GetGenreLibelle(int? genreId)
     {
-        1 => "Hétérosexuel",
-        2 => "Homosexuel",
-        3 => "Bisexuel",
-        _ => "Non spécifié"
-    };
+        if (genreId == null)
+            return "Non spécifié";
+            
+        // Vérifier si _genres est null avant d'utiliser Any()
+        if (_genres == null || _genres.Count == 0)
+            return "Non spécifié";
+            
+        var genre = _genres.FirstOrDefault(g => g.Id == genreId);
+        return genre?.Libelle ?? "Non spécifié";
+    }
+    
+    private string GetPrefSexLibelle(int? prefSexId)
+    {
+        if (prefSexId == null)
+            return "Non spécifié";
+            
+        // Vérifier si _prefSexes est null avant d'utiliser Any()
+        if (_prefSexes == null || _prefSexes.Count == 0)
+            return "Non spécifié";
+            
+        var prefSex = _prefSexes.FirstOrDefault(p => p.Id == prefSexId);
+        return prefSex?.Libelle ?? "Non spécifié";
+    }
 }
