@@ -50,5 +50,18 @@ namespace Infrastructure.Repository
          deleteCommand.Parameters.AddWithValue("@likedUserId", likedUserId);
          await deleteCommand.ExecuteNonQueryAsync();
       }
+      public async Task<bool> HasLikedAsync(int userId, int likedUserId)
+      {
+         using var connection = new MySqlConnection(_connectionString);
+         await connection.OpenAsync();
+
+         var query = "SELECT COUNT(*) FROM likes WHERE user_id = @userId AND liked_user_id = @likedUserId";
+         using var command = new MySqlCommand(query, connection);
+         command.Parameters.AddWithValue("@userId", userId);
+         command.Parameters.AddWithValue("@likedUserId", likedUserId);
+
+         var count = Convert.ToInt32(await command.ExecuteScalarAsync());
+         return count > 0;
+      }
    }
 }

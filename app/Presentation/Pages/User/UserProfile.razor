@@ -1,12 +1,15 @@
 @page "/profile/{UserId:int}"
 @using Core.Data.DTOs
+@using System.Security.Claims
 @using Core.Interfaces.Services
 @inject IUserService UserService
 @inject IPhotoService PhotoService
+@inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager NavigationManager
 @inject ITagService TagService
 @inject IGenreService GenreService
 @inject IPrefSexService PrefSex
+@inject ILikeService LikeService
 
 <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4">
     @if (_loading)
@@ -106,7 +109,7 @@
 
 @code {
     [Parameter] public int UserId { get; set; }
-
+    public int currentUserId {get; set;}
     private UserProfileDto? _userProfile;
     private List<string> _photos = new();
     private List<string> _userTags = new();
@@ -117,8 +120,32 @@
     protected override async Task OnInitializedAsync()
     {
         await LoadUserProfile();
-    }
+        await GetCurrentUserIdAsync();
 
+    }
+    private async Task GetCurrentUserIdAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity is not null && user.Identity.IsAuthenticated)
+        {
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var id))
+            {
+                currentUserId = id;
+            }
+            else
+            {
+                Console.WriteLine("ID utilisateur non trouvé ou invalide.");
+            }
+        }
+        else
+        {
+            Console.WriteLine("Utilisateur non authentifié.");
+        }
+    }
     protected override async Task OnParametersSetAsync()
     {
         await LoadUserProfile();
@@ -133,7 +160,10 @@
             _userProfile = await UserService.GetUserProfileAsync(UserId);
             _userTags = await TagService.GetTagNamesForUserAsync(UserId);
             if (_userProfile != null)
+            {
                 await LoadPhotos();
+                _hasLiked = await LikeService.HasLikedAsync(currentUserId, _userProfile.Id);
+            }
         }
         catch (Exception ex)
         {
@@ -161,10 +191,28 @@
         }
     }
 
-    private void ToggleLike()
+    private async Task ToggleLike()
     {
-        _hasLiked = !_hasLiked;
-        // Appel réel possible ici : await LikeService.ToggleLikeAsync(UserId);
+        try
+        {
+            if (_hasLiked)
+            {
+                // L'utilisateur a déjà liké le profil, on l'enlève
+                await LikeService.UnlikeProfileAsync(UserId, _userProfile?.Id ?? 0);
+                _hasLiked = false;
+            }
+            else
+            {
+                // L'utilisateur n'a pas encore liké, on l'ajoute
+                await LikeService.LikeProfileAsync(UserId, _userProfile?.Id ?? 0);
+                _hasLiked = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            // Ici tu pourrais gérer les erreurs en affichant un message ou en loggant l'erreur
+            Console.WriteLine($"Erreur lors de l'ajout du like : {ex.Message}");
+        }
     }
 
 

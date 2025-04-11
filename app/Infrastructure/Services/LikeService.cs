@@ -19,5 +19,9 @@ namespace Infrastructure.Services
         {
             await _likeRepository.UnlikeProfileAsync(userId, likedUserId);
         }
+        public async Task<bool> HasLikedAsync(int userId, int likedUserId)
+        {
+            return await _likeRepository.HasLikedAsync(userId, likedUserId);
+        }
     }
 }
