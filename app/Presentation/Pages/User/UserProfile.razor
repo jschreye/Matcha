@@ -124,8 +124,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadUserProfile();
         await GetCurrentUserIdAsync();
+        await LoadUserProfile();
         
         // Chargement des genres et préférences sexuelles
         _genres = await GenreService.GetGenresAsync();
@@ -154,10 +154,6 @@
             Console.WriteLine("Utilisateur non authentifié.");
         }
     }
-    protected override async Task OnParametersSetAsync()
-    {
-        await LoadUserProfile();
-    }
 
     private async Task LoadUserProfile()
     {
@@ -170,7 +166,7 @@
             if (_userProfile != null)
             {
                 await LoadPhotos();
-                _hasLiked = await LikeService.HasLikedAsync(currentUserId, _userProfile.Id);
+                _hasLiked = await LikeService.HasLikedAsync(currentUserId, UserId);
             }
         }
         catch (Exception ex)
@@ -206,13 +202,13 @@
             if (_hasLiked)
             {
                 // L'utilisateur a déjà liké le profil, on l'enlève
-                await LikeService.UnlikeProfileAsync(UserId, _userProfile?.Id ?? 0);
+                await LikeService.UnlikeProfileAsync(currentUserId, UserId);
                 _hasLiked = false;
             }
             else
             {
                 // L'utilisateur n'a pas encore liké, on l'ajoute
-                await LikeService.LikeProfileAsync(UserId, _userProfile?.Id ?? 0);
+                await LikeService.LikeProfileAsync(currentUserId, UserId);
                 _hasLiked = true;
                 if (_userProfile != null)
                 {
