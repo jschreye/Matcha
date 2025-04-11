@@ -31,9 +31,12 @@
     <MudItem xs="12" sm="6">
         <MudNumericField T="int" Label="Âge" Variant="Variant.Outlined"
                       Value="GetAgeValue()" ValueChanged="OnAgeChanged"
-                      Min="18" Max="99" Required="true" />
+                      Max="99" Required="true" 
+                      For="@(() => UserProfile.Age)"
+                      Error="@(UserProfile.Age < 18)"
+                      ErrorText="L'âge minimum requis est de 18 ans" />
         <MudText Typo="Typo.caption" Color="Color.Secondary">
-            Veuillez indiquer votre âge (18 ans minimum)
+            Veuillez indiquer votre âge (18 ans minimum requis pour s'inscrire)
         </MudText>
     </MudItem>
 
