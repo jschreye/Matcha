@@ -13,5 +13,6 @@ namespace Core.Interfaces.Repository
         Task<string?> GetPasswordHashByUsernameAsync(string username);
         Task<User?> GetByIdAsync(int id);
         Task UpdateUserAsync(User user);
+        Task<List<UserDto>> GetUsersByIdsAsync(List<int> userIds);
     }
 }

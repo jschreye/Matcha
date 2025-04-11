@@ -63,5 +63,18 @@ namespace Infrastructure.Repository
          var count = Convert.ToInt32(await command.ExecuteScalarAsync());
          return count > 0;
       }
+      public async Task<bool> HasLikedBackAsync(int fromUserId, int toUserId)
+      {
+         using var connection = new MySqlConnection(_connectionString);
+         await connection.OpenAsync();
+
+         var query = "SELECT COUNT(*) FROM likes WHERE user_id = @fromUserId AND liked_user_id = @toUserId";
+         using var command = new MySqlCommand(query, connection);
+         command.Parameters.AddWithValue("@fromUserId", fromUserId);
+         command.Parameters.AddWithValue("@toUserId", toUserId);
+
+         var count = Convert.ToInt32(await command.ExecuteScalarAsync());
+         return count > 0;
+      }
    }
 }

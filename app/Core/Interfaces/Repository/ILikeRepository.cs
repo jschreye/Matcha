@@ -7,5 +7,6 @@ namespace Core.Interfaces.Repository
         Task LikeProfileAsync(int userId, int likedUserId);
         Task UnlikeProfileAsync(int userId, int likedUserId);
         Task<bool> HasLikedAsync(int userId, int likedUserId);
+        Task<bool> HasLikedBackAsync(int fromUserId, int toUserId);
     }
 }

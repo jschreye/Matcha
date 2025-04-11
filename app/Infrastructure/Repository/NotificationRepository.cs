@@ -109,4 +109,29 @@ public class NotificationRepository : INotificationRepository
         command.Parameters.AddWithValue("@id", notificationId);
         await command.ExecuteNonQueryAsync();
     }
+
+    public async Task<int> CountUnreadLikesAsync(int userId)
+    {
+        using var connection = new MySqlConnection(_connectionString);
+        await connection.OpenAsync();
+
+        var query = "SELECT COUNT(*) FROM notifications WHERE user_id = @userId AND notification_type_id = 2 AND lu = FALSE";
+
+        using var command = new MySqlCommand(query, connection);
+        command.Parameters.AddWithValue("@userId", userId);
+
+        return Convert.ToInt32(await command.ExecuteScalarAsync());
+    }
+    public async Task<int> CountUnreadMessagesAsync(int userId)
+    {
+        using var connection = new MySqlConnection(_connectionString);
+        await connection.OpenAsync();
+
+        var query = "SELECT COUNT(*) FROM notifications WHERE user_id = @userId AND notification_type_id = 1 AND lu = FALSE";
+
+        using var command = new MySqlCommand(query, connection);
+        command.Parameters.AddWithValue("@userId", userId);
+
+        return Convert.ToInt32(await command.ExecuteScalarAsync());
+    }
 }

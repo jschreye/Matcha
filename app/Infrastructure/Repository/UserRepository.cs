@@ -300,5 +300,48 @@ namespace Infrastructure.Repository
 
             await command.ExecuteNonQueryAsync();
         }
+        public async Task<List<UserDto>> GetUsersByIdsAsync(List<int> userIds)
+        {
+            var users = new List<UserDto>();
+
+            if (userIds == null || userIds.Count == 0)
+                return users;
+
+            using var connection = new MySqlConnection(_connectionString);
+            await connection.OpenAsync();
+
+            var inClause = string.Join(",", userIds.Select((_, i) => $"@id{i}"));
+            var query = $@"
+                SELECT 
+                    u.id, 
+                    u.username, 
+                    p.image_data
+                FROM users u
+                LEFT JOIN photos p ON p.user_id = u.id AND p.est_profil = TRUE
+                WHERE u.id IN ({inClause})";
+
+            using var command = new MySqlCommand(query, connection);
+            for (int i = 0; i < userIds.Count; i++)
+            {
+                command.Parameters.AddWithValue($"@id{i}", userIds[i]);
+            }
+
+            using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                byte[]? photoData = reader["image_data"] as byte[];
+                string? photoBase64 = photoData != null && photoData.Length > 0
+                    ? $"data:image/jpeg;base64,{Convert.ToBase64String(photoData)}"
+                    : null;
+
+                users.Add(new UserDto
+                {
+                    Id = reader.GetInt32(reader.GetOrdinal("id")),
+                    Username = reader.GetString(reader.GetOrdinal("username")),
+                    Photo = photoBase64
+                });
+            }
+            return users;
+        }
     }
 }
