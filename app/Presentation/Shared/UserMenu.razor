@@ -1,5 +1,6 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using Core.Data.DTOs
+@using Core.Data.Entity
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 @inject IPhotoService PhotoService
@@ -20,10 +21,10 @@
                               Overlap="true"
                               Bordered="true"
                               BadgeContent="@(notificationCount > 0 ? notificationCount.ToString() : null)">
-                        @if (!string.IsNullOrWhiteSpace(ProfileState.ProfileImageSrc))
+                        @if (!string.IsNullOrWhiteSpace(userProfileImage))
                         {
-                            <!-- Affiche l'image de profil synchronisée -->
-                            <img src="@ProfileState.ProfileImageSrc" alt="Profile" style="width:48px; height:48px; border-radius:50%;" />
+                            <!-- Affiche l'image de profil spécifique à cet utilisateur -->
+                            <img src="@userProfileImage" alt="Profile" style="width:48px; height:48px; border-radius:50%;" />
                         }
                         else
                         {
@@ -103,7 +104,9 @@
     public EventCallback OnToggleDrawer { get; set; }
 
     private Action _onProfileImageChanged;
+    private Action<int> _onUserImageChanged;
     private int notificationCount = 0; // Compteur de notifications
+    private string userProfileImage; // Image de profil spécifique à cet utilisateur
 
     private bool isAuthenticated;
     private bool isOnLoginPage;
@@ -120,20 +123,33 @@
         if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
         {
             CurrentUserId = userId;
+            // Chargement initial de l'image de profil
+            await LoadProfileImageAsync();
         }
         else
         {
             CurrentUserId = 0;
         }
         
-        // Abonnement pour l'image de profil
+        // Abonnement pour l'image de profil - méthode standard (compatibilité)
         _onProfileImageChanged = () => InvokeAsync(StateHasChanged);
         ProfileState.OnChange += _onProfileImageChanged;
+        
+        // Abonnement pour l'image de profil par utilisateur (nouvelle méthode)
+        _onUserImageChanged = (int userId) => 
+        {
+            if (userId == CurrentUserId)
+            {
+                userProfileImage = ProfileState.GetUserProfileImage(userId);
+                InvokeAsync(StateHasChanged);
+            }
+        };
+        ProfileState.OnUserImageChange += _onUserImageChanged;
 
         // Récupération initiale du nombre de notifications non lues
         await UpdateNotificationsAsync();
 
-        // Abonnement à l'événement OnNotify (si nécessaire)
+        // Abonnement à l'événement OnNotify
         NotificationService.OnNotify += OnNotificationReceived;
 
         // Abonnement au nouvel événement de mise à jour des notifications
@@ -143,28 +159,65 @@
         NavigationManager.LocationChanged += OnLocationChanged;
     }
 
+    private async Task LoadProfileImageAsync()
+    {
+        if (CurrentUserId <= 0) return;
+        
+        try 
+        {
+            // Vérifier d'abord si l'image est déjà dans le service d'état
+            userProfileImage = ProfileState.GetUserProfileImage(CurrentUserId);
+            
+            // Si elle n'est pas disponible, la charger depuis la base de données
+            if (string.IsNullOrWhiteSpace(userProfileImage))
+            {
+                var profilePhoto = await PhotoService.GetProfilePhotoAsync(CurrentUserId);
+                if (profilePhoto != null && profilePhoto.ImageData != null && profilePhoto.ImageData.Length > 0)
+                {
+                    // Convertir en base64 pour l'affichage
+                    userProfileImage = $"data:image/jpeg;base64,{Convert.ToBase64String(profilePhoto.ImageData)}";
+                    
+                    // Mettre à jour le service d'état pour les autres composants
+                    ProfileState.SetUserProfileImage(CurrentUserId, userProfileImage);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erreur lors du chargement de l'image de profil: {ex.Message}");
+            userProfileImage = null;
+        }
+    }
+
     private async void OnNotificationsUpdated(int userId)
     {
         if (userId == CurrentUserId)
         {
             await UpdateNotificationsAsync();
-            InvokeAsync(StateHasChanged);
+            await InvokeAsync(StateHasChanged);
         }
     }
 
-    // Le reste de votre code reste inchangé
     public void Dispose()
     {
         ProfileState.OnChange -= _onProfileImageChanged;
+        ProfileState.OnUserImageChange -= _onUserImageChanged;
         NavigationManager.LocationChanged -= OnLocationChanged;
         NotificationService.OnNotify -= OnNotificationReceived;
         NotificationService.OnNotificationsUpdated -= OnNotificationsUpdated;
     }
 
-    private void OnLocationChanged(object sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    private async void OnLocationChanged(object sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
     {
         UpdateCurrentPage();
-        InvokeAsync(StateHasChanged);
+        
+        // Recharger l'image de profil après chaque changement de page
+        if (isAuthenticated && CurrentUserId > 0)
+        {
+            await LoadProfileImageAsync();
+        }
+        
+        await InvokeAsync(StateHasChanged);
     }
 
     private void UpdateCurrentPage()

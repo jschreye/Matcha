@@ -126,7 +126,14 @@
         }
 
         // Initialisation du service d'état avec l'image actuelle (si présente)
-        ProfileState.ProfileImageSrc = GetProfileImageSrc();
+        var profileImageSrc = GetProfileImageSrc();
+        ProfileState.ProfileImageSrc = profileImageSrc;
+        
+        // Mettre à jour également avec la nouvelle méthode par utilisateur
+        if (!string.IsNullOrWhiteSpace(profileImageSrc))
+        {
+            ProfileState.SetUserProfileImage(UserId, profileImageSrc);
+        }
     }
 
     public void Dispose()
@@ -179,7 +186,7 @@
         }
     }
 
-    /** Définit la photo sélectionnée comme photo de profil et met à jour la BDD */
+    /** Marque une photo comme photo de profil et supprime ce statut des autres. */
     private async Task SetAsProfile(PhotoPreview photo)
     {
         foreach (var p in _photoPreviews)
@@ -200,8 +207,11 @@
             AlertService.ShowMessage("Photo de profil mise à jour.", true);
         }
         
-        // Mettre à jour l'image de profil dans l'interface utilisateur
+        // Mettre à jour l'image de profil dans l'interface utilisateur (ancienne méthode)
         ProfileState.ProfileImageSrc = GetProfileImageSrc();
+        
+        // Mettre à jour avec la nouvelle méthode par utilisateur
+        ProfileState.SetUserProfileImage(UserId, GetProfileImageSrc());
     }
 
     /** 
@@ -230,7 +240,12 @@
                 }
             }
             AlertService.ShowMessage("L'image a été supprimée.", true);
+            
+            // Mettre à jour l'image de profil (ancienne méthode)
             ProfileState.ProfileImageSrc = GetProfileImageSrc();
+            
+            // Mettre à jour avec la nouvelle méthode par utilisateur
+            ProfileState.SetUserProfileImage(UserId, GetProfileImageSrc());
         }
         catch (Exception ex)
         {
@@ -251,8 +266,12 @@
         
         if (profilePhoto != null && profilePhoto.EstProfil)
         {
-            // Mettre à jour ProfileState.ProfileImageSrc pour synchroniser l'image de profil dans UserMenu
+            // Mettre à jour l'image de profil (ancienne méthode)
             ProfileState.ProfileImageSrc = GetProfileImageSrc();
+            
+            // Mettre à jour avec la nouvelle méthode par utilisateur
+            ProfileState.SetUserProfileImage(UserId, GetProfileImageSrc());
+            
             AlertService.ShowMessage("L'image de profil a été correctement enregistrée.", true);
         }
         else
