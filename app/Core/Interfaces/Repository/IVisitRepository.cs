@@ -5,5 +5,6 @@ namespace Core.Interfaces.Repository
     {
         Task<List<int>> GetProfileVisitorsIdsAsync(int userId);
         Task<List<int>> GetVisitedProfileIdsAsync(int userId);
+        Task AddVisitAsync(int visitorId, int visitedId);
     }
 }

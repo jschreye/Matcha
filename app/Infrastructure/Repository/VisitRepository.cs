@@ -54,5 +54,23 @@ namespace Infrastructure.Repository
 
             return visitors;
         }
+        public async Task AddVisitAsync(int visitorId, int visitedId)
+        {
+            if (visitorId == visitedId) return;
+
+            await using var conn = new MySqlConnection(_connectionString);
+            await conn.OpenAsync();
+
+            const string sql = @"
+                INSERT INTO visits (user_id, visited_user_id, timestamp)
+                VALUES (@visitor, @visited, NOW());
+            ";
+
+            await using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@visitor", visitorId);
+            cmd.Parameters.AddWithValue("@visited", visitedId);
+
+            await cmd.ExecuteNonQueryAsync();
+        }
     }
 }

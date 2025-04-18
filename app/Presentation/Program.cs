@@ -62,6 +62,7 @@ builder.Services.AddScoped<IPhotoService, PhotoService>();
 builder.Services.AddScoped<ITagService, TagService>();
 builder.Services.AddScoped<ILikeService, LikeService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<IVisitService, VisiteService>();
 
 builder.Services.AddSingleton<IChatService, ChatService>();
 builder.Services.AddSingleton<INotificationService, NotificationService>();
