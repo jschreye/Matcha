@@ -63,6 +63,7 @@ builder.Services.AddScoped<ITagService, TagService>();
 builder.Services.AddScoped<ILikeService, LikeService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IVisitService, VisiteService>();
+builder.Services.AddScoped<ISearchService, SearchService>();
 
 builder.Services.AddSingleton<IChatService, ChatService>();
 builder.Services.AddSingleton<INotificationService, NotificationService>();
@@ -75,9 +76,11 @@ builder.Services.AddScoped<IPrefSexRepository, PrefSexRepository>();
 builder.Services.AddScoped<IPhotoRepository, PhotoRepository>();
 builder.Services.AddScoped<ITagRepository, TagRepository>();
 builder.Services.AddScoped<ILikeRepository, LikeRepository>();
-
 builder.Services.AddSingleton<INotificationRepository, NotificationRepository>();
 builder.Services.AddSingleton<IMessageRepository, MessageRepository>();
+builder.Services.AddScoped<ISearchRepository, SearchRepository>();
+builder.Services.AddScoped<IVisitRepository, VisitRepository>();
+builder.Services.AddScoped<IMatchRepository, MatchRepository>();
 
 builder.Services.AddSingleton<IProfileImageStateService ,ProfileImageStateService>();
 

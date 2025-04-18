@@ -1,166 +1,115 @@
-﻿@page "/dashboard"
+﻿@page "/"
+@using Microsoft.JSInterop
 
-@inject AuthenticationStateProvider AuthenticationStateProvider
-@inject NavigationManager NavigationManager
-@inject IDashboardService DashboardService
-
-<MudContainer Class="mt-5">
-    
-    <!-- 1. TITRE -->
-    <MudText Typo="Typo.h4" Align="Align.Center" Class="mb-6">
-        📊 Dashboard
-    </MudText>
-
-    <MudGrid Spacing="3">
-
-        <!-- 2. MATCHS FULL-WIDTH -->
-        <MudItem xs="12">
-            <MudPaper Elevation="2" Class="p-4 rounded-lg shadow-lg">
-                <MudText Typo="Typo.h6" Class="mb-2">💘 Mes matchs</MudText>
-
-                @if (Matches.Any())
-                {
-                    <!-- grid interne pour les cartes users -->
-                    <MudGrid GutterSize="3">
-                        @foreach (var user in Matches)
-                        {
-                            <!-- chaque user-card -->
-                            <MudItem xs="12">
-                                <MudPaper Elevation="1" Class="d-flex align-center  p-3 rounded">
-                                    <!-- avatar -->
-                                    <MudAvatar class="m-4"  Style="height:50px; width:50px;">
-                                        <img src="@user.Photo"style="object-fit: contain; width: 100%; height: 100%;" />
-                                    </MudAvatar>
-
-                                    <!-- nom -->
-                                    <MudText Typo="Typo.subtitle1" Class="mr-auto m-4">
-                                        @user.Username
-                                    </MudText>
-
-                                    <!-- actions -->
-                                    <MudButtonGroup>
-                                        <MudButton Color="Color.Primary" Variant="Variant.Filled" Href="@($"/chat/{user.Id}")">
-                                            💬
-                                        </MudButton>
-                                        <MudButton Color="Color.Secondary" Variant="Variant.Outlined" Href="@($"/profile/{user.Id}")">
-                                            👤
-                                        </MudButton>
-                                    </MudButtonGroup>
-                                </MudPaper>
-                            </MudItem>
-                        }
-                    </MudGrid>
-                }
-                else
-                {
-                    <MudText>Pas encore de match.</MudText>
-                }
-            </MudPaper>
-        </MudItem>
-
-        <!-- 3. CONVERSATIONS (2 PAR 2) -->
-        <MudItem xs="12" md="6">
-            <MudPaper Elevation="2" Class="p-4 rounded-lg shadow-sm d-flex flex-column">
-                <MudText Typo="Typo.h6" Class="mb-2">💬 Conversations en cours</MudText>
-
-                @if (Conversations.Any())
-                {
-                    @foreach (var conv in Conversations)
-                    {
-                       <MudPaper Elevation="1" Class="d-flex align-center  p-3 rounded m-4">  
-                            <MudAvatar class="mr-4" Style="height:50px; width:50px;">
-                                <img src="@conv.Photo"style="object-fit: contain; width: 100%; height: 100%;" />
-                            </MudAvatar>
-                            <MudText Typo="Typo.subtitle2" Class="mr-auto m-4">
-                                @conv.Username
-                            </MudText>
-                            <MudButtonGroup>
-                                <MudButton Color="Color.Primary" Variant="Variant.Filled" Href="@($"/chat/{conv.UserId}")">
-                                    💬
-                                </MudButton>
-                                <MudButton Color="Color.Secondary" Variant="Variant.Outlined" Href="@($"/profile/{conv.UserId}")">
-                                    👤
-                                </MudButton>
-                            </MudButtonGroup>
-                        </MudPaper>
-                    }
-                }
-                else
-                {
-                    <MudText>Pas encore de conversation.</MudText>
-                }
-            </MudPaper>
-        </MudItem>
-
-        <MudItem xs="12" md="6">
-            <MudPaper Elevation="2" Class="p-4 rounded-lg shadow-sm">
-                <MudText Typo="Typo.h6" Class="mb-2">🔔 Notifications</MudText>
-                <div class="d-flex justify-space-between">
-                    <MudText Typo="Typo.body1">Likes reçus : @NotificationCounts.Likes</MudText>
-                    <MudText Typo="Typo.body1">Messages non lus : @NotificationCounts.Messages</MudText>
-                </div>
-            </MudPaper>
-        </MudItem>
-
-        <MudItem xs="12" md="6">
-            <MudPaper Elevation="2" Class="p-4 rounded-lg shadow-sm">
-                <MudText Typo="Typo.h6" Class="mb-2">👀 Profils visités</MudText>
-                <div class="d-flex flex-wrap">
-                    @foreach (var visit in VisitedProfiles)
-                    {
-                        <MudChip T="string" Class="mr-2 mb-2" OnClick="@(() => GoToProfile(visit.Id))">
-                            @visit.Username
-                        </MudChip>
-                    }
-                </div>
-            </MudPaper>
-        </MudItem>
-
-        <MudItem xs="12" md="6">
-            <MudPaper Elevation="2" Class="p-4 rounded-lg shadow-sm">
-                <MudText Typo="Typo.h6" Class="mb-2">🕵️‍♀️ Qui m’ont visité</MudText>
-                <div class="d-flex flex-wrap">
-                    @foreach (var visitor in ProfileVisitors)
-                    {
-                        <MudChip T="string" Class="mr-2 mb-2" OnClick="@(() => GoToProfile(visitor.Id))">
-                            @visitor.Username
-                        </MudChip>
-                    }
-                </div>
-            </MudPaper>
-        </MudItem>
+<MudGrid class="d-flex flex-column mt-4">
+    <MudText Typo="Typo.h3" Class="text-center responsive-h3">BIENVENU SUR MATCHA</MudText>
+    <MudGrid class="d-flex flex-column align-items-center justify-content-center mt-4" style="width: auto;">
+        <MudText Typo="Typo.h4" Class="text-center">Viens trouver l'amour</MudText>
+        <MudLink Href="/register" Typo="Typo.body2" class="ml-auto">Rejoins-nous</MudLink>
     </MudGrid>
-</MudContainer>
+</MudGrid>
+
+<MudTimeline class="mt-20">
+    <MudTimelineItem Color="Color.Primary">
+        <MudText Typo="Typo.h5" Style="@($"color:{Colors.DeepPurple.Accent4};")">Inscription et Connexion Simplifiées</MudText>
+        <MudText class="mt-5">Rejoignez-nous en un clin d'œil ! Créez votre compte rapidement et connectez-vous en toute simplicité pour commencer votre aventure amoureuse sans tracas.</MudText>
+    </MudTimelineItem>
+    <MudTimelineItem Color="Color.Primary" TimelineAlign="@(isMobile ? TimelineAlign.End : TimelineAlign.Start)">
+        <MudText Align="@(isMobile ? Align.Inherit : Align.End)" Typo="Typo.h5" Style="@($"color:{Colors.DeepPurple.Accent4};")">Profils Riches et Personnalisés</MudText>
+        <MudText Align="@(isMobile ? Align.Inherit : Align.End)" class="mt-5">Exprimez votre unicité ! Construisez un profil détaillé et authentique qui reflète qui vous êtes vraiment, attirant ainsi des correspondances qui vous correspondent parfaitement.</MudText>
+    </MudTimelineItem>
+    <MudTimelineItem Color="Color.Primary">
+        <MudText Typo="Typo.h5" Style="@($"color:{Colors.DeepPurple.Accent4};")">Discussion Instantanée en Temps Réel</MudText>
+        <MudText class="mt-5">Connectez-vous en un instant ! Engagez des conversations fluides et immédiates avec vos matchs grâce à notre système de chat en temps réel, pour mieux connaître vos potentiels partenaires.</MudText>
+    </MudTimelineItem>
+    <MudTimelineItem Color="Color.Primary" TimelineAlign="@(isMobile ? TimelineAlign.End : TimelineAlign.Start)">
+        <MudText Align="@(isMobile ? Align.Inherit : Align.End)" Typo="Typo.h5" Style="@($"color:{Colors.DeepPurple.Accent4};")">Recherche Avancée et Suggestions Intelligentes</MudText>
+        <MudText Align="@(isMobile ? Align.Inherit : Align.End)" class="mt-5">Trouver l'amour devient intelligent ! Utilisez nos outils de recherche sophistiqués et nos suggestions basées sur vos préférences pour découvrir des profils compatibles en un instant.</MudText>
+    </MudTimelineItem>
+</MudTimeline>
+
+<MudCarousel Class="mt-15 mb-20 w-50 mx-auto" Style="height:300px;" TData="object" ShowArrows="@false" ShowBullets="@false">
+    <MudCarouselItem Transition="Transition.Slide">
+        <MudCard>
+            <MudCardMedia Image="images/demon1.png" Style="height:200px; object-fit: cover;"/>
+            <MudCardContent Style="height:100px; overflow-y: auto;" >
+                <MudText Typo="Typo.h5">Natcha</MudText>
+                <MudText Typo="Typo.body2">"Grâce à Matcha Web, j'ai enfin trouvé quelqu'un qui me comprend vraiment."</MudText>
+            </MudCardContent>
+        </MudCard>
+    </MudCarouselItem>
+    <MudCarouselItem Transition="Transition.Slide" Color="@Color.Secondary">
+        <MudCard>
+            <MudCardMedia Image="images/demon1.png" Style="height:200px; object-fit: cover;"/>
+            <MudCardContent Style="height:100px;overflow-y: auto;">
+                <MudText Typo="Typo.h5">Sophia</MudText>
+                <MudText Typo="Typo.body2">"Matcha Web transforme les rencontres en une expérience authentique et enrichissante."</MudText>
+            </MudCardContent>
+        </MudCard>
+    </MudCarouselItem>
+    <MudCarouselItem Transition="Transition.Slide">
+        <MudCard>
+            <MudCardMedia Image="images/demon1.png" Style="height:200px; object-fit: cover;"/>
+            <MudCardContent Style="height:100px;overflow-y: auto;">
+                <MudText Typo="Typo.h5">Erga</MudText>
+                <MudText Typo="Typo.body2">"Avec Matcha Web, trouver l'amour est devenu simple et intuitif."</MudText>
+            </MudCardContent>
+        </MudCard>
+    </MudCarouselItem>
+</MudCarousel>
+
+@implements IAsyncDisposable
 
 @code {
-    private List<UserDto> Matches = new();
-    private List<ConversationDto> Conversations = new();
-    private NotificationStats NotificationCounts = new();
-    private List<UserDto> VisitedProfiles = new();
-    private List<UserDto> ProfileVisitors = new();
-    private int CurrentUserId;
-    private bool isAuthenticated;
-    protected override async Task OnInitializedAsync()
+    private bool isMobile;
+    private string currentBreakpoint;
+
+    [Inject] private IJSRuntime JSRuntime { get; set; }
+    private DotNetObjectReference<Index>? dotNetRef;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        isAuthenticated = authState.User.Identity?.IsAuthenticated ?? false;
-        var user = authState.User;
-
-        var userIdClaim = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-        if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
+        if (firstRender)
         {
-            CurrentUserId = userId;
+            dotNetRef = DotNetObjectReference.Create(this);
+            await JSRuntime.InvokeVoidAsync("addResizeListener", dotNetRef);
         }
-
-        Matches = await DashboardService.GetMatchesAsync(CurrentUserId);
-        Conversations = await DashboardService.GetConversationsAsync(CurrentUserId);
-        NotificationCounts = await DashboardService.GetNotificationStatsAsync(CurrentUserId);
-        VisitedProfiles = await DashboardService.GetVisitedProfilesAsync(CurrentUserId);
-        ProfileVisitors = await DashboardService.GetProfileVisitorsAsync(CurrentUserId);
     }
 
-    private void GoToProfile(int userId)
+    [JSInvokable("OnResize")]
+    public void OnResize(string breakpoint)
     {
-        NavigationManager.NavigateTo($"/profile/{userId}");
+        currentBreakpoint = breakpoint;
+        isMobile = currentBreakpoint is "Xs";
+
+        StateHasChanged();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            if (dotNetRef != null)
+            {
+                await JSRuntime.InvokeVoidAsync("removeResizeListener");
+                dotNetRef.Dispose();
+            }
+        }
+        catch (JSDisconnectedException)
+        {
+            // Le circuit est déjà déconnecté, on ignore l'erreur
+            if (dotNetRef != null)
+            {
+                dotNetRef.Dispose();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Erreur lors de la suppression du listener de redimensionnement : {ex.Message}");
+            if (dotNetRef != null)
+            {
+                dotNetRef.Dispose();
+            }
+        }
     }
 }
