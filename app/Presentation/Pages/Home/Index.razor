@@ -92,7 +92,6 @@
             </MudPaper>
         </MudItem>
 
-        <!-- 4. NOTIFICATIONS (2 PAR 2) -->
         <MudItem xs="12" md="6">
             <MudPaper Elevation="2" Class="p-4 rounded-lg shadow-sm">
                 <MudText Typo="Typo.h6" Class="mb-2">🔔 Notifications</MudText>
@@ -103,14 +102,13 @@
             </MudPaper>
         </MudItem>
 
-        <!-- 5. PROFILS VISITÉS (2 PAR 2) -->
         <MudItem xs="12" md="6">
             <MudPaper Elevation="2" Class="p-4 rounded-lg shadow-sm">
                 <MudText Typo="Typo.h6" Class="mb-2">👀 Profils visités</MudText>
                 <div class="d-flex flex-wrap">
                     @foreach (var visit in VisitedProfiles)
                     {
-                        <MudChip Class="mr-2 mb-2" OnClick="@(() => GoToProfile(visit.Id))">
+                        <MudChip T="string" Class="mr-2 mb-2" OnClick="@(() => GoToProfile(visit.Id))">
                             @visit.Username
                         </MudChip>
                     }
@@ -118,21 +116,19 @@
             </MudPaper>
         </MudItem>
 
-        <!-- 6. PROFILS QUI M'ONT VISITÉ (2 PAR 2) -->
         <MudItem xs="12" md="6">
             <MudPaper Elevation="2" Class="p-4 rounded-lg shadow-sm">
                 <MudText Typo="Typo.h6" Class="mb-2">🕵️‍♀️ Qui m’ont visité</MudText>
                 <div class="d-flex flex-wrap">
                     @foreach (var visitor in ProfileVisitors)
                     {
-                        <MudChip Class="mr-2 mb-2" OnClick="@(() => GoToProfile(visitor.Id))">
+                        <MudChip T="string" Class="mr-2 mb-2" OnClick="@(() => GoToProfile(visitor.Id))">
                             @visitor.Username
                         </MudChip>
                     }
                 </div>
             </MudPaper>
         </MudItem>
-
     </MudGrid>
 </MudContainer>
 
