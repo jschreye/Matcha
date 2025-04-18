@@ -300,35 +300,84 @@ namespace Infrastructure.Repository
             using var connection = new MySqlConnection(_connectionString);
             await connection.OpenAsync();
 
-            // Récupérer les coordonnées de l'utilisateur actuel pour le calcul de distance
+            // Récupérer les préférences de l'utilisateur actuel pour filtrer par genre/préférences sexuelles
+            int? userGenre = null;
+            int? userSexualPreferences = null;
             double? userLatitude = null;
             double? userLongitude = null;
 
-            if (maxDistance.HasValue)
-            {
-                var locationQuery = @"
-                    SELECT 
-                        ST_X(gps_location) AS longitude, ST_Y(gps_location) AS latitude
-                    FROM users
-                    WHERE id = @UserId";
+            var userQuery = @"
+                SELECT 
+                    genre_id, sexual_preferences_id,
+                    ST_X(gps_location) AS longitude, ST_Y(gps_location) AS latitude
+                FROM users
+                WHERE id = @UserId";
 
-                using var locationCommand = new MySqlCommand(locationQuery, connection);
-                locationCommand.Parameters.AddWithValue("@UserId", userId);
-                using var locationReader = await locationCommand.ExecuteReaderAsync();
+            using (var userCommand = new MySqlCommand(userQuery, connection))
+            {
+                userCommand.Parameters.AddWithValue("@UserId", userId);
+                using var userReader = await userCommand.ExecuteReaderAsync();
                 
-                if (await locationReader.ReadAsync())
+                if (await userReader.ReadAsync())
                 {
-                    if (!locationReader.IsDBNull(locationReader.GetOrdinal("longitude")) && 
-                        !locationReader.IsDBNull(locationReader.GetOrdinal("latitude")))
+                    userGenre = !userReader.IsDBNull(userReader.GetOrdinal("genre_id")) 
+                        ? userReader.GetInt32(userReader.GetOrdinal("genre_id")) 
+                        : null;
+                        
+                    userSexualPreferences = !userReader.IsDBNull(userReader.GetOrdinal("sexual_preferences_id"))
+                        ? userReader.GetInt32(userReader.GetOrdinal("sexual_preferences_id"))
+                        : null;
+                    
+                    if (!userReader.IsDBNull(userReader.GetOrdinal("longitude")) && 
+                        !userReader.IsDBNull(userReader.GetOrdinal("latitude")))
                     {
-                        userLongitude = locationReader.GetDouble(locationReader.GetOrdinal("longitude"));
-                        userLatitude = locationReader.GetDouble(locationReader.GetOrdinal("latitude"));
+                        userLongitude = userReader.GetDouble(userReader.GetOrdinal("longitude"));
+                        userLatitude = userReader.GetDouble(userReader.GetOrdinal("latitude"));
                     }
                 }
             }
 
-            // Construire la requête de base
-            var queryBuilder = new StringBuilder(@"
+            // Vérifier si l'utilisateur a des préférences sexuelles définies
+            if (!userGenre.HasValue || !userSexualPreferences.HasValue)
+            {
+                // Si aucune préférence n'est définie, retourner une liste vide
+                return userProfiles;
+            }
+
+            // Vérifier qu'au moins un critère de recherche est spécifié
+            bool hasSearchCriteria = minAge.HasValue || maxAge.HasValue || 
+                                    minPopularity.HasValue || maxPopularity.HasValue || 
+                                    maxDistance.HasValue || (tagIds != null && tagIds.Any());
+
+            if (!hasSearchCriteria)
+            {
+                // Si aucun critère n'est spécifié, retournez une liste vide
+                // Nous exigeons au moins un critère spécifique en plus des préférences sexuelles
+                return userProfiles;
+            }
+
+            // Construire la requête de base avec une jointure potentielle pour les tags
+            var baseQueryBuilder = new StringBuilder();
+            
+            // Si nous avons des tags à filtrer, nous utilisons une requête avec jointure pour chercher dans les tags multiples
+            if (tagIds != null && tagIds.Any())
+            {
+                baseQueryBuilder.Append(@"
+                SELECT DISTINCT
+                    u.id, u.username, u.firstname, u.lastname, u.email, u.age,
+                    u.biography, u.genre_id, u.tag_id, u.sexual_preferences_id,
+                    ST_X(u.gps_location) AS longitude, ST_Y(u.gps_location) AS latitude,
+                    u.gps_location, -- Ajout pour ORDER BY
+                    u.popularity_score, u.profile_complete, u.isactive,
+                    u.localisation_isactive, u.notifisactive, u.created_at
+                FROM 
+                    users u
+                LEFT JOIN 
+                    userTags ut ON u.id = ut.user_id");
+            }
+            else
+            {
+                baseQueryBuilder.Append(@"
                 SELECT 
                     u.id, u.username, u.firstname, u.lastname, u.email, u.age,
                     u.biography, u.genre_id, u.tag_id, u.sexual_preferences_id,
@@ -336,47 +385,144 @@ namespace Infrastructure.Repository
                     u.popularity_score, u.profile_complete, u.isactive,
                     u.localisation_isactive, u.notifisactive, u.created_at
                 FROM 
-                    users u
+                    users u");
+            }
+            
+            // Construction des clauses WHERE
+            baseQueryBuilder.Append(@"
                 WHERE 
                     u.id != @UserId AND
                     u.profile_complete = 1 AND
                     u.isactive = 1");
 
-            // Ajouter les filtres
-            if (minAge.HasValue)
-                queryBuilder.Append(" AND u.age >= @MinAge");
+            // Appliquer les filtres de compatibilité sexuelle (obligatoires)
+            if (userGenre == 1) // Homme
+            {
+                if (userSexualPreferences == 1) // Hétéro
+                {
+                    // Montre uniquement les femmes hétéro
+                    baseQueryBuilder.Append(" AND u.genre_id = 2 AND u.sexual_preferences_id = 1");
+                }
+                else if (userSexualPreferences == 2) // Gay
+                {
+                    // Montre uniquement les hommes gay
+                    baseQueryBuilder.Append(" AND u.genre_id = 1 AND u.sexual_preferences_id = 2");
+                }
+                else if (userSexualPreferences == 3) // Bisexuel
+                {
+                    // Pour bisexuel, on montre les deux genres mais on filtre quand même par préférence
+                    baseQueryBuilder.Append(" AND ((u.genre_id = 1 AND u.sexual_preferences_id IN (2, 3)) OR (u.genre_id = 2 AND u.sexual_preferences_id IN (1, 3)))");
+                }
+            }
+            else if (userGenre == 2) // Femme
+            {
+                if (userSexualPreferences == 1) // Hétéro
+                {
+                    // Montre uniquement les hommes hétéro
+                    baseQueryBuilder.Append(" AND u.genre_id = 1 AND u.sexual_preferences_id = 1");
+                }
+                else if (userSexualPreferences == 2) // Gay
+                {
+                    // Montre uniquement les femmes gay
+                    baseQueryBuilder.Append(" AND u.genre_id = 2 AND u.sexual_preferences_id = 2");
+                }
+                else if (userSexualPreferences == 3) // Bisexuel
+                {
+                    // Pour bisexuel, on montre les deux genres mais on filtre quand même par préférence
+                    baseQueryBuilder.Append(" AND ((u.genre_id = 1 AND u.sexual_preferences_id IN (1, 3)) OR (u.genre_id = 2 AND u.sexual_preferences_id IN (2, 3)))");
+                }
+            }
+            else if (userGenre == 3) // Autre
+            {
+                // Pour le genre "Autre", on filtre quand même selon les préférences
+                if (userSexualPreferences == 1) // Hétéro
+                {
+                    baseQueryBuilder.Append(" AND ((u.genre_id = 1 AND u.sexual_preferences_id = 1) OR (u.genre_id = 2 AND u.sexual_preferences_id = 1))");
+                }
+                else if (userSexualPreferences == 2) // Gay
+                {
+                    baseQueryBuilder.Append(" AND ((u.genre_id = 1 AND u.sexual_preferences_id = 2) OR (u.genre_id = 2 AND u.sexual_preferences_id = 2))");
+                }
+                else if (userSexualPreferences == 3) // Bisexuel
+                {
+                    baseQueryBuilder.Append(" AND u.sexual_preferences_id = 3");
+                }
+            }
+
+            // Construire la clause AND pour exiger qu'au moins un critère de recherche corresponde
+            baseQueryBuilder.Append(" AND (");
+            
+            List<string> conditions = new List<string>();
+            
+            // Ajouter chaque condition comme une option
+            if (minAge.HasValue && maxAge.HasValue)
+                conditions.Add("u.age BETWEEN @MinAge AND @MaxAge");
+            else if (minAge.HasValue)
+                conditions.Add("u.age >= @MinAge");
+            else if (maxAge.HasValue)
+                conditions.Add("u.age <= @MaxAge");
                 
-            if (maxAge.HasValue)
-                queryBuilder.Append(" AND u.age <= @MaxAge");
-                
-            if (minPopularity.HasValue)
-                queryBuilder.Append(" AND u.popularity_score >= @MinPopularity");
-                
-            if (maxPopularity.HasValue)
-                queryBuilder.Append(" AND u.popularity_score <= @MaxPopularity");
+            if (minPopularity.HasValue && maxPopularity.HasValue)
+                conditions.Add("u.popularity_score BETWEEN @MinPopularity AND @MaxPopularity");
+            else if (minPopularity.HasValue)
+                conditions.Add("u.popularity_score >= @MinPopularity");
+            else if (maxPopularity.HasValue)
+                conditions.Add("u.popularity_score <= @MaxPopularity");
                 
             if (maxDistance.HasValue && userLatitude.HasValue && userLongitude.HasValue)
             {
-                // Convertir la distance en mètres pour ST_Distance_Sphere
                 var maxDistanceMeters = maxDistance.Value * 1000;
-                queryBuilder.Append(@" AND ST_Distance_Sphere(
-                    POINT(@UserLongitude, @UserLatitude),
-                    u.gps_location
-                ) <= @MaxDistanceMeters");
+                conditions.Add("ST_Distance_Sphere(POINT(@UserLongitude, @UserLatitude), u.gps_location) <= @MaxDistanceMeters");
             }
             
+            // Condition spéciale pour les tags : vérifier si l'utilisateur a l'un des tags sélectionnés
+            // soit comme tag principal (u.tag_id) soit comme tag supplémentaire (ut.tag_id)
             if (tagIds != null && tagIds.Any())
             {
-                queryBuilder.Append(" AND u.tag_id IN (");
+                StringBuilder tagCondition = new StringBuilder("(");
+                
+                // Vérifier le tag principal
+                tagCondition.Append("u.tag_id IN (");
                 for (int i = 0; i < tagIds.Count; i++)
                 {
-                    if (i > 0) queryBuilder.Append(",");
-                    queryBuilder.Append($"@Tag{i}");
+                    if (i > 0) tagCondition.Append(",");
+                    tagCondition.Append($"@Tag{i}");
                 }
-                queryBuilder.Append(")");
+                tagCondition.Append(")");
+                
+                // OU vérifier les tags supplémentaires de l'utilisateur
+                tagCondition.Append(" OR ut.tag_id IN (");
+                for (int i = 0; i < tagIds.Count; i++)
+                {
+                    if (i > 0) tagCondition.Append(",");
+                    tagCondition.Append($"@Tag{i}");
+                }
+                tagCondition.Append("))");
+                
+                conditions.Add(tagCondition.ToString());
             }
+            
+            // Joindre toutes les conditions avec OR pour exiger qu'au moins une corresponde
+            baseQueryBuilder.Append(string.Join(" OR ", conditions));
+            baseQueryBuilder.Append(")");
+            
+            // Trier par distance si disponible, sinon par popularité
+            if (userLatitude.HasValue && userLongitude.HasValue)
+            {
+                baseQueryBuilder.Append(@" 
+                ORDER BY 
+                    ST_Distance_Sphere(POINT(@UserLongitude, @UserLatitude), u.gps_location) ASC");
+            }
+            else
+            {
+                baseQueryBuilder.Append(@" 
+                ORDER BY 
+                    u.popularity_score DESC");
+            }
+            
+            baseQueryBuilder.Append(" LIMIT 50");
 
-            using var command = new MySqlCommand(queryBuilder.ToString(), connection);
+            using var command = new MySqlCommand(baseQueryBuilder.ToString(), connection);
             command.Parameters.AddWithValue("@UserId", userId);
             
             if (minAge.HasValue)
