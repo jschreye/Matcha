@@ -5,36 +5,50 @@
 @inject IDashboardService DashboardService
 
 <MudContainer Class="mt-5">
+    
+    <!-- 1. TITRE -->
+    <MudText Typo="Typo.h4" Align="Align.Center" Class="mb-6">
+        📊 Dashboard
+    </MudText>
+
     <MudGrid Spacing="3">
-        <MudItem xs="12" md="6">
-            <MudPaper Elevation="2" Class="p-4">
-                <MudText Typo="Typo.h6">💘 Mes matchs</MudText>
+
+        <!-- 2. MATCHS FULL-WIDTH -->
+        <MudItem xs="12">
+            <MudPaper Elevation="2" Class="p-4 rounded-lg shadow-lg">
+                <MudText Typo="Typo.h6" Class="mb-2">💘 Mes matchs</MudText>
+
                 @if (Matches.Any())
                 {
-                    <MudGrid>
+                    <!-- grid interne pour les cartes users -->
+                    <MudGrid GutterSize="3">
                         @foreach (var user in Matches)
                         {
-                            <MudItem xs="12" sm="6" md="4" lg="3">
-                                        <!-- Photo -->
-                                        <MudAvatar Style="height:50px; width:50px;">
-                                            <img src="@user.Photo"style="object-fit: contain; width: 100%; height: 100%;" />
-                                        </MudAvatar>
+                            <!-- chaque user-card -->
+                            <MudItem xs="12">
+                                <MudPaper Elevation="1" Class="d-flex align-center  p-3 rounded">
+                                    <!-- avatar -->
+                                    <MudAvatar class="m-4"  Style="height:50px; width:50px;">
+                                        <img src="@user.Photo"style="object-fit: contain; width: 100%; height: 100%;" />
+                                    </MudAvatar>
 
-                                        <!-- Nom + boutons -->
-                                        <div style="display: flex; flex-direction: column; flex-grow: 1;">
-                                            <MudText Typo="Typo.h6">@user.Username</MudText>
+                                    <!-- nom -->
+                                    <MudText Typo="Typo.subtitle1" Class="mr-auto m-4">
+                                        @user.Username
+                                    </MudText>
 
-                                            <MudButtonGroup Class="mt-1" FullWidth="false">
-                                                <MudButton Color="Color.Primary" Variant="Variant.Filled" Href="@($"/chat/{user.Id}")">
-                                                    💬 Chat
-                                                </MudButton>
-                                                <MudButton Color="Color.Secondary" Variant="Variant.Outlined" Href="@($"/profile/{user.Id}")">
-                                                    👤 Profil
-                                                </MudButton>
-                                            </MudButtonGroup>
-                                        </div>
+                                    <!-- actions -->
+                                    <MudButtonGroup>
+                                        <MudButton Color="Color.Primary" Variant="Variant.Filled" Href="@($"/chat/{user.Id}")">
+                                            💬
+                                        </MudButton>
+                                        <MudButton Color="Color.Secondary" Variant="Variant.Outlined" Href="@($"/profile/{user.Id}")">
+                                            👤
+                                        </MudButton>
+                                    </MudButtonGroup>
+                                </MudPaper>
                             </MudItem>
-                        }                      
+                        }
                     </MudGrid>
                 }
                 else
@@ -44,21 +58,31 @@
             </MudPaper>
         </MudItem>
 
-        <!-- Conversations -->
+        <!-- 3. CONVERSATIONS (2 PAR 2) -->
         <MudItem xs="12" md="6">
-            <MudPaper Elevation="2" Class="p-4">
-                <MudText Typo="Typo.h6">💬 Conversations en cours</MudText>
+            <MudPaper Elevation="2" Class="p-4 rounded-lg shadow-sm d-flex flex-column">
+                <MudText Typo="Typo.h6" Class="mb-2">💬 Conversations en cours</MudText>
+
                 @if (Conversations.Any())
                 {
                     @foreach (var conv in Conversations)
                     {
-                        <MudListItem T="string">
-                            <MudAvatar Style="height:50px; width:50px;">
-                                <img src="@conv.Photo" style="object-fit: contain; width: 100%; height: 100%;" />
+                       <MudPaper Elevation="1" Class="d-flex align-center  p-3 rounded m-4">  
+                            <MudAvatar class="mr-4" Style="height:50px; width:50px;">
+                                <img src="@conv.Photo"style="object-fit: contain; width: 100%; height: 100%;" />
                             </MudAvatar>
-                            <MudText>@conv.Username</MudText>
-                            <MudText Class="ml-auto text-muted" Typo="Typo.caption">@conv.LastMessage</MudText>
-                        </MudListItem>
+                            <MudText Typo="Typo.subtitle2" Class="mr-auto m-4">
+                                @conv.Username
+                            </MudText>
+                            <MudButtonGroup>
+                                <MudButton Color="Color.Primary" Variant="Variant.Filled" Href="@($"/chat/{conv.UserId}")">
+                                    💬
+                                </MudButton>
+                                <MudButton Color="Color.Secondary" Variant="Variant.Outlined" Href="@($"/profile/{conv.UserId}")">
+                                    👤
+                                </MudButton>
+                            </MudButtonGroup>
+                        </MudPaper>
                     }
                 }
                 else
@@ -68,36 +92,44 @@
             </MudPaper>
         </MudItem>
 
-        <!-- Notifications -->
+        <!-- 4. NOTIFICATIONS (2 PAR 2) -->
         <MudItem xs="12" md="6">
-            <MudPaper Elevation="2" Class="p-4">
-                <MudText Typo="Typo.h6">🔔 Notifications</MudText>
-                <MudList T="string">
-                    <MudListItem>Likes reçus : @NotificationCounts.Likes</MudListItem>
-                    <MudListItem>Messages non lus : @NotificationCounts.Messages</MudListItem>
-                </MudList>
+            <MudPaper Elevation="2" Class="p-4 rounded-lg shadow-sm">
+                <MudText Typo="Typo.h6" Class="mb-2">🔔 Notifications</MudText>
+                <div class="d-flex justify-space-between">
+                    <MudText Typo="Typo.body1">Likes reçus : @NotificationCounts.Likes</MudText>
+                    <MudText Typo="Typo.body1">Messages non lus : @NotificationCounts.Messages</MudText>
+                </div>
             </MudPaper>
         </MudItem>
 
-        <!-- Visites faites -->
+        <!-- 5. PROFILS VISITÉS (2 PAR 2) -->
         <MudItem xs="12" md="6">
-            <MudPaper Elevation="2" Class="p-4">
-                <MudText Typo="Typo.h6">👀 Profils visités</MudText>
-                @foreach (var visit in VisitedProfiles)
-                {
-                    <MudChip T="string" OnClick="@(() => GoToProfile(visit.Id))">@visit.Username</MudChip>
-                }
+            <MudPaper Elevation="2" Class="p-4 rounded-lg shadow-sm">
+                <MudText Typo="Typo.h6" Class="mb-2">👀 Profils visités</MudText>
+                <div class="d-flex flex-wrap">
+                    @foreach (var visit in VisitedProfiles)
+                    {
+                        <MudChip Class="mr-2 mb-2" OnClick="@(() => GoToProfile(visit.Id))">
+                            @visit.Username
+                        </MudChip>
+                    }
+                </div>
             </MudPaper>
         </MudItem>
 
-        <!-- Visites reçues -->
+        <!-- 6. PROFILS QUI M'ONT VISITÉ (2 PAR 2) -->
         <MudItem xs="12" md="6">
-            <MudPaper Elevation="2" Class="p-4">
-                <MudText Typo="Typo.h6">🕵️‍♀️ Profils qui m’ont visité</MudText>
-                @foreach (var visitor in ProfileVisitors)
-                {
-                    <MudChip T="string" OnClick="@(() => GoToProfile(visitor.Id))">@visitor.Username</MudChip>
-                }
+            <MudPaper Elevation="2" Class="p-4 rounded-lg shadow-sm">
+                <MudText Typo="Typo.h6" Class="mb-2">🕵️‍♀️ Qui m’ont visité</MudText>
+                <div class="d-flex flex-wrap">
+                    @foreach (var visitor in ProfileVisitors)
+                    {
+                        <MudChip Class="mr-2 mb-2" OnClick="@(() => GoToProfile(visitor.Id))">
+                            @visitor.Username
+                        </MudChip>
+                    }
+                </div>
             </MudPaper>
         </MudItem>
 
