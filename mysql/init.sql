@@ -166,3 +166,73 @@ CREATE TABLE IF NOT EXISTS `sessions` (
     expires_at TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
+-- Script pour seeder 20 utilisateurs fictifs pour tester les fonctionnalités de recherche
+-- Tous les mots de passe sont 'Password123!'
+-- Hash généré correspondant à 'Password123!'
+SET @password_hash = '$2a$11$K3.BCTZyTSAQxdTH8bh.DOD.bsvW/Hk8.pnh0TJxMOo4vQxfDXnv.';
+
+-- Insérer des utilisateurs fictifs
+INSERT INTO users (username, firstname, lastname, email, password_hash, age, biography, genre_id, sexual_preferences_id, tag_id, gps_location, popularity_score, profile_complete, isactive, localisation_isactive, notifisactive, created_at)
+VALUES 
+-- Femmes intéressées par les hommes
+('sophie92', 'Sophie', 'Dupont', 'sophie@example.com', @password_hash, 28, 'Amoureuse de la vie et des voyages. Je cherche une personne sincère pour partager de bons moments.', 2, 1, 3, POINT(2.3522, 48.8566), 75, 1, 1, 1, 1, NOW()),
+('laura123', 'Laura', 'Martin', 'laura@example.com', @password_hash, 24, 'Passionnée de photographie et de randonnée. J''aime explorer de nouveaux endroits.', 2, 1, 5, POINT(2.3512, 48.8576), 82, 1, 1, 1, 1, NOW()),
+('chloe_paris', 'Chloé', 'Bernard', 'chloe@example.com', @password_hash, 31, 'Médecin passionnée par mon métier. Je cherche quelqu''un qui partage ma passion pour la vie.', 2, 1, 7, POINT(2.3532, 48.8556), 68, 1, 1, 1, 1, NOW()),
+('julia87', 'Julia', 'Robert', 'julia@example.com', @password_hash, 26, 'Je suis musicienne et j''adore les concerts. Cherche quelqu''un pour m''accompagner dans mes aventures.', 2, 1, 1, POINT(2.3542, 48.8546), 90, 1, 1, 1, 1, NOW()),
+('emma_lyon', 'Emma', 'Blanc', 'emma@example.com', @password_hash, 30, 'Avocate, je cherche un équilibre entre vie professionnelle et personnelle. Je suis sportive et j''adore cuisiner.', 2, 1, 9, POINT(4.8357, 45.7640), 65, 1, 1, 1, 1, NOW()),
+
+-- Hommes intéressés par les femmes
+('thomas75', 'Thomas', 'Dubois', 'thomas@example.com', @password_hash, 32, 'Ingénieur en informatique, je suis un geek passionné par les nouvelles technologies et le cinéma.', 1, 2, 2, POINT(2.3502, 48.8586), 70, 1, 1, 1, 1, NOW()),
+('nicolas_m', 'Nicolas', 'Moreau', 'nicolas@example.com', @password_hash, 29, 'Chef cuisinier, j''aime créer et partager. Cherche une personne authentique pour une relation sincère.', 1, 2, 8, POINT(2.3492, 48.8596), 85, 1, 1, 1, 1, NOW()),
+('antoine33', 'Antoine', 'Leroy', 'antoine@example.com', @password_hash, 35, 'Photographe professionnel, passionné de voyage et d''aventure. Je vis chaque jour comme une nouvelle découverte.', 1, 2, 4, POINT(2.3482, 48.8606), 60, 1, 1, 1, 1, NOW()),
+('hugo_paris', 'Hugo', 'Girard', 'hugo@example.com', @password_hash, 27, 'Architecte, j''aime les belles choses et l''art en général. Cherche une relation basée sur la complicité.', 1, 2, 6, POINT(2.3472, 48.8616), 78, 1, 1, 1, 1, NOW()),
+('lucas_lyon', 'Lucas', 'Petit', 'lucas@example.com', @password_hash, 33, 'Entrepreneur dans l''âme, j''aime les défis et les personnes qui me poussent vers l''avant.', 1, 2, 9, POINT(4.8347, 45.7650), 72, 1, 1, 1, 1, NOW()),
+
+-- Profils mixtes avec diverses préférences
+('alex_nonbinary', 'Alex', 'Rousseau', 'alex@example.com', @password_hash, 25, 'Non-binaire, artiste, je suis ouvert(e) à rencontrer des personnes intéressantes, quelle que soit leur identité.', 3, 3, 3, POINT(2.3462, 48.8626), 80, 1, 1, 1, 1, NOW()),
+('camille_bi', 'Camille', 'Simon', 'camille@example.com', @password_hash, 29, 'Bisexuel(le), enseignant(e), j''adore les voyages et les découvertes culturelles.', 3, 3, 5, POINT(2.3452, 48.8636), 75, 1, 1, 1, 1, NOW()),
+('maxime_gay', 'Maxime', 'Fournier', 'maxime@example.com', @password_hash, 31, 'Homme gay, ingénieur, passionné de théâtre et de littérature. Je cherche une relation sérieuse.', 1, 2, 7, POINT(2.3442, 48.8646), 68, 1, 1, 1, 1, NOW()),
+('sarah_lesbian', 'Sarah', 'Lambert', 'sarah@example.com', @password_hash, 28, 'Femme lesbienne, médecin, j''aime le sport, la nature et les animaux.', 2, 2, 9, POINT(2.3432, 48.8656), 70, 1, 1, 1, 1, NOW()),
+('morgan_fluid', 'Morgan', 'Mercier', 'morgan@example.com', @password_hash, 26, 'Genre fluide, musicien(ne), passionné(e) de cuisine et de voyage.', 3, 3, 1, POINT(2.3422, 48.8666), 82, 1, 1, 1, 1, NOW()),
+
+-- Profils avec intérêts spécifiques
+('kevin_gaming', 'Kevin', 'Roux', 'kevin@example.com', @password_hash, 24, 'Passionné par les jeux vidéo et l''univers geek. Je cherche quelqu''un qui partage ces passions.', 1, 2, 1, POINT(5.3697, 43.2965), 65, 1, 1, 1, 1, NOW()),
+('marie_art', 'Marie', 'Vincent', 'marie@example.com', @password_hash, 27, 'Artiste peintre, je vis pour l''art et la création. J''aime les esprits créatifs et originaux.', 2, 1, 4, POINT(5.3687, 43.2975), 78, 1, 1, 1, 1, NOW()),
+('paul_sport', 'Paul', 'Muller', 'paul@example.com', @password_hash, 30, 'Sportif professionnel, je suis dynamique et plein d''énergie. J''aime les personnes qui me suivent dans mes aventures.', 1, 2, 6, POINT(5.3677, 43.2985), 85, 1, 1, 1, 1, NOW()),
+('julie_nature', 'Julie', 'Garnier', 'julie@example.com', @password_hash, 29, 'Biologiste marine, j''ai une passion pour la nature et l''écologie. Je cherche quelqu''un qui partage ces valeurs.', 2, 1, 8, POINT(5.3667, 43.2995), 70, 1, 1, 1, 1, NOW()),
+('david_music', 'David', 'Faure', 'david@example.com', @password_hash, 33, 'Compositeur, la musique est ma vie. Je cherche une personne qui vibre au même rythme que moi.', 1, 2, 7, POINT(5.3657, 43.3005), 76, 1, 1, 1, 1, NOW());
+
+-- Créer quelques relations (likes) entre utilisateurs pour générer des scores de popularité
+INSERT INTO likes (user_id, liked_user_id, timestamp)
+VALUES
+-- User 6 (Thomas) like Sophie, Laura
+(6, 1, NOW()),
+(6, 2, NOW()),
+
+-- User 7 (Nicolas) like Sophie
+(7, 1, NOW()),
+
+-- User 8 (Antoine) like Sophie, Chloé
+(8, 1, NOW()),
+(8, 3, NOW()),
+
+-- User 9 (Hugo) like Laura, Julia
+(9, 2, NOW()),
+(9, 4, NOW()),
+
+-- Quelques autres likes pour créer un réseau
+(1, 6, NOW()),  -- Sophie like Thomas (match)
+(3, 8, NOW()),  -- Chloé like Antoine (match)
+(4, 7, NOW()),  -- Julia like Nicolas
+(5, 9, NOW()),  -- Emma like Hugo
+(11, 12, NOW()),-- Alex like Camille
+(13, 14, NOW()),-- Maxime like Sarah
+(16, 17, NOW()),-- Kevin like Marie
+(19, 18, NOW());-- Paul like Julie
+
+-- Note: Pour ajouter des photos aux profils utilisateurs, vous devrez exécuter l'application
+-- et uploader des photos manuellement ou créer un script qui convertit des images en BLOB.
+-- 
+-- Exemple (non fonctionnel ici) de ce que serait l'ajout d'une photo si nous avions le BLOB de l'image:
+-- INSERT INTO photos (user_id, image_data, est_profil) VALUES (1, [BINARY_DATA_HERE], 1);
