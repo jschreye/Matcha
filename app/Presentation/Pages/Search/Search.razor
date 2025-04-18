@@ -1,0 +1,493 @@
+@page "/search"
+@using Core.Interfaces.Services
+@using Core.Data.DTOs
+@using Core.Data.Entity
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@using MudBlazor
+@using Presentation.Components.Search
+@inject IUserService UserService
+@inject ISearchService SearchService
+@inject IPhotoService PhotoService
+@inject ITagService TagService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+@inject IDialogService DialogService
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    <MudPaper Elevation="3" Class="pa-4">
+        <MudText Typo="Typo.h3" Align="Align.Center" Class="mb-6 font-weight-bold">Trouve l'âme soeur</MudText>
+
+        <MudGrid Justify="Justify.Center" Class="mb-6">
+            <MudItem xs="12" sm="5" Class="d-flex justify-center">
+                <MudButton Variant="Variant.Filled" 
+                           Color="Color.Secondary" 
+                           Size="Size.Large"
+                           OnClick="SearchSimilarProfiles"
+                           Class="py-3 rounded-lg"
+                           Style="background-color: #a992fa; color: white; width: 100%;">
+                    <MudText Typo="Typo.h6">Notre sélection</MudText>
+                </MudButton>
+            </MudItem>
+            
+            <MudItem xs="12" sm="1" Class="d-flex justify-center align-center">
+                <MudText Typo="Typo.h6">ou</MudText>
+            </MudItem>
+            
+            <MudItem xs="12" sm="5" Class="d-flex justify-center">
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           Size="Size.Large"
+                           OnClick="SearchRandomProfiles"
+                           Class="py-3 rounded-lg"
+                           Style="background-color: #8c9eff; color: white; width: 100%;">
+                    <MudText Typo="Typo.h6">Sélection aléatoire</MudText>
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+        
+        <MudText Typo="Typo.body1" Align="Align.Center" Class="mb-6">ou en personnalisant votre recherche</MudText>
+        
+        @if (!IsCustomSearchOpened)
+        {
+            <MudPaper Class="pa-4 mb-6" Elevation="0">
+                <MudGrid>
+                    <!-- Slider pour l'âge -->
+                    <MudItem xs="12" sm="4">
+                        <MudPaper Elevation="0" Class="d-flex flex-column align-center pa-2">
+                            <MudText Typo="Typo.caption" Class="mb-2">Tranche d'âge</MudText>
+                            <div class="d-flex align-center my-2" style="width: 100%;">
+                                <MudSlider T="int" Min="18" Max="99" Value="@MinAge" ValueChanged="@((int val) => MinAge = val)" 
+                                         Color="Color.Secondary" Class="mx-2" Style="width: 100%;">
+                                </MudSlider>
+                                <MudText Typo="Typo.body2" Class="mud-text-secondary ml-2">@MinAge</MudText>
+                            </div>
+                            <div class="d-flex align-center my-2" style="width: 100%;">
+                                <MudSlider T="int" Min="18" Max="99" Value="@MaxAge" ValueChanged="@((int val) => MaxAge = val)" 
+                                         Color="Color.Secondary" Class="mx-2" Style="width: 100%;">
+                                </MudSlider>
+                                <MudText Typo="Typo.body2" Class="mud-text-secondary ml-2">@MaxAge</MudText>
+                            </div>
+                        </MudPaper>
+                    </MudItem>
+                    
+                    <!-- Slider pour la popularité -->
+                    <MudItem xs="12" sm="4">
+                        <MudPaper Elevation="0" Class="d-flex flex-column align-center pa-2">
+                            <MudText Typo="Typo.caption" Class="mb-2">Popularité</MudText>
+                            <div class="d-flex align-center my-2" style="width: 100%;">
+                                <MudSlider T="int" Min="0" Max="100" Value="@MinPopularity" ValueChanged="@((int val) => MinPopularity = val)" 
+                                         Color="Color.Secondary" Class="mx-2" Style="width: 100%;">
+                                </MudSlider>
+                                <MudText Typo="Typo.body2" Class="mud-text-secondary ml-2">@MinPopularity</MudText>
+                            </div>
+                            <div class="d-flex align-center my-2" style="width: 100%;">
+                                <MudSlider T="int" Min="0" Max="100" Value="@MaxPopularity" ValueChanged="@((int val) => MaxPopularity = val)" 
+                                         Color="Color.Secondary" Class="mx-2" Style="width: 100%;">
+                                </MudSlider>
+                                <MudText Typo="Typo.body2" Class="mud-text-secondary ml-2">@MaxPopularity</MudText>
+                            </div>
+                        </MudPaper>
+                    </MudItem>
+                    
+                    <!-- Slider pour le rayon de localisation -->
+                    <MudItem xs="12" sm="4">
+                        <MudPaper Elevation="0" Class="d-flex flex-column align-center pa-2">
+                            <MudText Typo="Typo.caption" Class="mb-2">Rayon de localisation</MudText>
+                            <div class="d-flex align-center my-2" style="width: 100%;">
+                                <MudSlider T="double" Min="0" Max="500" Step="10" Value="@MaxDistance" ValueChanged="@((double val) => MaxDistance = val)" 
+                                         Color="Color.Secondary" Class="mx-2" Style="width: 100%;">
+                                </MudSlider>
+                                <MudText Typo="Typo.body2" Class="mud-text-secondary ml-2">@MaxDistance km</MudText>
+                            </div>
+                        </MudPaper>
+                    </MudItem>
+                </MudGrid>
+
+                <!-- Tags sélectionnés -->
+                <MudItem xs="12" Class="d-flex flex-column align-center mt-4">
+                    <MudText Typo="Typo.caption" Class="mb-2">Tags sélectionnés</MudText>
+                    <div class="d-flex flex-wrap justify-center">
+                        @if (AvailableTags != null && AvailableTags.Any())
+                        {
+                            @foreach (var tag in AvailableTags.Take(5))
+                            {
+                                <MudChip T="string" Color="@(SelectedTagIds.Contains(tag.Id) ? Color.Primary : Color.Default)"
+                                        OnClick="@(() => ToggleTag(tag.Id))"
+                                        Style="margin: 4px; border-radius: 20px; padding: 8px 16px;">
+                                    <div class="d-flex align-center">
+                                        @if (SelectedTagIds.Contains(tag.Id))
+                                        {
+                                            <MudIcon Icon="@Icons.Material.Filled.Check" Size="Size.Small" Class="mr-1" />
+                                        }
+                                        @tag.Libelle
+                                    </div>
+                                </MudChip>
+                            }
+                            @if (AvailableTags.Count > 5)
+                            {
+                                <MudChip T="string" Color="Color.Default" OnClick="@(() => ShowMoreTags())"
+                                        Style="margin: 4px; border-radius: 20px; padding: 8px 16px;">
+                                    <div class="d-flex align-center">
+                                        <MudIcon Icon="@Icons.Material.Filled.MoreHoriz" Size="Size.Small" Class="mr-1" />
+                                        Plus
+                                    </div>
+                                </MudChip>
+                            }
+                        }
+                    </div>
+                </MudItem>
+
+                <MudItem xs="12" Class="d-flex justify-center mt-4">
+                    <MudButton Variant="Variant.Filled" 
+                              Color="Color.Primary" 
+                              OnClick="SearchCustomProfiles"
+                              Class="px-6">
+                        Lancer la recherche
+                    </MudButton>
+                </MudItem>
+            </MudPaper>
+        }
+
+        @if (IsLoading)
+        {
+            <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-4" />
+        }
+
+        @if (Users.Any())
+        {
+            <MudText Typo="Typo.h4" Class="mt-6 mb-4 font-weight-bold">Résultats</MudText>
+            <MudGrid>
+                @foreach (var user in Users)
+                {
+                    <MudItem xs="12" sm="6" Class="mb-3">
+                        <MudPaper Elevation="2" Class="pa-4 rounded-lg" Style="position: relative;">
+                            @if (user.IsActive)
+                            {
+                                <MudIcon Icon="@Icons.Material.Filled.Circle" 
+                                        Color="Color.Success" 
+                                        Style="position: absolute; top: 8px; right: 8px; height: 16px; width: 16px;" />
+                            }
+                            <MudGrid>
+                                <MudItem xs="4">
+                                    @if (ProfileImages.ContainsKey(user.Id) && !string.IsNullOrWhiteSpace(ProfileImages[user.Id]))
+                                    {
+                                        <div style="width: 100px; height: 100px; overflow: hidden; border-radius: 50%; margin: 0 auto;">
+                                            <img src="@ProfileImages[user.Id]" alt="Photo de profil" 
+                                                style="width: 100%; height: 100%; object-fit: cover;" />
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <MudAvatar Color="Color.Primary" Style="width: 100px; height: 100px; margin: 0 auto; font-size: 2rem;">
+                                            @(user.Username.Length > 0 ? user.Username[0].ToString() : "?")
+                                        </MudAvatar>
+                                    }
+                                </MudItem>
+                                <MudItem xs="8">
+                                    <div class="d-flex align-center">
+                                        <MudText Typo="Typo.h5">@user.Username</MudText>
+                                        <MudIcon Icon="@(user.Genre == 1 ? Icons.Material.Filled.Male : Icons.Material.Filled.Female)" 
+                                                Class="ml-2" Color="@(user.Genre == 1 ? Color.Info : Color.Secondary)" />
+                                    </div>
+                                    <MudText Typo="Typo.body1" Class="mt-1">@user.Age ans</MudText>
+                                    <MudRating ReadOnly="true" SelectedValue="@CalculateStarRating(user.PopularityScore)" 
+                                            MaxValue="5" Class="mt-1" />
+                                </MudItem>
+                                <MudItem xs="12" Class="mt-2">
+                                    <MudButton Variant="Variant.Outlined" 
+                                            Color="Color.Primary" 
+                                            OnClick="() => ViewProfile(user.Id)"
+                                            FullWidth="true"
+                                            Class="mt-2">
+                                        Voir profil
+                                    </MudButton>
+                                </MudItem>
+                            </MudGrid>
+                        </MudPaper>
+                    </MudItem>
+                }
+            </MudGrid>
+        }
+        else if (!IsLoading && HasSearched)
+        {
+            <MudAlert Severity="Severity.Info" Class="mt-4">Aucun profil trouvé. Essayez de modifier vos critères de recherche.</MudAlert>
+        }
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private List<UserProfileDto> Users { get; set; } = new();
+    private bool IsLoading { get; set; } = false;
+    private bool HasSearched { get; set; } = false;
+    private bool IsCustomSearchOpened { get; set; } = false;
+    private int CurrentUserId { get; set; }
+    private Dictionary<int, string> ProfileImages { get; set; } = new();
+    
+    // Paramètres pour la recherche personnalisée
+    private int MinAge { get; set; } = 18;
+    private int MaxAge { get; set; } = 60;
+    private int MinPopularity { get; set; } = 0;
+    private int MaxPopularity { get; set; } = 100;
+    private double MaxDistance { get; set; } = 100;
+    private List<int> SelectedTagIds { get; set; } = new();
+    private List<Tag> AvailableTags { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier);
+            
+            if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
+            {
+                CurrentUserId = userId;
+                
+                // Charger les tags disponibles pour le sélecteur
+                try
+                {
+                    AvailableTags = await TagService.GetTagsAsync();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Erreur lors du chargement des tags : {ex.Message}");
+                    AvailableTags = new List<Tag>();
+                }
+            }
+            else
+            {
+                NavigationManager.NavigateTo("/login");
+            }
+        }
+        else
+        {
+            NavigationManager.NavigateTo("/login");
+        }
+    }
+
+    private async Task SearchSimilarProfiles()
+    {
+        IsLoading = true;
+        HasSearched = true;
+        ProfileImages.Clear();
+        
+        try
+        {
+            // Utiliser le service de recherche pour trouver des profils similaires
+            var allUsers = await SearchService.FindSimilarProfilesAsync(CurrentUserId);
+            
+            // Filtrer pour ne garder que les utilisateurs avec un profil complet
+            Users = allUsers.Where(u => u.ProfileComplete).ToList();
+            
+            // Charger les photos de profil pour tous les utilisateurs
+            await LoadProfileImagesAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erreur lors de la recherche : {ex.Message}");
+            Users = new List<UserProfileDto>();
+        }
+        finally
+        {
+            IsLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task SearchRandomProfiles()
+    {
+        IsLoading = true;
+        HasSearched = true;
+        ProfileImages.Clear();
+        
+        try
+        {
+            // Utiliser le service de recherche pour trouver des profils aléatoires
+            var allUsers = await SearchService.FindRandomProfilesAsync(CurrentUserId, 10);
+            
+            // Filtrer pour ne garder que les utilisateurs avec un profil complet
+            Users = allUsers.Where(u => u.ProfileComplete).ToList();
+            
+            // Charger les photos de profil pour tous les utilisateurs
+            await LoadProfileImagesAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erreur lors de la recherche aléatoire : {ex.Message}");
+            Users = new List<UserProfileDto>();
+        }
+        finally
+        {
+            IsLoading = false;
+            StateHasChanged();
+        }
+    }
+    
+    private async Task SearchCustomProfiles()
+    {
+        IsLoading = true;
+        HasSearched = true;
+        ProfileImages.Clear();
+        
+        try
+        {
+            // Utiliser le service de recherche avec les critères personnalisés
+            var allUsers = await SearchService.FindCustomProfilesAsync(
+                CurrentUserId,
+                MinAge,
+                MaxAge,
+                MinPopularity,
+                MaxPopularity,
+                MaxDistance,
+                SelectedTagIds
+            );
+            
+            // Filtrer pour ne garder que les utilisateurs avec un profil complet
+            Users = allUsers.Where(u => u.ProfileComplete).ToList();
+            
+            // Charger les photos de profil pour tous les utilisateurs
+            await LoadProfileImagesAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erreur lors de la recherche personnalisée : {ex.Message}");
+            Users = new List<UserProfileDto>();
+        }
+        finally
+        {
+            IsLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadProfileImagesAsync()
+    {
+        foreach (var user in Users)
+        {
+            try
+            {
+                var profilePhoto = await PhotoService.GetProfilePhotoAsync(user.Id);
+                if (profilePhoto != null && profilePhoto.ImageData != null && profilePhoto.ImageData.Length > 0)
+                {
+                    // Convertir en base64 pour l'affichage
+                    string imageUrl = $"data:image/jpeg;base64,{Convert.ToBase64String(profilePhoto.ImageData)}";
+                    ProfileImages[user.Id] = imageUrl;
+                }
+                else
+                {
+                    ProfileImages[user.Id] = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur lors du chargement de la photo pour l'utilisateur {user.Id}: {ex.Message}");
+                ProfileImages[user.Id] = null;
+            }
+        }
+        
+        // Force une mise à jour de l'UI après chargement des photos
+        StateHasChanged();
+    }
+
+    private int CalculateStarRating(int popularityScore)
+    {
+        // Convertir le score de popularité en notation d'étoiles (1-5)
+        // Supposons que le score varie de 0 à 100
+        return Math.Min(5, Math.Max(1, (int)Math.Ceiling(popularityScore / 20.0)));
+    }
+
+    private void ToggleTag(int tagId)
+    {
+        if (SelectedTagIds.Contains(tagId))
+            SelectedTagIds.Remove(tagId);
+        else
+            SelectedTagIds.Add(tagId);
+    }
+
+    private async Task ShowMoreTags()
+    {
+        var parameters = new DialogParameters
+        {
+            ["MinAge"] = MinAge,
+            ["MaxAge"] = MaxAge,
+            ["MinPopularity"] = MinPopularity,
+            ["MaxPopularity"] = MaxPopularity,
+            ["MaxDistance"] = MaxDistance,
+            ["SelectedTagIds"] = SelectedTagIds,
+            ["AvailableTags"] = AvailableTags
+        };
+
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            MaxWidth = MaxWidth.Medium,
+            FullWidth = true
+        };
+
+        var dialog = await DialogService.ShowAsync<CustomSearchDialog>("Sélection des tags", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            var customSearchParams = (CustomSearchParameters)result.Data;
+            SelectedTagIds = customSearchParams.SelectedTagIds;
+        }
+    }
+
+    private async Task OpenCustomSearchDialog()
+    {
+        var parameters = new DialogParameters
+        {
+            ["MinAge"] = MinAge,
+            ["MaxAge"] = MaxAge,
+            ["MinPopularity"] = MinPopularity,
+            ["MaxPopularity"] = MaxPopularity,
+            ["MaxDistance"] = MaxDistance,
+            ["SelectedTagIds"] = SelectedTagIds,
+            ["AvailableTags"] = AvailableTags
+        };
+
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            MaxWidth = MaxWidth.Medium,
+            FullWidth = true
+        };
+
+        var dialog = await DialogService.ShowAsync<CustomSearchDialog>("Recherche personnalisée", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            var customSearchParams = (CustomSearchParameters)result.Data;
+            MinAge = customSearchParams.MinAge;
+            MaxAge = customSearchParams.MaxAge;
+            MinPopularity = customSearchParams.MinPopularity;
+            MaxPopularity = customSearchParams.MaxPopularity;
+            MaxDistance = customSearchParams.MaxDistance;
+            SelectedTagIds = customSearchParams.SelectedTagIds;
+
+            await SearchCustomProfiles();
+        }
+    }
+
+    private void ViewProfile(int userId)
+    {
+        NavigationManager.NavigateTo($"/profile/{userId}");
+    }
+    
+    // Classe pour stocker les paramètres de recherche personnalisée
+    public class CustomSearchParameters
+    {
+        public int MinAge { get; set; }
+        public int MaxAge { get; set; }
+        public int MinPopularity { get; set; }
+        public int MaxPopularity { get; set; }
+        public double MaxDistance { get; set; }
+        public List<int> SelectedTagIds { get; set; }
+    }
+} 

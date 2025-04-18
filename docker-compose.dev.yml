@@ -20,6 +20,8 @@ services:
       - db
     networks:
       - app-network
+    ports:
+      - "5001:5001"  # Exposer le port 5000 directement
 
   db:
     image: mysql:8.0
