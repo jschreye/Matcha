@@ -3,6 +3,7 @@
 @using Core.Data.Entity
 @using Microsoft.AspNetCore.Components.Web
 @inject IChatService ChatService
+@inject IUserService UserService
 @inject AuthenticationStateProvider AuthStateProvider
 @inject INotificationService NotificationService
 
@@ -23,7 +24,8 @@
                           Color="@(msg.SenderId == currentUserId ? Color.Primary : Color.Secondary)"
                           Elevation="0">
                     <MudText Typo="Typo.body2" Class="fw-bold">
-                        @(msg.SenderId == currentUserId ? "(Moi)" : "(Lui)") @msg.Contenu
+                        @((msg.SenderId == currentUserId ? currentUsername : receiverUsername))
+                        : @msg.Contenu
                     </MudText>
                 </MudPaper>
             }
@@ -48,21 +50,25 @@
 @code {
     [Parameter] public int ReceiverId { get; set; }
     private int currentUserId;
+    private string currentUsername = "";
+    private string receiverUsername = "";
     private string message = string.Empty;
     private List<Message> conversationMessages = new();
 
     protected override async Task OnInitializedAsync()
     {
-        // 1. Récupère l'ID de l'utilisateur courant
+        // 1) ID courant
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        var user     = authState.User;
+        var user      = authState.User;
         if (!int.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out currentUserId))
             return;
 
-        // 2. S'abonner aux nouveaux messages
-        ChatService.OnMessageReceived += OnMessageReceived;
+        // 2) Charger les deux noms
+        currentUsername  = (await UserService.GetUserProfileAsync(currentUserId))?.Username ?? "Moi";
+        receiverUsername = (await UserService.GetUserProfileAsync(ReceiverId))?.Username ?? "Lui";
 
-        // 3. Charger l'historique complet depuis la BDD
+        // 3) S'abonner & charger historique
+        ChatService.OnMessageReceived += OnMessageReceived;
         conversationMessages = (await ChatService.LoadConversationAsync(currentUserId, ReceiverId))
                                     .OrderBy(m => m.Timestamp)
                                     .ToList();
@@ -70,7 +76,6 @@
 
     private void OnMessageReceived(Message newMsg)
     {
-        // Ne gérer que les messages de cette conversation
         if ((newMsg.SenderId == currentUserId && newMsg.ReceiverId == ReceiverId) ||
             (newMsg.SenderId == ReceiverId  && newMsg.ReceiverId == currentUserId))
         {
@@ -97,7 +102,6 @@
 
     public void Dispose()
     {
-        // Se désabonner pour éviter les fuites mémoire
         ChatService.OnMessageReceived -= OnMessageReceived;
     }
 }
