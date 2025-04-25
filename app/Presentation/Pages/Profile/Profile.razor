@@ -64,14 +64,14 @@
 </MudPaper>
 
 @code {
-    private MudForm form;
+    private MudForm? form;
     private bool isFormValid;
     private int userId;
     /** Objet contenant les infos du profil utilisateur */
     private UserProfileDto userProfile = new();
     /** Listes des genres et préférences sexuelles */
-    private List<Genre> genre;
-    private List<PrefSex> prefSex;
+    private List<Genre> genre = new();
+    private List<PrefSex> prefSex = new();
     /** Liste des tags disponibles */
     private List<Tag> tags = new();
     /** IDs des tags sélectionnés */
@@ -238,8 +238,12 @@
             
             var userInfo = System.Text.Json.JsonSerializer.Deserialize<UserInfoDto>(userInfoJson, options);
             
-            Console.WriteLine($"GetCurrentLocalisationStatus - userInfo.localisationIsActive: {userInfo.LocalisationIsActive}");
-            return userInfo.LocalisationIsActive;
+            if (userInfo != null)
+            {
+                Console.WriteLine($"GetCurrentLocalisationStatus - userInfo.localisationIsActive: {userInfo.LocalisationIsActive}");
+                return userInfo.LocalisationIsActive;
+            }
+            return userProfile.LocalisationIsActive;
         }
         catch (Exception ex)
         {
@@ -277,7 +281,7 @@
     private class UserInfoDto
     {
         public int Id { get; set; }
-        public string Username { get; set; }
+        public string Username { get; set; } = string.Empty;
         public bool ProfileComplete { get; set; }
         public bool LocalisationIsActive { get; set; }
     }
