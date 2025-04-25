@@ -29,7 +29,6 @@ public class NotificationService : INotificationService
 
         await _notificationRepository.SaveNotificationAsync(notification);
         OnNotify?.Invoke(receiverId);
-        // Optionnellement, vous pouvez notifier que la liste a été mise à jour
         OnNotificationsUpdated?.Invoke(receiverId);
     }
     
@@ -67,5 +66,60 @@ public class NotificationService : INotificationService
         await _notificationRepository.SaveNotificationAsync(notification);
         OnNotify?.Invoke(likedUserId);
         OnNotificationsUpdated?.Invoke(likedUserId);
+    }
+    public async Task NotifyProfileUnLikedAsync(int unLikedUserId, int unLikerUserId)
+    {
+        int notificationTypeId = 3;
+
+        var notification = new Notification
+        {
+            UserId = unLikedUserId,
+            SenderId = unLikerUserId,
+            NotificationTypeId = notificationTypeId,
+            Lu = false,
+            Timestamp = DateTime.Now
+        };
+
+        await _notificationRepository.SaveNotificationAsync(notification);
+        OnNotify?.Invoke(unLikedUserId);
+        OnNotificationsUpdated?.Invoke(unLikedUserId);
+    }
+    public async Task NotifyVisitPofileAsync(int visitedUserId, int visitUserId)
+    {
+        int notificationTypeId = 4;
+
+        var notification = new Notification
+        {
+            UserId = visitedUserId,
+            SenderId = visitUserId,
+            NotificationTypeId = notificationTypeId,
+            Lu = false,
+            Timestamp = DateTime.Now
+        };
+
+        await _notificationRepository.SaveNotificationAsync(notification);
+        OnNotify?.Invoke(visitedUserId);
+        OnNotificationsUpdated?.Invoke(visitedUserId);
+    }
+    public async Task NotifyMatchAsync(int matchedUserId, int matchUserId)
+    {
+        int notificationTypeId = 5;
+
+        var notification = new Notification
+        {
+            UserId = matchedUserId,
+            SenderId = matchUserId,
+            NotificationTypeId = notificationTypeId,
+            Lu = false,
+            Timestamp = DateTime.Now
+        };
+
+        await _notificationRepository.SaveNotificationAsync(notification);
+        OnNotify?.Invoke(matchedUserId);
+        OnNotificationsUpdated?.Invoke(matchedUserId);
+    }
+    public async Task ClearAllNotificationsAsync(int userId)
+    {
+        await _notificationRepository.DeleteNotificationsByUserIdAsync(userId);
     }
 }

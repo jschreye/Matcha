@@ -132,6 +132,8 @@ CREATE TABLE IF NOT EXISTS notification_types (
 INSERT INTO notification_types (libelle) VALUES
 ('Message'),
 ('Like'),
+('Unlike'),
+('Visite'),
 ('Match');
 
 -- Table Notifications

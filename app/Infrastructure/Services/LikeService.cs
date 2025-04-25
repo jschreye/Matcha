@@ -13,7 +13,7 @@ namespace Infrastructure.Services
             _likeRepository = likeRepository;
             _matchRepository = matchRepository;
         }
-        public async Task LikeProfileAsync(int userId, int likedUserId)
+        public async Task<bool> LikeProfileAsync(int userId, int likedUserId)
         {
             await _likeRepository.LikeProfileAsync(userId, likedUserId);
 
@@ -23,7 +23,9 @@ namespace Infrastructure.Services
             {
                 await _matchRepository.CreateMatchAsync(userId, likedUserId);
                 Console.WriteLine("🔥 It's a match!");
+                return true;
             }
+            return false;
         }
         public async Task UnlikeProfileAsync(int userId, int likedUserId)
         {
