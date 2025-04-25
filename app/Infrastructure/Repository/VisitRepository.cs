@@ -16,7 +16,6 @@ namespace Infrastructure.Repository
                 ?? throw new InvalidOperationException("Chaîne 'DefaultConnection' introuvable.");
         }
 
-        // renvoie les IDs des profils QUE J’AI visités
         public async Task<List<int>> GetVisitedProfileIdsAsync(int userId)
         {
             var visited = new List<int>();
@@ -40,7 +39,6 @@ namespace Infrastructure.Repository
             return visited;
         }
 
-        // renvoie les IDs de CEUX QUI M’ONT visité
         public async Task<List<int>> GetProfileVisitorsIdsAsync(int userId)
         {
             var visitors = new List<int>();
