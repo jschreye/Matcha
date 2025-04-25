@@ -3,6 +3,7 @@
 @using System.Security.Claims
 @using Core.Interfaces.Services
 @inject IUserService UserService
+@inject IVisitService VisitService
 @inject IPhotoService PhotoService
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager NavigationManager
@@ -125,12 +126,30 @@
     protected override async Task OnInitializedAsync()
     {
         await GetCurrentUserIdAsync();
-        await LoadUserProfile();
-        
-        // Chargement des genres et préférences sexuelles
-        _genres = await GenreService.GetGenresAsync();
-        _prefSexes = await PrefSex.GetPrefSexAsync();
+        if (currentUserId == 0)
+        {
+            NavigationManager.NavigateTo("/login");
+            return;
+        }
+
+        _userProfile = await UserService.GetUserProfileAsync(UserId);
+        if (_userProfile == null)
+        {
+            _loading = false;
+            return;
+        }
+
+        if (currentUserId != UserId)
+            await VisitService.RecordVisitAsync(currentUserId, UserId);
+
+
+        _userTags = await TagService.GetTagNamesForUserAsync(UserId);
+        await LoadPhotos();
+        _hasLiked = await LikeService.HasLikedAsync(currentUserId, UserId);
+
+        _loading = false;
     }
+
     private async Task GetCurrentUserIdAsync()
     {
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
