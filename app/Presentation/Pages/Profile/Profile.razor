@@ -19,7 +19,7 @@
     <!-- Gestionnaire de photos de profil -->
     <ProfilePhotoManager UserId="@userId" />
 
-    <MudForm @ref="form" @bind-IsValid="isFormValid" Outlined="true">
+    <MudForm @ref="form" IsValid="@isFormValid" IsValidChanged="@((bool val) => isFormValid = val)" outlined="true">
         <!-- Informations de base -->
         <BasicInfoForm UserProfile="@userProfile" />
 

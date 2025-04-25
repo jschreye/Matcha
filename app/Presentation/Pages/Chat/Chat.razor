@@ -21,7 +21,7 @@
             @foreach (var msg in conversationMessages)
             {
                 <MudPaper Class="p-2 my-1"
-                          Color="@(msg.SenderId == currentUserId ? Color.Primary : Color.Secondary)"
+                          color="@(msg.SenderId == currentUserId ? Color.Primary : Color.Secondary)"
                           Elevation="0">
                     <MudText Typo="Typo.body2" Class="fw-bold">
                         @((msg.SenderId == currentUserId ? currentUsername : receiverUsername))
