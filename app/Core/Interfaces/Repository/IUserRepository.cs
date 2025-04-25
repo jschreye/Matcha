@@ -14,5 +14,6 @@ namespace Core.Interfaces.Repository
         Task<User?> GetByIdAsync(int id);
         Task UpdateUserAsync(User user);
         Task<List<UserDto>> GetUsersByIdsAsync(List<int> userIds);
+        Task ChangePopularityAsync(int userId, int delta);
     }
 }

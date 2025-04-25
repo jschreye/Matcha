@@ -1,29 +1,36 @@
-
 using Core.Interfaces.Repository;
 using Core.Interfaces.Services;
-using Core.Interfaces.Services;
+using Core.Data.Entity;
 
-public class VisiteService : IVisitService
+namespace Infrastructure.Services
 {
-    private readonly IVisitRepository _visitRepository;
-
-    public VisiteService(IVisitRepository visitRepository)
+    public class VisiteService : IVisitService
     {
-        _visitRepository = visitRepository;
-    }
+        private readonly IVisitRepository _visitRepository;
+        private readonly IUserRepository  _userRepository;
 
-    public Task RecordVisitAsync(int visitorId, int visitedId)
-    {
-        return _visitRepository.AddVisitAsync(visitorId, visitedId);
-    }
+        public VisiteService(
+            IVisitRepository visitRepository,
+            IUserRepository  userRepository)
+        {
+            _visitRepository = visitRepository;
+            _userRepository  = userRepository;
+        }
 
-    public Task<List<int>> GetVisitedProfilesAsync(int userId)
-    {
-        return _visitRepository.GetVisitedProfileIdsAsync(userId);
-    }
+        public async Task RecordVisitAsync(int visitorId, int visitedId)
+        {
+            if (visitorId == visitedId)
+                return;
 
-    public Task<List<int>> GetProfileVisitorsAsync(int userId)
-    {
-        return _visitRepository.GetProfileVisitorsIdsAsync(userId);
+            await _visitRepository.AddVisitAsync(visitorId, visitedId);
+
+            await _userRepository.ChangePopularityAsync(visitedId, +1);
+        }
+
+        public Task<List<int>> GetVisitedProfilesAsync(int userId)
+            => _visitRepository.GetVisitedProfileIdsAsync(userId);
+
+        public Task<List<int>> GetProfileVisitorsAsync(int userId)
+            => _visitRepository.GetProfileVisitorsIdsAsync(userId);
     }
 }

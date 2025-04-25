@@ -343,5 +343,20 @@ namespace Infrastructure.Repository
             }
             return users;
         }
+        public async Task ChangePopularityAsync(int userId, int delta)
+        {
+            const string sql = @"
+                UPDATE users
+                SET popularity_score = LEAST(100, GREATEST(0, popularity_score + @delta))
+                WHERE id = @userId;
+            ";
+
+            await using var conn = new MySqlConnection(_connectionString);
+            await conn.OpenAsync();
+            await using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@delta", delta);
+            cmd.Parameters.AddWithValue("@userId", userId);
+            await cmd.ExecuteNonQueryAsync();
+        }
     }
 }
