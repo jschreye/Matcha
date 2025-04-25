@@ -140,7 +140,10 @@
         }
 
         if (currentUserId != UserId)
+        {
             await VisitService.RecordVisitAsync(currentUserId, UserId);
+            await NotificationService.NotifyVisitPofileAsync(_userProfile.Id, currentUserId);
+        }
 
 
         _userTags = await TagService.GetTagNamesForUserAsync(UserId);
@@ -223,11 +226,18 @@
                 // L'utilisateur a déjà liké le profil, on l'enlève
                 await LikeService.UnlikeProfileAsync(currentUserId, UserId);
                 _hasLiked = false;
+                if (_userProfile != null)
+                {
+                    await NotificationService.NotifyProfileUnLikedAsync(_userProfile.Id, currentUserId);
+                }
             }
             else
             {
                 // L'utilisateur n'a pas encore liké, on l'ajoute
-                await LikeService.LikeProfileAsync(currentUserId, UserId);
+                var match = await LikeService.LikeProfileAsync(currentUserId, UserId);
+                if (match)
+                    await NotificationService.NotifyMatchAsync(_userProfile.Id, currentUserId);
+                    
                 _hasLiked = true;
                 if (_userProfile != null)
                 {
