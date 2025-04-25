@@ -11,65 +11,71 @@ namespace Infrastructure.Repository
 
         public VisitRepository(IConfiguration configuration)
         {
-            _connectionString = configuration.GetConnectionString("DefaultConnection")
-                               ?? throw new InvalidOperationException("La chaîne de connexion 'DefaultConnection' est introuvable.");
+            _connectionString = configuration
+                .GetConnectionString("DefaultConnection")
+                ?? throw new InvalidOperationException("Chaîne 'DefaultConnection' introuvable.");
         }
+
         public async Task<List<int>> GetVisitedProfileIdsAsync(int userId)
         {
             var visited = new List<int>();
+            const string sql = @"
+                SELECT visited_user_id
+                FROM visits
+                WHERE user_id = @userId
+            ORDER BY timestamp DESC;
+            ";
 
-            using var connection = new MySqlConnection(_connectionString);
-            await connection.OpenAsync();
+            await using var conn = new MySqlConnection(_connectionString);
+            await conn.OpenAsync();
+            await using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@userId", userId);
 
-            var query = "SELECT user_id FROM visits WHERE visited_user_id = @userId";
-
-            using var command = new MySqlCommand(query, connection);
-            command.Parameters.AddWithValue("@userId", userId);
-
-            using var reader = await command.ExecuteReaderAsync();
+            await using var reader = await cmd.ExecuteReaderAsync();
             while (await reader.ReadAsync())
             {
                 visited.Add(reader.GetInt32(reader.GetOrdinal("visited_user_id")));
             }
-
             return visited;
         }
+
         public async Task<List<int>> GetProfileVisitorsIdsAsync(int userId)
         {
             var visitors = new List<int>();
-
-            using var connection = new MySqlConnection(_connectionString);
-            await connection.OpenAsync();
-
-            var query = "SELECT user_id FROM visits WHERE visited_user_id = @userId";
-
-            using var command = new MySqlCommand(query, connection);
-            command.Parameters.AddWithValue("@userId", userId);
-
-            using var reader = await command.ExecuteReaderAsync();
-            while (await reader.ReadAsync())
-            {
-                visitors.Add(reader.GetInt32(reader.GetOrdinal("visitor_user_id")));
-            }
-
-            return visitors;
-        }
-        public async Task AddVisitAsync(int visitorId, int visitedId)
-        {
-            if (visitorId == visitedId) return;
+            const string sql = @"
+                SELECT user_id
+                FROM visits
+                WHERE visited_user_id = @userId
+            ORDER BY timestamp DESC;
+            ";
 
             await using var conn = new MySqlConnection(_connectionString);
             await conn.OpenAsync();
+            await using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@userId", userId);
+
+            await using var reader = await cmd.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                visitors.Add(reader.GetInt32(reader.GetOrdinal("user_id")));
+            }
+            return visitors;
+        }
+
+        public async Task AddVisitAsync(int visitorId, int visitedId)
+        {
+            if (visitorId == visitedId) return;
 
             const string sql = @"
                 INSERT INTO visits (user_id, visited_user_id, timestamp)
                 VALUES (@visitor, @visited, NOW());
             ";
 
+            await using var conn = new MySqlConnection(_connectionString);
+            await conn.OpenAsync();
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@visitor", visitorId);
             cmd.Parameters.AddWithValue("@visited", visitedId);
-
             await cmd.ExecuteNonQueryAsync();
         }
     }
