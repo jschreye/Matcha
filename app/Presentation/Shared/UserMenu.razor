@@ -20,22 +20,24 @@
     <MudSpacer />
     <AuthorizeView>
         <Authorized>
+            <!-- Bouton de notification déplacé en dehors du menu -->
+            @if(notificationCount > 0)
+            {
+                <MudButton OnClick="@NavigateToNotifications" Class="mr-2 p-4" Style="min-width:auto; vertical-align:middle;">
+                    <MudBadge Content="@notificationCount" Color="Color.Primary" Overlap="true">
+                        <MudIcon Icon="@Icons.Material.Filled.Notifications" Color="Color.Default" />
+                    </MudBadge>
+                </MudButton>
+            }
+            
+            <!-- Menu de l'avatar séparé -->
             <MudMenu>
                 <ActivatorContent>
                     <!-- Badge avec la pastie verte indiquant que l'utilisateur est connecté -->
-                    @if(notificationCount > 0)
-                    {
-                        <MudButton OnClick="@NavigateToNotifications" Class="mr-2" Style="min-width:auto; vertical-align:middle;">
-                            <MudBadge Content="@notificationCount" Color="Color.Primary" Overlap="true">
-                                <MudIcon Icon="@Icons.Material.Filled.Notifications" Color="Color.Default" />
-                            </MudBadge>
-                        </MudButton>
-                    }
-                    <MudBadge Class="mr-3 ml-3"
+                    <MudBadge Class="mx-3"
                               Color="Color.Success"
                               Overlap="true"
-                              Bordered="true"
-                              BadgeContent="@(notificationCount > 0 ? notificationCount.ToString() : null)">
+                              Bordered="true">
                         @if (!string.IsNullOrWhiteSpace(userProfileImage))
                         {
                             <!-- Affiche l'image de profil spécifique à cet utilisateur -->
