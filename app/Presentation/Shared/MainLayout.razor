@@ -1,16 +1,29 @@
 ﻿@inherits LayoutComponentBase
+@using MudBlazor
 
 <MudThemeProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
 <MudPopoverProvider />
 
+<style>
+    @@media (max-width: 599px) {
+        .mud-drawer-overlay {
+            background-color: rgba(0, 0, 0, 0.5) !important;
+        }
+    }
+</style>
+
 <MudLayout id="unique_id_scroll_section" Style="height: 100vh; overflow-y: auto;">
     <!-- AppBar en haut de l'application -->
     <UserMenu ShowLogin="true" ShowRegister="true" OnToggleDrawer="ToggleDrawer" />
 
     <!-- Drawer latéral pour la navigation -->
-    <MudDrawer @bind-Open="_drawerOpen" Elevation="1" Variant="DrawerVariant.Persistent" Style="@($"color:{Colors.Gray.Lighten5}; background:{Colors.DeepPurple.Accent3};")">
+    <MudDrawer @bind-Open="_drawerOpen" 
+               Elevation="2" 
+               Variant="DrawerVariant.Temporary" 
+               ClipMode="DrawerClipMode.Never" 
+               Style="@($"color:{Colors.Gray.Lighten5}; background:{Colors.DeepPurple.Accent3};")">
         <NavMenu />
     </MudDrawer>
 
@@ -44,7 +57,6 @@
     private string _message = string.Empty;
     private bool isSuccess;
     private bool isVisible = false;
-
     private CancellationTokenSource _cancellationTokenSource = new();
 
     [Inject] private Core.Interfaces.Services.IAlertService AlertService { get; set; } = default!;

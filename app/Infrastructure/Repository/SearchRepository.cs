@@ -382,6 +382,7 @@ namespace Infrastructure.Repository
                     u.id, u.username, u.firstname, u.lastname, u.email, u.age,
                     u.biography, u.genre_id, u.tag_id, u.sexual_preferences_id,
                     ST_X(u.gps_location) AS longitude, ST_Y(u.gps_location) AS latitude,
+                    u.gps_location, -- Ajout pour ORDER BY même sans tag pour cohérence
                     u.popularity_score, u.profile_complete, u.isactive,
                     u.localisation_isactive, u.notifisactive, u.created_at
                 FROM 
@@ -449,62 +450,55 @@ namespace Infrastructure.Repository
                 }
             }
 
-            // Construire la clause AND pour exiger qu'au moins un critère de recherche corresponde
-            baseQueryBuilder.Append(" AND (");
+            // Application séquentielle des filtres (avec AND au lieu de OR)
+            // Chaque filtre est appliqué uniquement s'il est spécifié
             
-            List<string> conditions = new List<string>();
-            
-            // Ajouter chaque condition comme une option
+            // Filtre d'âge
             if (minAge.HasValue && maxAge.HasValue)
-                conditions.Add("u.age BETWEEN @MinAge AND @MaxAge");
+                baseQueryBuilder.Append(" AND u.age BETWEEN @MinAge AND @MaxAge");
             else if (minAge.HasValue)
-                conditions.Add("u.age >= @MinAge");
+                baseQueryBuilder.Append(" AND u.age >= @MinAge");
             else if (maxAge.HasValue)
-                conditions.Add("u.age <= @MaxAge");
+                baseQueryBuilder.Append(" AND u.age <= @MaxAge");
                 
+            // Filtre de popularité
             if (minPopularity.HasValue && maxPopularity.HasValue)
-                conditions.Add("u.popularity_score BETWEEN @MinPopularity AND @MaxPopularity");
+                baseQueryBuilder.Append(" AND u.popularity_score BETWEEN @MinPopularity AND @MaxPopularity");
             else if (minPopularity.HasValue)
-                conditions.Add("u.popularity_score >= @MinPopularity");
+                baseQueryBuilder.Append(" AND u.popularity_score >= @MinPopularity");
             else if (maxPopularity.HasValue)
-                conditions.Add("u.popularity_score <= @MaxPopularity");
+                baseQueryBuilder.Append(" AND u.popularity_score <= @MaxPopularity");
                 
+            // Filtre de distance
             if (maxDistance.HasValue && userLatitude.HasValue && userLongitude.HasValue)
             {
                 var maxDistanceMeters = maxDistance.Value * 1000;
-                conditions.Add("ST_Distance_Sphere(POINT(@UserLongitude, @UserLatitude), u.gps_location) <= @MaxDistanceMeters");
+                baseQueryBuilder.Append(" AND ST_Distance_Sphere(POINT(@UserLongitude, @UserLatitude), u.gps_location) <= @MaxDistanceMeters");
             }
             
-            // Condition spéciale pour les tags : vérifier si l'utilisateur a l'un des tags sélectionnés
-            // soit comme tag principal (u.tag_id) soit comme tag supplémentaire (ut.tag_id)
+            // Filtre de tags (recherche d'au moins un tag correspondant)
             if (tagIds != null && tagIds.Any())
             {
-                StringBuilder tagCondition = new StringBuilder("(");
+                baseQueryBuilder.Append(" AND (");
                 
                 // Vérifier le tag principal
-                tagCondition.Append("u.tag_id IN (");
+                baseQueryBuilder.Append("u.tag_id IN (");
                 for (int i = 0; i < tagIds.Count; i++)
                 {
-                    if (i > 0) tagCondition.Append(",");
-                    tagCondition.Append($"@Tag{i}");
+                    if (i > 0) baseQueryBuilder.Append(",");
+                    baseQueryBuilder.Append($"@Tag{i}");
                 }
-                tagCondition.Append(")");
+                baseQueryBuilder.Append(")");
                 
                 // OU vérifier les tags supplémentaires de l'utilisateur
-                tagCondition.Append(" OR ut.tag_id IN (");
+                baseQueryBuilder.Append(" OR ut.tag_id IN (");
                 for (int i = 0; i < tagIds.Count; i++)
                 {
-                    if (i > 0) tagCondition.Append(",");
-                    tagCondition.Append($"@Tag{i}");
+                    if (i > 0) baseQueryBuilder.Append(",");
+                    baseQueryBuilder.Append($"@Tag{i}");
                 }
-                tagCondition.Append("))");
-                
-                conditions.Add(tagCondition.ToString());
+                baseQueryBuilder.Append("))");
             }
-            
-            // Joindre toutes les conditions avec OR pour exiger qu'au moins une corresponde
-            baseQueryBuilder.Append(string.Join(" OR ", conditions));
-            baseQueryBuilder.Append(")");
             
             // Trier par distance si disponible, sinon par popularité
             if (userLatitude.HasValue && userLongitude.HasValue)

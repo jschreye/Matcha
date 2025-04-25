@@ -5,7 +5,14 @@
     <MudText Typo="Typo.h3" Class="text-center responsive-h3">BIENVENU SUR MATCHA</MudText>
     <MudGrid class="d-flex flex-column align-items-center justify-content-center mt-4" style="width: auto;">
         <MudText Typo="Typo.h4" Class="text-center">Viens trouver l'amour</MudText>
-        <MudLink Href="/register" Typo="Typo.body2" class="ml-auto">Rejoins-nous</MudLink>
+        <AuthorizeView>
+            <Authorized>
+                <!-- Rien à afficher pour les utilisateurs connectés -->
+            </Authorized>
+            <NotAuthorized>
+                <MudLink Href="/register" Typo="Typo.body2" class="ml-auto">Rejoins-nous</MudLink>
+            </NotAuthorized>
+        </AuthorizeView>
     </MudGrid>
 </MudGrid>
 

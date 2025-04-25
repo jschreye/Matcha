@@ -15,107 +15,228 @@
 @inject IDialogService DialogService
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 
-<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
-    <MudPaper Elevation="3" Class="pa-4">
-        <MudText Typo="Typo.h3" Align="Align.Center" Class="mb-6 font-weight-bold">Trouve l'âme soeur</MudText>
+<style>
+    /* Styles pour mobile */
+    .mobile-paper {
+        box-shadow: none !important;
+        border-radius: 0 !important;
+    }
 
-        <MudGrid Justify="Justify.Center" Class="mb-6">
-            <MudItem xs="12" sm="5" Class="d-flex justify-center">
-                <MudButton Variant="Variant.Filled" 
-                           Color="Color.Secondary" 
-                           Size="Size.Large"
-                           OnClick="SearchSimilarProfiles"
-                           Class="py-3 rounded-lg"
-                           Style="background-color: #a992fa; color: white; width: 100%;">
-                    <MudText Typo="Typo.h6">Notre sélection</MudText>
-                </MudButton>
-            </MudItem>
-            
-            <MudItem xs="12" sm="1" Class="d-flex justify-center align-center">
-                <MudText Typo="Typo.h6">ou</MudText>
-            </MudItem>
-            
-            <MudItem xs="12" sm="5" Class="d-flex justify-center">
-                <MudButton Variant="Variant.Filled"
-                           Color="Color.Primary"
-                           Size="Size.Large"
-                           OnClick="SearchRandomProfiles"
-                           Class="py-3 rounded-lg"
-                           Style="background-color: #8c9eff; color: white; width: 100%;">
-                    <MudText Typo="Typo.h6">Sélection aléatoire</MudText>
-                </MudButton>
-            </MudItem>
-        </MudGrid>
+    /* Styles pour cartes utilisateurs */
+    .user-avatar {
+        width: 65px;
+        height: 65px;
+        margin: 0 auto;
+        font-size: 1.5rem;
+    }
+    
+    .user-name {
+        font-size: 1.1rem;
+        font-weight: 500;
+        margin: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    .user-age-gender {
+        display: flex;
+        align-items: center;
+        margin-top: 4px;
+    }
+    
+    .user-rating {
+        margin-top: 4px;
+    }
+    
+    .user-button {
+        margin-top: 8px;
+        height: 36px;
+    }
+
+    /* Styles pour desktop */
+    @@media (min-width: 600px) {
+        .mobile-paper {
+            box-shadow: var(--mud-elevation-3) !important;
+            border-radius: var(--mud-default-borderradius) !important;
+        }
         
-        <MudText Typo="Typo.body1" Align="Align.Center" Class="mb-6">ou en personnalisant votre recherche</MudText>
+        .button-container {
+            width: 70% !important;
+            margin: 0 auto !important;
+            flex-direction: row !important;
+            justify-content: center !important;
+        }
+        
+        .button-wrapper {
+            width: 230px !important;
+            margin: 0 !important;
+        }
+        
+        .ou-text {
+            margin: 0 20px !important;
+            width: auto !important;
+        }
+        
+        .button-custom {
+            height: 45px !important;
+        }
+        
+        .user-avatar {
+            width: 100px !important;
+            height: 100px !important;
+            font-size: 2rem !important;
+        }
+        
+        .user-name {
+            font-size: 1.25rem;
+        }
+        
+        .user-button {
+            height: 40px;
+        }
+    }
+    
+    .button-container {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+    
+    .button-wrapper {
+        width: 240px;
+        margin: 0 auto;
+    }
+    
+    .ou-text {
+        margin: 8px 0;
+        width: 100%;
+        text-align: center;
+    }
+    
+    .button-custom {
+        height: 40px;
+    }
+</style>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4 px-0 px-sm-4">
+    <MudPaper Elevation="0" Class="pa-2 pa-sm-4 mobile-paper">
+        <MudText Typo="Typo.h3" Align="Align.Center" Class="mb-4 mb-sm-6 font-weight-bold">Trouve l'âme soeur</MudText>
+
+        <div class="button-container">
+            <div class="button-wrapper">
+                <MudButton Variant="Variant.Filled" 
+                        Color="Color.Secondary" 
+                        Size="Size.Small"
+                        FullWidth="true"
+                        OnClick="SearchSimilarProfiles"
+                        Class="py-1 py-sm-2 rounded-lg button-custom"
+                        Style="background-color: #a992fa; color: white;">
+                    <MudText Typo="Typo.body1" Class="d-block d-sm-none">Notre sélection</MudText>
+                    <MudText Typo="Typo.subtitle1" Class="d-none d-sm-block">Notre sélection</MudText>
+                </MudButton>
+            </div>
+            
+            <div class="ou-text">
+                <MudText Typo="Typo.body1" Class="d-block d-sm-none">ou</MudText>
+                <MudText Typo="Typo.subtitle1" Class="d-none d-sm-block">ou</MudText>
+            </div>
+            
+            <div class="button-wrapper">
+                <MudButton Variant="Variant.Filled"
+                        Color="Color.Primary"
+                        Size="Size.Small"
+                        FullWidth="true"
+                        OnClick="SearchRandomProfiles"
+                        Class="py-1 py-sm-2 rounded-lg button-custom"
+                        Style="background-color: #8c9eff; color: white;">
+                    <MudText Typo="Typo.body1" Class="d-block d-sm-none">Sélection aléatoire</MudText>
+                    <MudText Typo="Typo.subtitle1" Class="d-none d-sm-block">Sélection aléatoire</MudText>
+                </MudButton>
+            </div>
+        </div>
+        
+        <MudText Typo="Typo.body2" Class="my-2 my-sm-4 d-block d-sm-none" Align="Align.Center">
+            ou personnaliser
+        </MudText>
+        <MudText Typo="Typo.body1" Class="my-2 my-sm-4 d-none d-sm-block" Align="Align.Center">
+            ou en personnalisant votre recherche
+        </MudText>
         
         @if (!IsCustomSearchOpened)
         {
-            <MudPaper Class="pa-4 mb-6" Elevation="0">
+            <MudPaper Class="pa-2 pa-sm-4 mb-4 mb-sm-6" Elevation="0">
                 <MudGrid>
                     <!-- Slider pour l'âge -->
                     <MudItem xs="12" sm="4">
-                        <MudPaper Elevation="0" Class="d-flex flex-column align-center pa-2">
-                            <MudText Typo="Typo.caption" Class="mb-2">Tranche d'âge</MudText>
-                            <div class="d-flex align-center my-2" style="width: 100%;">
-                                <MudSlider T="int" Min="18" Max="99" Value="@MinAge" ValueChanged="@((int val) => MinAge = val)" 
-                                         Color="Color.Secondary" Class="mx-2" Style="width: 100%;">
+                        <MudPaper Elevation="0" Class="d-flex flex-column align-center pa-1 pa-sm-2">
+                            <MudText Typo="Typo.caption" Class="mb-1 mb-sm-2">Tranche d'âge</MudText>
+                            <div class="d-flex align-center my-1 my-sm-2" style="width: 100%;">
+                                <MudSlider T="int" Min="18" Max="99" Value="@MinAge" 
+                                         ValueChanged="@((int val) => UpdateAgeFilter(val, true))" 
+                                         Color="Color.Secondary" Class="mx-1 mx-sm-2" Style="width: 100%;">
                                 </MudSlider>
-                                <MudText Typo="Typo.body2" Class="mud-text-secondary ml-2">@MinAge</MudText>
+                                <MudText Typo="Typo.body2" Class="mud-text-secondary ml-1 ml-sm-2">@MinAge</MudText>
                             </div>
-                            <div class="d-flex align-center my-2" style="width: 100%;">
-                                <MudSlider T="int" Min="18" Max="99" Value="@MaxAge" ValueChanged="@((int val) => MaxAge = val)" 
-                                         Color="Color.Secondary" Class="mx-2" Style="width: 100%;">
+                            <div class="d-flex align-center my-1 my-sm-2" style="width: 100%;">
+                                <MudSlider T="int" Min="18" Max="99" Value="@MaxAge" 
+                                         ValueChanged="@((int val) => UpdateAgeFilter(val, false))" 
+                                         Color="Color.Secondary" Class="mx-1 mx-sm-2" Style="width: 100%;">
                                 </MudSlider>
-                                <MudText Typo="Typo.body2" Class="mud-text-secondary ml-2">@MaxAge</MudText>
+                                <MudText Typo="Typo.body2" Class="mud-text-secondary ml-1 ml-sm-2">@MaxAge</MudText>
                             </div>
                         </MudPaper>
                     </MudItem>
                     
                     <!-- Slider pour la popularité -->
                     <MudItem xs="12" sm="4">
-                        <MudPaper Elevation="0" Class="d-flex flex-column align-center pa-2">
-                            <MudText Typo="Typo.caption" Class="mb-2">Popularité</MudText>
-                            <div class="d-flex align-center my-2" style="width: 100%;">
-                                <MudSlider T="int" Min="0" Max="100" Value="@MinPopularity" ValueChanged="@((int val) => MinPopularity = val)" 
-                                         Color="Color.Secondary" Class="mx-2" Style="width: 100%;">
+                        <MudPaper Elevation="0" Class="d-flex flex-column align-center pa-1 pa-sm-2">
+                            <MudText Typo="Typo.caption" Class="mb-1 mb-sm-2">Popularité</MudText>
+                            <div class="d-flex align-center my-1 my-sm-2" style="width: 100%;">
+                                <MudSlider T="int" Min="0" Max="100" Value="@MinPopularity" 
+                                         ValueChanged="@((int val) => UpdatePopularityFilter(val, true))" 
+                                         Color="Color.Secondary" Class="mx-1 mx-sm-2" Style="width: 100%;">
                                 </MudSlider>
-                                <MudText Typo="Typo.body2" Class="mud-text-secondary ml-2">@MinPopularity</MudText>
+                                <MudText Typo="Typo.body2" Class="mud-text-secondary ml-1 ml-sm-2">@MinPopularity</MudText>
                             </div>
-                            <div class="d-flex align-center my-2" style="width: 100%;">
-                                <MudSlider T="int" Min="0" Max="100" Value="@MaxPopularity" ValueChanged="@((int val) => MaxPopularity = val)" 
-                                         Color="Color.Secondary" Class="mx-2" Style="width: 100%;">
+                            <div class="d-flex align-center my-1 my-sm-2" style="width: 100%;">
+                                <MudSlider T="int" Min="0" Max="100" Value="@MaxPopularity" 
+                                         ValueChanged="@((int val) => UpdatePopularityFilter(val, false))" 
+                                         Color="Color.Secondary" Class="mx-1 mx-sm-2" Style="width: 100%;">
                                 </MudSlider>
-                                <MudText Typo="Typo.body2" Class="mud-text-secondary ml-2">@MaxPopularity</MudText>
+                                <MudText Typo="Typo.body2" Class="mud-text-secondary ml-1 ml-sm-2">@MaxPopularity</MudText>
                             </div>
                         </MudPaper>
                     </MudItem>
                     
                     <!-- Slider pour le rayon de localisation -->
                     <MudItem xs="12" sm="4">
-                        <MudPaper Elevation="0" Class="d-flex flex-column align-center pa-2">
-                            <MudText Typo="Typo.caption" Class="mb-2">Rayon de localisation</MudText>
-                            <div class="d-flex align-center my-2" style="width: 100%;">
-                                <MudSlider T="double" Min="0" Max="500" Step="10" Value="@MaxDistance" ValueChanged="@((double val) => MaxDistance = val)" 
-                                         Color="Color.Secondary" Class="mx-2" Style="width: 100%;">
+                        <MudPaper Elevation="0" Class="d-flex flex-column align-center pa-1 pa-sm-2">
+                            <MudText Typo="Typo.caption" Class="mb-1 mb-sm-2">Rayon de localisation</MudText>
+                            <div class="d-flex align-center my-1 my-sm-2" style="width: 100%;">
+                                <MudSlider T="double" Min="0" Max="500" Step="10" Value="@MaxDistance" 
+                                         ValueChanged="@((double val) => UpdateDistanceFilter(val))" 
+                                         Color="Color.Secondary" Class="mx-1 mx-sm-2" Style="width: 100%;">
                                 </MudSlider>
-                                <MudText Typo="Typo.body2" Class="mud-text-secondary ml-2">@MaxDistance km</MudText>
+                                <MudText Typo="Typo.body2" Class="mud-text-secondary ml-1 ml-sm-2">@MaxDistance km</MudText>
                             </div>
                         </MudPaper>
                     </MudItem>
                 </MudGrid>
 
                 <!-- Tags sélectionnés -->
-                <MudItem xs="12" Class="d-flex flex-column align-center mt-4">
-                    <MudText Typo="Typo.caption" Class="mb-2">Tags sélectionnés</MudText>
+                <MudItem xs="12" Class="d-flex flex-column align-center mt-2 mt-sm-4">
+                    <MudText Typo="Typo.caption" Class="mb-1 mb-sm-2">Tags sélectionnés</MudText>
                     <div class="d-flex flex-wrap justify-center">
                         @if (AvailableTags != null && AvailableTags.Any())
                         {
-                            @foreach (var tag in AvailableTags.Take(5))
+                            @foreach (var tag in AvailableTags)
                             {
                                 <MudChip T="string" Color="@(SelectedTagIds.Contains(tag.Id) ? Color.Primary : Color.Default)"
                                         OnClick="@(() => ToggleTag(tag.Id))"
-                                        Style="margin: 4px; border-radius: 20px; padding: 8px 16px;">
+                                        Style="margin: 2px 4px; border-radius: 20px; padding: 6px 12px;">
                                     <div class="d-flex align-center">
                                         @if (SelectedTagIds.Contains(tag.Id))
                                         {
@@ -125,26 +246,16 @@
                                     </div>
                                 </MudChip>
                             }
-                            @if (AvailableTags.Count > 5)
-                            {
-                                <MudChip T="string" Color="Color.Default" OnClick="@(() => ShowMoreTags())"
-                                        Style="margin: 4px; border-radius: 20px; padding: 8px 16px;">
-                                    <div class="d-flex align-center">
-                                        <MudIcon Icon="@Icons.Material.Filled.MoreHoriz" Size="Size.Small" Class="mr-1" />
-                                        Plus
-                                    </div>
-                                </MudChip>
-                            }
                         }
                     </div>
                 </MudItem>
 
-                <MudItem xs="12" Class="d-flex justify-center mt-4">
+                <MudItem xs="12" Class="d-flex justify-center mt-2 mt-sm-4">
                     <MudButton Variant="Variant.Filled" 
                               Color="Color.Primary" 
                               OnClick="SearchCustomProfiles"
-                              Class="px-6">
-                        Lancer la recherche
+                              Class="px-3 px-sm-6">
+                        Rafraîchir les résultats
                     </MudButton>
                 </MudItem>
             </MudPaper>
@@ -157,50 +268,60 @@
 
         @if (Users.Any())
         {
-            <MudText Typo="Typo.h4" Class="mt-6 mb-4 font-weight-bold">Résultats</MudText>
+            <MudText Typo="Typo.h4" Class="mt-4 mt-sm-6 mb-2 mb-sm-4 font-weight-bold">Résultats</MudText>
             <MudGrid>
                 @foreach (var user in Users)
                 {
-                    <MudItem xs="12" sm="6" Class="mb-3">
-                        <MudPaper Elevation="2" Class="pa-4 rounded-lg" Style="position: relative;">
+                    <MudItem xs="12" sm="6" Class="mb-2 mb-sm-3">
+                        <MudPaper Elevation="2" Class="pa-2 pa-sm-4 rounded-lg" Style="position: relative;">
                             @if (user.IsActive)
                             {
                                 <MudIcon Icon="@Icons.Material.Filled.Circle" 
                                         Color="Color.Success" 
-                                        Style="position: absolute; top: 8px; right: 8px; height: 16px; width: 16px;" />
+                                        Style="position: absolute; top: 6px; right: 6px; height: 14px; width: 14px;" />
                             }
                             <MudGrid>
                                 <MudItem xs="4">
                                     @if (ProfileImages.ContainsKey(user.Id) && !string.IsNullOrWhiteSpace(ProfileImages[user.Id]))
                                     {
-                                        <div style="width: 100px; height: 100px; overflow: hidden; border-radius: 50%; margin: 0 auto;">
+                                        <div class="user-avatar" style="overflow: hidden; border-radius: 50%; margin: 0 auto;">
                                             <img src="@ProfileImages[user.Id]" alt="Photo de profil" 
                                                 style="width: 100%; height: 100%; object-fit: cover;" />
                                         </div>
                                     }
                                     else
                                     {
-                                        <MudAvatar Color="Color.Primary" Style="width: 100px; height: 100px; margin: 0 auto; font-size: 2rem;">
+                                        <MudAvatar Color="Color.Primary" Class="user-avatar">
                                             @(user.Username.Length > 0 ? user.Username[0].ToString() : "?")
                                         </MudAvatar>
                                     }
                                 </MudItem>
                                 <MudItem xs="8">
-                                    <div class="d-flex align-center">
-                                        <MudText Typo="Typo.h5">@user.Username</MudText>
-                                        <MudIcon Icon="@(user.Genre == 1 ? Icons.Material.Filled.Male : Icons.Material.Filled.Female)" 
-                                                Class="ml-2" Color="@(user.Genre == 1 ? Color.Info : Color.Secondary)" />
+                                    <div>
+                                        <p class="user-name">@user.Username</p>
+                                        
+                                        <div class="user-age-gender">
+                                            <span>@user.Age ans</span>
+                                            <MudIcon Icon="@(user.Genre == 1 ? Icons.Material.Filled.Male : Icons.Material.Filled.Female)" 
+                                                    Size="Size.Small"
+                                                    Class="ml-2" 
+                                                    Color="@(user.Genre == 1 ? Color.Info : Color.Secondary)" />
+                                        </div>
+                                        
+                                        <div class="user-rating">
+                                            <MudRating ReadOnly="true" 
+                                                    SelectedValue="@CalculateStarRating(user.PopularityScore)" 
+                                                    MaxValue="5" 
+                                                    Size="Size.Small" />
+                                        </div>
                                     </div>
-                                    <MudText Typo="Typo.body1" Class="mt-1">@user.Age ans</MudText>
-                                    <MudRating ReadOnly="true" SelectedValue="@CalculateStarRating(user.PopularityScore)" 
-                                            MaxValue="5" Class="mt-1" />
                                 </MudItem>
-                                <MudItem xs="12" Class="mt-2">
+                                <MudItem xs="12">
                                     <MudButton Variant="Variant.Outlined" 
                                             Color="Color.Primary" 
                                             OnClick="() => ViewProfile(user.Id)"
                                             FullWidth="true"
-                                            Class="mt-2">
+                                            Class="user-button">
                                         Voir profil
                                     </MudButton>
                                 </MudItem>
@@ -234,6 +355,11 @@
     private List<int> SelectedTagIds { get; set; } = new();
     private List<Tag> AvailableTags { get; set; } = new();
 
+    // Variables pour éviter trop d'appels à l'API
+    private System.Timers.Timer _searchDebounceTimer;
+    private bool _isSearchPending = false;
+    private int _debounceDelayMs = 500; // 500ms de délai avant déclenchement de la recherche
+
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
@@ -246,6 +372,11 @@
             if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
             {
                 CurrentUserId = userId;
+                
+                // Initialiser le timer de debounce
+                _searchDebounceTimer = new System.Timers.Timer(_debounceDelayMs);
+                _searchDebounceTimer.Elapsed += async (sender, e) => await SearchWithDebounce();
+                _searchDebounceTimer.AutoReset = false;
                 
                 // Charger les tags disponibles pour le sélecteur
                 try
@@ -400,12 +531,85 @@
         return Math.Min(5, Math.Max(1, (int)Math.Ceiling(popularityScore / 20.0)));
     }
 
+    private async Task UpdateAgeFilter(int value, bool isMin)
+    {
+        if (isMin)
+        {
+            MinAge = value;
+            if (MinAge > MaxAge)
+                MaxAge = MinAge;
+        }
+        else
+        {
+            MaxAge = value;
+            if (MaxAge < MinAge)
+                MinAge = MaxAge;
+        }
+        
+        // Déclencher la recherche avec debounce
+        TriggerDebouncedSearch();
+    }
+
+    private async Task UpdatePopularityFilter(int value, bool isMin)
+    {
+        if (isMin)
+        {
+            MinPopularity = value;
+            if (MinPopularity > MaxPopularity)
+                MaxPopularity = MinPopularity;
+        }
+        else
+        {
+            MaxPopularity = value;
+            if (MaxPopularity < MinPopularity)
+                MinPopularity = MaxPopularity;
+        }
+        
+        // Déclencher la recherche avec debounce
+        TriggerDebouncedSearch();
+    }
+
+    private async Task UpdateDistanceFilter(double value)
+    {
+        MaxDistance = value;
+        
+        // Déclencher la recherche avec debounce
+        TriggerDebouncedSearch();
+    }
+
     private void ToggleTag(int tagId)
     {
         if (SelectedTagIds.Contains(tagId))
             SelectedTagIds.Remove(tagId);
         else
             SelectedTagIds.Add(tagId);
+            
+        // Déclencher la recherche immédiatement après changement de tag
+        TriggerDebouncedSearch();
+    }
+
+    private void TriggerDebouncedSearch()
+    {
+        // Réinitialiser le timer à chaque mouvement du curseur
+        _searchDebounceTimer.Stop();
+        _searchDebounceTimer.Start();
+        _isSearchPending = true;
+    }
+
+    private async Task SearchWithDebounce()
+    {
+        // Cette méthode est appelée après que le timer a expiré
+        if (_isSearchPending)
+        {
+            _isSearchPending = false;
+            
+            // Exécution sur le UI thread
+            await InvokeAsync(async () => 
+            {
+                await SearchCustomProfiles();
+                StateHasChanged();
+            });
+        }
     }
 
     private async Task ShowMoreTags()
@@ -489,5 +693,11 @@
         public int MaxPopularity { get; set; }
         public double MaxDistance { get; set; }
         public List<int> SelectedTagIds { get; set; }
+    }
+
+    public void Dispose()
+    {
+        // Nettoyer le timer lors de la destruction du composant
+        _searchDebounceTimer?.Dispose();
     }
 } 
