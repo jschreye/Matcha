@@ -58,13 +58,15 @@
                         <MudPaper Elevation="0" Class="d-flex flex-column align-center pa-2">
                             <MudText Typo="Typo.caption" Class="mb-2">Tranche d'âge</MudText>
                             <div class="d-flex align-center my-2" style="width: 100%;">
-                                <MudSlider T="int" Min="18" Max="99" Value="@MinAge" ValueChanged="@((int val) => MinAge = val)" 
+                                <MudSlider T="int" Min="18" Max="99" Value="@MinAge" 
+                                         ValueChanged="@((int val) => UpdateAgeFilter(val, true))" 
                                          Color="Color.Secondary" Class="mx-2" Style="width: 100%;">
                                 </MudSlider>
                                 <MudText Typo="Typo.body2" Class="mud-text-secondary ml-2">@MinAge</MudText>
                             </div>
                             <div class="d-flex align-center my-2" style="width: 100%;">
-                                <MudSlider T="int" Min="18" Max="99" Value="@MaxAge" ValueChanged="@((int val) => MaxAge = val)" 
+                                <MudSlider T="int" Min="18" Max="99" Value="@MaxAge" 
+                                         ValueChanged="@((int val) => UpdateAgeFilter(val, false))" 
                                          Color="Color.Secondary" Class="mx-2" Style="width: 100%;">
                                 </MudSlider>
                                 <MudText Typo="Typo.body2" Class="mud-text-secondary ml-2">@MaxAge</MudText>
@@ -77,13 +79,15 @@
                         <MudPaper Elevation="0" Class="d-flex flex-column align-center pa-2">
                             <MudText Typo="Typo.caption" Class="mb-2">Popularité</MudText>
                             <div class="d-flex align-center my-2" style="width: 100%;">
-                                <MudSlider T="int" Min="0" Max="100" Value="@MinPopularity" ValueChanged="@((int val) => MinPopularity = val)" 
+                                <MudSlider T="int" Min="0" Max="100" Value="@MinPopularity" 
+                                         ValueChanged="@((int val) => UpdatePopularityFilter(val, true))" 
                                          Color="Color.Secondary" Class="mx-2" Style="width: 100%;">
                                 </MudSlider>
                                 <MudText Typo="Typo.body2" Class="mud-text-secondary ml-2">@MinPopularity</MudText>
                             </div>
                             <div class="d-flex align-center my-2" style="width: 100%;">
-                                <MudSlider T="int" Min="0" Max="100" Value="@MaxPopularity" ValueChanged="@((int val) => MaxPopularity = val)" 
+                                <MudSlider T="int" Min="0" Max="100" Value="@MaxPopularity" 
+                                         ValueChanged="@((int val) => UpdatePopularityFilter(val, false))" 
                                          Color="Color.Secondary" Class="mx-2" Style="width: 100%;">
                                 </MudSlider>
                                 <MudText Typo="Typo.body2" Class="mud-text-secondary ml-2">@MaxPopularity</MudText>
@@ -96,7 +100,8 @@
                         <MudPaper Elevation="0" Class="d-flex flex-column align-center pa-2">
                             <MudText Typo="Typo.caption" Class="mb-2">Rayon de localisation</MudText>
                             <div class="d-flex align-center my-2" style="width: 100%;">
-                                <MudSlider T="double" Min="0" Max="500" Step="10" Value="@MaxDistance" ValueChanged="@((double val) => MaxDistance = val)" 
+                                <MudSlider T="double" Min="0" Max="500" Step="10" Value="@MaxDistance" 
+                                         ValueChanged="@((double val) => UpdateDistanceFilter(val))" 
                                          Color="Color.Secondary" Class="mx-2" Style="width: 100%;">
                                 </MudSlider>
                                 <MudText Typo="Typo.body2" Class="mud-text-secondary ml-2">@MaxDistance km</MudText>
@@ -144,7 +149,7 @@
                               Color="Color.Primary" 
                               OnClick="SearchCustomProfiles"
                               Class="px-6">
-                        Lancer la recherche
+                        Rafraîchir les résultats
                     </MudButton>
                 </MudItem>
             </MudPaper>
@@ -234,6 +239,11 @@
     private List<int> SelectedTagIds { get; set; } = new();
     private List<Tag> AvailableTags { get; set; } = new();
 
+    // Variables pour éviter trop d'appels à l'API
+    private System.Timers.Timer _searchDebounceTimer;
+    private bool _isSearchPending = false;
+    private int _debounceDelayMs = 500; // 500ms de délai avant déclenchement de la recherche
+
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
@@ -246,6 +256,11 @@
             if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
             {
                 CurrentUserId = userId;
+                
+                // Initialiser le timer de debounce
+                _searchDebounceTimer = new System.Timers.Timer(_debounceDelayMs);
+                _searchDebounceTimer.Elapsed += async (sender, e) => await SearchWithDebounce();
+                _searchDebounceTimer.AutoReset = false;
                 
                 // Charger les tags disponibles pour le sélecteur
                 try
@@ -400,12 +415,85 @@
         return Math.Min(5, Math.Max(1, (int)Math.Ceiling(popularityScore / 20.0)));
     }
 
+    private async Task UpdateAgeFilter(int value, bool isMin)
+    {
+        if (isMin)
+        {
+            MinAge = value;
+            if (MinAge > MaxAge)
+                MaxAge = MinAge;
+        }
+        else
+        {
+            MaxAge = value;
+            if (MaxAge < MinAge)
+                MinAge = MaxAge;
+        }
+        
+        // Déclencher la recherche avec debounce
+        TriggerDebouncedSearch();
+    }
+
+    private async Task UpdatePopularityFilter(int value, bool isMin)
+    {
+        if (isMin)
+        {
+            MinPopularity = value;
+            if (MinPopularity > MaxPopularity)
+                MaxPopularity = MinPopularity;
+        }
+        else
+        {
+            MaxPopularity = value;
+            if (MaxPopularity < MinPopularity)
+                MinPopularity = MaxPopularity;
+        }
+        
+        // Déclencher la recherche avec debounce
+        TriggerDebouncedSearch();
+    }
+
+    private async Task UpdateDistanceFilter(double value)
+    {
+        MaxDistance = value;
+        
+        // Déclencher la recherche avec debounce
+        TriggerDebouncedSearch();
+    }
+
     private void ToggleTag(int tagId)
     {
         if (SelectedTagIds.Contains(tagId))
             SelectedTagIds.Remove(tagId);
         else
             SelectedTagIds.Add(tagId);
+            
+        // Déclencher la recherche immédiatement après changement de tag
+        TriggerDebouncedSearch();
+    }
+
+    private void TriggerDebouncedSearch()
+    {
+        // Réinitialiser le timer à chaque mouvement du curseur
+        _searchDebounceTimer.Stop();
+        _searchDebounceTimer.Start();
+        _isSearchPending = true;
+    }
+
+    private async Task SearchWithDebounce()
+    {
+        // Cette méthode est appelée après que le timer a expiré
+        if (_isSearchPending)
+        {
+            _isSearchPending = false;
+            
+            // Exécution sur le UI thread
+            await InvokeAsync(async () => 
+            {
+                await SearchCustomProfiles();
+                StateHasChanged();
+            });
+        }
     }
 
     private async Task ShowMoreTags()
@@ -489,5 +577,11 @@
         public int MaxPopularity { get; set; }
         public double MaxDistance { get; set; }
         public List<int> SelectedTagIds { get; set; }
+    }
+
+    public void Dispose()
+    {
+        // Nettoyer le timer lors de la destruction du composant
+        _searchDebounceTimer?.Dispose();
     }
 } 
