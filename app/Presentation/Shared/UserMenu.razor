@@ -8,6 +8,13 @@
 @inject INotificationService NotificationService
 @inject IUserService UserService
 
+<style>
+    .profile-image:hover, .profile-avatar:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+</style>
+
 <MudAppBar Elevation="1" Style="@($"background:{Colors.Gray.Lighten3};")">
     <MudIconButton Icon="@Icons.Material.Filled.Menu" Edge="Edge.Start" OnClick="@ToggleDrawerAsync" Style="@($"color:{Colors.DeepPurple.Accent4};")"/>
     <MudSpacer />
@@ -16,7 +23,15 @@
             <MudMenu>
                 <ActivatorContent>
                     <!-- Badge avec la pastie verte indiquant que l'utilisateur est connecté -->
-                    <MudBadge Class="mr-3"
+                    @if(notificationCount > 0)
+                    {
+                        <MudButton OnClick="@NavigateToNotifications" Class="mr-2" Style="min-width:auto; vertical-align:middle;">
+                            <MudBadge Content="@notificationCount" Color="Color.Primary" Overlap="true">
+                                <MudIcon Icon="@Icons.Material.Filled.Notifications" Color="Color.Default" />
+                            </MudBadge>
+                        </MudButton>
+                    }
+                    <MudBadge Class="mr-3 ml-3"
                               Color="Color.Success"
                               Overlap="true"
                               Bordered="true"
@@ -24,12 +39,12 @@
                         @if (!string.IsNullOrWhiteSpace(userProfileImage))
                         {
                             <!-- Affiche l'image de profil spécifique à cet utilisateur -->
-                            <img src="@userProfileImage" alt="Profile" style="width:48px; height:48px; border-radius:50%;" />
+                            <img src="@userProfileImage" alt="Profile" style="width:48px; height:48px; border-radius:50%; cursor:pointer; transition: all 0.3s ease;" class="profile-image" />
                         }
                         else
                         {
                             <!-- Affiche le SVG par défaut -->
-                            <MudAvatar Size="Size.Medium">
+                            <MudAvatar Size="Size.Medium" Style="cursor:pointer; transition: all 0.3s ease;" Class="profile-avatar">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icon-tabler-user">
                                     <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
                                     <circle cx="12" cy="7" r="4"/>
@@ -38,13 +53,6 @@
                             </MudAvatar>
                         }
                     </MudBadge>
-                    <!-- Message de notification si des notifications non lues existent -->
-                    @if(notificationCount > 0)
-                    {
-                        <MudText Color="Color.Error" Typo="Typo.subtitle2" Class="ml-2">
-                            Vous avez @notificationCount notification@(notificationCount > 1 ? "s" : "")
-                        </MudText>
-                    }
                 </ActivatorContent>
                 <ChildContent>
                     <MudMenuItem Href="/profile">
@@ -230,6 +238,8 @@
     private void NavigateToLogin() => NavigationManager.NavigateTo("/login");
 
     private void NavigateToRegister() => NavigationManager.NavigateTo("/register");
+
+    private void NavigateToNotifications() => NavigationManager.NavigateTo("/notifications");
 
     private void Logout() => NavigationManager.NavigateTo("/logout", true);
 
