@@ -217,7 +217,7 @@
         NotificationService.OnNotificationsUpdated -= OnNotificationsUpdated;
     }
 
-    private async void OnLocationChanged(object sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    private async void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
     {
         UpdateCurrentPage();
         
@@ -249,7 +249,7 @@
     {
         if (OnToggleDrawer.HasDelegate)
         {
-            await OnToggleDrawer.InvokeAsync(null);
+            await OnToggleDrawer.InvokeAsync();
         }
     }
 

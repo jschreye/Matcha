@@ -1,4 +1,5 @@
 @page "/dashboard"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
 
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
@@ -8,7 +9,8 @@
     
     <!-- 1. TITRE -->
     <MudText Typo="Typo.h4" Align="Align.Center" Class="mb-6">
-        📊 Dashboard
+        <MudIcon Icon="@Icons.Material.Filled.Dashboard" Class="mr-2" />
+        Dashboard
     </MudText>
 
     <MudGrid Spacing="3">
@@ -16,7 +18,10 @@
         <!-- 2. MATCHS FULL-WIDTH -->
         <MudItem xs="12">
             <MudPaper Elevation="2" Class="p-4 rounded-lg shadow-lg">
-                <MudText Typo="Typo.h6" Class="mb-2">💘 Mes matchs</MudText>
+                <MudText Typo="Typo.h6" Class="mb-2">
+                    <MudIcon Icon="@Icons.Material.Filled.Favorite" Color="Color.Secondary" Class="mr-2" />
+                    Mes matchs
+                </MudText>
 
                 @if (Matches.Any())
                 {
@@ -26,10 +31,10 @@
                         {
                             <!-- chaque user-card -->
                             <MudItem xs="12">
-                                <MudPaper Elevation="1" Class="d-flex align-center  p-3 rounded">
+                                <MudPaper Elevation="1" Class="d-flex align-center p-3 rounded">
                                     <!-- avatar -->
-                                    <MudAvatar class="m-4"  Style="height:50px; width:50px;">
-                                        <img src="@user.Photo"style="object-fit: contain; width: 100%; height: 100%;" />
+                                    <MudAvatar class="m-4" Style="height:50px; width:50px;">
+                                        <img src="@user.Photo" style="object-fit: contain; width: 100%; height: 100%;" />
                                     </MudAvatar>
 
                                     <!-- nom -->
@@ -40,10 +45,10 @@
                                     <!-- actions -->
                                     <MudButtonGroup>
                                         <MudButton Color="Color.Primary" Variant="Variant.Filled" Href="@($"/chat/{user.Id}")">
-                                            💬
+                                            <MudIcon Icon="@Icons.Material.Filled.Chat" Size="Size.Small" />
                                         </MudButton>
                                         <MudButton Color="Color.Secondary" Variant="Variant.Outlined" Href="@($"/profile/{user.Id}")">
-                                            👤
+                                            <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" />
                                         </MudButton>
                                     </MudButtonGroup>
                                 </MudPaper>
@@ -61,7 +66,10 @@
         <!-- 3. CONVERSATIONS (2 PAR 2) -->
         <MudItem xs="12" md="6">
             <MudPaper Elevation="2" Class="p-4 rounded-lg shadow-sm d-flex flex-column">
-                <MudText Typo="Typo.h6" Class="mb-2">💬 Conversations en cours</MudText>
+                <MudText Typo="Typo.h6" Class="mb-2">
+                    <MudIcon Icon="@Icons.Material.Filled.ChatBubble" Color="Color.Primary" Class="mr-2" />
+                    Conversations en cours
+                </MudText>
                 @if (Conversations.Any())
                 {
                     <div class="d-flex flex-wrap">
@@ -82,17 +90,29 @@
 
         <MudItem xs="12" md="6">
             <MudPaper Elevation="2" Class="p-4 rounded-lg shadow-sm">
-                <MudText Typo="Typo.h6" Class="mb-2">🔔 Notifications</MudText>
+                <MudText Typo="Typo.h6" Class="mb-2">
+                    <MudIcon Icon="@Icons.Material.Filled.Notifications" Color="Color.Warning" Class="mr-2" />
+                    Notifications
+                </MudText>
                 <div class="d-flex justify-space-between">
-                    <MudText Typo="Typo.body1">Likes reçus : @NotificationCounts.Likes</MudText>
-                    <MudText Typo="Typo.body1">Messages non lus : @NotificationCounts.Messages</MudText>
+                    <MudText Typo="Typo.body1" Class="d-flex align-center">
+                        <MudIcon Icon="@Icons.Material.Filled.ThumbUp" Size="Size.Small" Class="mr-2" />
+                        Likes reçus : @NotificationCounts.Likes
+                    </MudText>
+                    <MudText Typo="Typo.body1" Class="d-flex align-center">
+                        <MudIcon Icon="@Icons.Material.Filled.Mail" Size="Size.Small" Class="mr-2" />
+                        Messages non lus : @NotificationCounts.Messages
+                    </MudText>
                 </div>
             </MudPaper>
         </MudItem>
 
         <MudItem xs="12" md="6">
             <MudPaper Elevation="2" Class="p-4 rounded-lg shadow-sm">
-                <MudText Typo="Typo.h6" Class="mb-2">👀 Profils visités</MudText>
+                <MudText Typo="Typo.h6" Class="mb-2">
+                    <MudIcon Icon="@Icons.Material.Filled.Visibility" Color="Color.Info" Class="mr-2" />
+                    Profils visités
+                </MudText>
                 <div class="d-flex flex-wrap">
                     @foreach (var visit in VisitedProfiles)
                     {
@@ -106,7 +126,10 @@
 
         <MudItem xs="12" md="6">
             <MudPaper Elevation="2" Class="p-4 rounded-lg shadow-sm">
-                <MudText Typo="Typo.h6" Class="mb-2">🕵️‍♀️ Qui m’ont visité</MudText>
+                <MudText Typo="Typo.h6" Class="mb-2">
+                    <MudIcon Icon="@Icons.Material.Filled.Pageview" Color="Color.Tertiary" Class="mr-2" />
+                    Qui m'ont visité
+                </MudText>
                 <div class="d-flex flex-wrap">
                     @foreach (var visitor in ProfileVisitors)
                     {

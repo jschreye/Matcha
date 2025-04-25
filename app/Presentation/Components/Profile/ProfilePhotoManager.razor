@@ -147,7 +147,7 @@
         var profile = _photoPreviews.FirstOrDefault(p => p.IsProfile);
         if (profile != null)
             return $"data:image/jpeg;base64,{Convert.ToBase64String(profile.Data)}";
-        return null;
+        return string.Empty;
     }
 
     /** Callback lors de l'upload de nouvelles photos */

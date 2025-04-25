@@ -332,7 +332,7 @@ namespace Infrastructure.Repository
                 byte[]? photoData = reader["image_data"] as byte[];
                 string? photoBase64 = photoData != null && photoData.Length > 0
                     ? $"data:image/jpeg;base64,{Convert.ToBase64String(photoData)}"
-                    : null;
+                    : string.Empty;
 
                 users.Add(new UserDto
                 {

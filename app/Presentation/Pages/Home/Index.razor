@@ -69,9 +69,8 @@
 
 @code {
     private bool isMobile;
-    private string currentBreakpoint;
-
-    [Inject] private IJSRuntime JSRuntime { get; set; }
+    private string currentBreakpoint = string.Empty;
+    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
     private DotNetObjectReference<Index>? dotNetRef;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
