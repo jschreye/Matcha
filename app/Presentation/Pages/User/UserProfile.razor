@@ -235,7 +235,7 @@
             {
                 // L'utilisateur n'a pas encore liké, on l'ajoute
                 var match = await LikeService.LikeProfileAsync(currentUserId, UserId);
-                if (match)
+                if (match && _userProfile != null)
                     await NotificationService.NotifyMatchAsync(_userProfile.Id, currentUserId);
                     
                 _hasLiked = true;

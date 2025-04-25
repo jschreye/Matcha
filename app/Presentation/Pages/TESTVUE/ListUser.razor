@@ -71,21 +71,30 @@ else
 }
 
 @code {
-    private List<UserDto> users;
+    private List<UserDto> users = new List<UserDto>();
     private Dictionary<int, Core.Data.Entity.Photo> userPhotos = new Dictionary<int, Core.Data.Entity.Photo>();
 
     protected override async Task OnInitializedAsync()
     {
-        users = await UserService.GetAllUsersAsync();
+        var usersList = await UserService.GetAllUsersAsync();
+        if (usersList != null)
+        {
+            users = usersList;
+        }
         await LoadProfilePhotos();
     }
 
     private async Task LoadProfilePhotos()
     {
+        if (users == null) return;
+        
         foreach (var user in users)
         {
             var photo = await PhotoService.GetProfilePhotoAsync(user.Id);
-            userPhotos[user.Id] = photo;
+            if (photo != null)
+            {
+                userPhotos[user.Id] = photo;
+            }
         }
     }
 
