@@ -109,7 +109,6 @@
     {
         await NotificationService.ClearAllNotificationsAsync(currentUserId);
         await LoadNotifications();
-        notifications.Clear();
     }
 
     public void Dispose()
