@@ -44,12 +44,6 @@ public class NotificationService : INotificationService
         OnNotificationsUpdated?.Invoke(userId);
     }
 
-    public async Task DeleteNotificationsByUserIdAsync(int userId)
-    {
-        await _notificationRepository.DeleteNotificationsByUserIdAsync(userId);
-
-        OnNotificationsUpdated?.Invoke(userId);
-    }
     public async Task NotifyProfileLikedAsync(int likedUserId, int likerUserId)
     {
         int notificationTypeId = 2;
@@ -101,25 +95,39 @@ public class NotificationService : INotificationService
         OnNotify?.Invoke(visitedUserId);
         OnNotificationsUpdated?.Invoke(visitedUserId);
     }
-    public async Task NotifyMatchAsync(int matchedUserId, int matchUserId)
+    public async Task NotifyMatchAsync(int userAId, int userBId)
     {
-        int notificationTypeId = 5;
+        const int notificationTypeId = 5;
+        var now = DateTime.Now;
 
-        var notification = new Notification
+        var notifA = new Notification
         {
-            UserId = matchedUserId,
-            SenderId = matchUserId,
+            UserId             = userAId,
+            SenderId           = userBId,
             NotificationTypeId = notificationTypeId,
-            Lu = false,
-            Timestamp = DateTime.Now
+            Lu                 = false,
+            Timestamp          = now
         };
+        await _notificationRepository.SaveNotificationAsync(notifA);
+        OnNotify?.Invoke(userAId);
+        OnNotificationsUpdated?.Invoke(userAId);
 
-        await _notificationRepository.SaveNotificationAsync(notification);
-        OnNotify?.Invoke(matchedUserId);
-        OnNotificationsUpdated?.Invoke(matchedUserId);
+        var notifB = new Notification
+        {
+            UserId             = userBId,
+            SenderId           = userAId,
+            NotificationTypeId = notificationTypeId,
+            Lu                 = false,
+            Timestamp          = now
+        };
+        await _notificationRepository.SaveNotificationAsync(notifB);
+        OnNotify?.Invoke(userBId);
+        OnNotificationsUpdated?.Invoke(userBId);
     }
+
     public async Task ClearAllNotificationsAsync(int userId)
     {
         await _notificationRepository.DeleteNotificationsByUserIdAsync(userId);
+        OnNotificationsUpdated?.Invoke(userId);
     }
 }
