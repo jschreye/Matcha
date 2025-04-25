@@ -8,11 +8,10 @@
 
 <MudPaper Class="p-4 mx-auto my-5" Elevation="3" MaxWidth="800px">
     <MudText Typo="Typo.h5">Chat privé</MudText>
-
     <MudDivider Class="my-2" />
 
-    <MudPaper Class="chat-box p-3 mb-4" Elevation="1" Style="max-height: 400px; overflow-y: auto;">
-        @if (conversationMessages.Count == 0)
+    <MudPaper Class="chat-box p-3 mb-4" Elevation="1">
+        @if (!conversationMessages.Any())
         {
             <MudText Class="text-muted">Aucun message pour le moment.</MudText>
         }
@@ -20,10 +19,12 @@
         {
             @foreach (var msg in conversationMessages)
             {
-                <MudPaper Class="p-2 my-1" Color="@(msg.SenderId == currentUserId ? Color.Primary : Color.Secondary)" Elevation="0">
-                    <MudText Typo="Typo.body2" Class="fw-bold">@((msg.SenderId == currentUserId) ? "Moi" : "Lui")</MudText>
-                    <MudText Typo="Typo.body1">@msg.Contenu</MudText>
-                    <MudText Typo="Typo.caption" Class="text-muted">(@msg.Timestamp.ToString("HH:mm:ss"))</MudText>
+                <MudPaper Class="p-2 my-1"
+                          Color="@(msg.SenderId == currentUserId ? Color.Primary : Color.Secondary)"
+                          Elevation="0">
+                    <MudText Typo="Typo.body2" Class="fw-bold">
+                        @(msg.SenderId == currentUserId ? "(Moi)" : "(Lui)") @msg.Contenu
+                    </MudText>
                 </MudPaper>
             }
         }
@@ -38,40 +39,40 @@
                   AdornmentIcon="@Icons.Material.Filled.Send"
                   OnAdornmentClick="SendMessage"
                   OnKeyDown="HandleKeyDown" />
-    <MudButton Class="mt-2" Color="Color.Primary" Variant="Variant.Filled" OnClick="SendMessage">Envoyer</MudButton>
+    <MudButton Class="mt-2"
+               Color="Color.Primary"
+               Variant="Variant.Filled"
+               OnClick="SendMessage">Envoyer</MudButton>
 </MudPaper>
 
 @code {
-    [Parameter]
-    public int ReceiverId { get; set; }
-
+    [Parameter] public int ReceiverId { get; set; }
     private int currentUserId;
     private string message = string.Empty;
     private List<Message> conversationMessages = new();
 
     protected override async Task OnInitializedAsync()
     {
+        // 1. Récupère l'ID de l'utilisateur courant
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-        var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier);
-        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out currentUserId))
-        {
+        var user     = authState.User;
+        if (!int.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out currentUserId))
             return;
-        }
 
+        // 2. S'abonner aux nouveaux messages
         ChatService.OnMessageReceived += OnMessageReceived;
 
-        conversationMessages = ChatService.Messages
-            .Where(m => (m.SenderId == currentUserId && m.ReceiverId == ReceiverId) ||
-                        (m.SenderId == ReceiverId && m.ReceiverId == currentUserId))
-            .OrderBy(m => m.Timestamp)
-            .ToList();
+        // 3. Charger l'historique complet depuis la BDD
+        conversationMessages = (await ChatService.LoadConversationAsync(currentUserId, ReceiverId))
+                                    .OrderBy(m => m.Timestamp)
+                                    .ToList();
     }
 
     private void OnMessageReceived(Message newMsg)
     {
+        // Ne gérer que les messages de cette conversation
         if ((newMsg.SenderId == currentUserId && newMsg.ReceiverId == ReceiverId) ||
-            (newMsg.SenderId == ReceiverId && newMsg.ReceiverId == currentUserId))
+            (newMsg.SenderId == ReceiverId  && newMsg.ReceiverId == currentUserId))
         {
             conversationMessages.Add(newMsg);
             InvokeAsync(StateHasChanged);
@@ -80,20 +81,24 @@
 
     private async Task SendMessage()
     {
-        if (!string.IsNullOrWhiteSpace(message))
-        {
-            await ChatService.SendMessageAsync(currentUserId, ReceiverId, message);
-            await NotificationService.NotifyMessageReceivedAsync(ReceiverId, currentUserId);
-            message = string.Empty;
-        }
+        if (string.IsNullOrWhiteSpace(message))
+            return;
+
+        await ChatService.SendMessageAsync(currentUserId, ReceiverId, message);
+        await NotificationService.NotifyMessageReceivedAsync(ReceiverId, currentUserId);
+        message = string.Empty;
     }
 
     private async Task HandleKeyDown(KeyboardEventArgs e)
     {
         if (e.Key == "Enter")
-        {
             await SendMessage();
-        }
+    }
+
+    public void Dispose()
+    {
+        // Se désabonner pour éviter les fuites mémoire
+        ChatService.OnMessageReceived -= OnMessageReceived;
     }
 }
 <style>

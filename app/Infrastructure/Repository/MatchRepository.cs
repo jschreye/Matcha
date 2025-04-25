@@ -18,37 +18,42 @@ namespace Infrastructure.Repository
             using var connection = new MySqlConnection(_connectionString);
             await connection.OpenAsync();
 
-            // Toujours enregistrer user1 < user2 pour respecter la clé unique
-            var orderedIds = new[] { userId1, userId2 }.OrderBy(id => id).ToArray();
+            // Toujours user1 < user2
+            var ordered = new[] { userId1, userId2 }.OrderBy(i => i).ToArray();
 
             var query = @"
-                INSERT IGNORE INTO matches (user1_id, user2_id)
-                VALUES (@user1, @user2);";
+                INSERT INTO matches (user1_id, user2_id, matched_at, is_active)
+                VALUES (@u1, @u2, NOW(), TRUE)
+                ON DUPLICATE KEY UPDATE
+                    is_active = VALUES(is_active),
+                    matched_at = VALUES(matched_at);
+            ";
 
-            using var command = new MySqlCommand(query, connection);
-            command.Parameters.AddWithValue("@user1", orderedIds[0]);
-            command.Parameters.AddWithValue("@user2", orderedIds[1]);
-
-            await command.ExecuteNonQueryAsync();
+            using var cmd = new MySqlCommand(query, connection);
+            cmd.Parameters.AddWithValue("@u1", ordered[0]);
+            cmd.Parameters.AddWithValue("@u2", ordered[1]);
+            await cmd.ExecuteNonQueryAsync();
         }
+
         public async Task DeleteMatchAsync(int userId1, int userId2)
         {
             using var connection = new MySqlConnection(_connectionString);
             await connection.OpenAsync();
 
-            // On ordonne les IDs pour correspondre à la contrainte UNIQUE
-            var orderedIds = new[] { userId1, userId2 }.OrderBy(id => id).ToArray();
+            var ordered = new[] { userId1, userId2 }.OrderBy(i => i).ToArray();
 
             var query = @"
-                DELETE FROM matches
-                WHERE user1_id = @user1 AND user2_id = @user2";
+                UPDATE matches
+                SET is_active = FALSE
+                WHERE user1_id = @u1 AND user2_id = @u2;
+            ";
 
-            using var command = new MySqlCommand(query, connection);
-            command.Parameters.AddWithValue("@user1", orderedIds[0]);
-            command.Parameters.AddWithValue("@user2", orderedIds[1]);
-
-            await command.ExecuteNonQueryAsync();
+            using var cmd = new MySqlCommand(query, connection);
+            cmd.Parameters.AddWithValue("@u1", ordered[0]);
+            cmd.Parameters.AddWithValue("@u2", ordered[1]);
+            await cmd.ExecuteNonQueryAsync();
         }
+        
         public async Task<List<int>> GetMatchedUserIdsAsync(int userId)
         {
             var matchedUserIds = new List<int>();
@@ -76,5 +81,5 @@ namespace Infrastructure.Repository
 
             return matchedUserIds;
         }
-   }
+    }
 }

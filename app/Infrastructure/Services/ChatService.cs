@@ -18,6 +18,19 @@ public class ChatService : IChatService
     public IReadOnlyList<Message> Messages => _messages;
     public event Action<Message>? OnMessageReceived;
 
+    public async Task InitializeConversationAsync(int userId1, int userId2)
+    {
+        // 1) Vider l’existant
+        _messages.Clear();
+        // 2) Charger depuis la BDD
+        var history = await _messageRepository.GetConversationAsync(userId1, userId2);
+        // 3) Remplir la liste mémoire
+        _messages.AddRange(history);
+        // Optionnel : notifier le front pour rendu initial
+        foreach (var msg in history)
+            OnMessageReceived?.Invoke(msg);
+    }
+
     public async Task SendMessageAsync(int senderId, int receiverId, string contenu)
     {
         var msg = new Message
@@ -35,8 +48,6 @@ public class ChatService : IChatService
         OnMessageReceived?.Invoke(msg);
     }
 
-    public async Task<List<Message>> LoadConversationAsync(int userId1, int userId2)
-    {
-        return await _messageRepository.GetConversationAsync(userId1, userId2);
-    }
+    public Task<List<Message>> LoadConversationAsync(int u1, int u2)
+        => _messageRepository.GetConversationAsync(u1, u2);
 }

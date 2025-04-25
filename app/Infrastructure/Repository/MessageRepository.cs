@@ -49,11 +49,11 @@ namespace Infrastructure.Repository
             {
                 messages.Add(new Message
                 {
-                    Id = reader.GetOrdinal("id"),
-                    SenderId = reader.GetOrdinal("sender_id"),
-                    ReceiverId = reader.GetOrdinal("receiver_id"),
-                    Contenu = reader.GetString(reader.GetOrdinal("contenu")),
-                    Timestamp = reader.GetDateTime(reader.GetOrdinal("timestamp"))
+                    Id         = reader.GetInt32   (reader.GetOrdinal("id")),
+                    SenderId   = reader.GetInt32   (reader.GetOrdinal("sender_id")),
+                    ReceiverId = reader.GetInt32   (reader.GetOrdinal("receiver_id")),
+                    Contenu    = reader.GetString  (reader.GetOrdinal("contenu")),
+                    Timestamp  = reader.GetDateTime(reader.GetOrdinal("timestamp"))
                 });
             }
             return messages;

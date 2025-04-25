@@ -32,7 +32,15 @@ public class DashboardService : IDashboardService
 
     public async Task<List<ConversationDto>> GetConversationsAsync(int userId)
     {
-        return await _messageRepository.GetConversationsForUserAsync(userId);
+        var allConvos = await _messageRepository.GetConversationsForUserAsync(userId);
+
+        var matchedIds = await _matchRepository.GetMatchedUserIdsAsync(userId);
+
+        var activeConvos = allConvos
+            .Where(c => matchedIds.Contains(c.UserId))
+            .ToList();
+
+        return activeConvos;
     }
 
     public async Task<NotificationStats> GetNotificationStatsAsync(int userId)
