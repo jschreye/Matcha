@@ -134,12 +134,17 @@
         isAuthenticated = authState.User.Identity?.IsAuthenticated ?? false;
         var user = authState.User;
 
+        if (!isAuthenticated)
+        {
+            NavigationManager.NavigateTo("/login", forceLoad: true);
+            return;
+        }
+
         var userIdClaim = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
         if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
         {
             CurrentUserId = userId;
         }
-
         Matches = await DashboardService.GetMatchesAsync(CurrentUserId);
         Conversations = await DashboardService.GetConversationsAsync(CurrentUserId);
         NotificationCounts = await DashboardService.GetNotificationStatsAsync(CurrentUserId);

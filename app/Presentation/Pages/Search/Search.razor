@@ -13,7 +13,6 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 @inject IDialogService DialogService
-@attribute [Microsoft.AspNetCore.Authorization.Authorize]
 
 <style>
     /* Styles pour mobile */
@@ -363,6 +362,7 @@
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var isAuthenticated = authState.User.Identity?.IsAuthenticated ?? false;
         var user = authState.User;
 
         if (user.Identity?.IsAuthenticated == true)
