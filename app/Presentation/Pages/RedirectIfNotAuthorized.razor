@@ -2,7 +2,7 @@
 @inject NavigationManager NavigationManager
 
 @code {
-    [Parameter] public AuthenticationState AuthState { get; set; }
+    [Parameter] public AuthenticationState AuthState { get; set; } = null!;
     private bool _firstRenderDone;
 
     protected override void OnAfterRender(bool firstRender)

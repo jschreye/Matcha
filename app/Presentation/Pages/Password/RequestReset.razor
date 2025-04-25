@@ -4,11 +4,11 @@
 
 <MudText Typo="Typo.h3">Réinitialiser le mot de passe</MudText>
 
-<MudForm @ref="form" @bind-IsValid="@isFormValid" Outlined="true">
+<MudForm @ref="form" @bind="isFormValid" outlined="true">
     <!-- Email -->
     <MudTextField T="string" Label="Email" Variant="Variant.Outlined" Required="true"
                   RequiredError="L'email est requis" Validation="@(new EmailAddressAttribute())" 
-                  @bind-Value="email" />
+                  @bind="email" />
 
     <!-- Boutons -->
     <div class="d-flex justify-content-end">

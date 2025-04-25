@@ -11,23 +11,23 @@
     Introduction
 </MudText>
 <MudText Class="mb-5">
-    Nous sommes ravis de vous aider ! Que vous ayez une question, une suggestion ou besoin d’assistance, notre équipe est là pour vous. N’hésitez pas à nous contacter via l’un des moyens ci-dessous.
+    Nous sommes ravis de vous aider ! Que vous ayez une question, une suggestion ou besoin d'assistance, notre équipe est là pour vous. N'hésitez pas à nous contacter via l'un des moyens ci-dessous.
 </MudText>
 
 <MudDivider Class="mb-5 mt-5" />
 
     <!-- Formulaire -->
     <MudPaper Class="pa-4 mb-5" Elevation="2">
-        <MudForm @ref="form" OnValidSubmit="HandleSubmit">
-            <MudTextField Label="Nom Complet" Variant="Variant.Outlined" Class="mb-4" FullWidth="true" @bind-Value="FullName" />
-            <MudTextField Label="Adresse Email" Variant="Variant.Outlined" Class="mb-4" FullWidth="true" @bind-Value="Email" />
-            <MudSelect Label="Sujet" Variant="Variant.Outlined" Class="mb-4" FullWidth="true" @bind-Value="Subject">
+        <MudForm @ref="form" onvalidsubmit="HandleSubmit">
+            <MudTextField T="string" Label="Nom Complet" Variant="Variant.Outlined" Class="mb-4" FullWidth="true" Value="@FullName" ValueChanged="@((string val) => FullName = val)" />
+            <MudTextField T="string" Label="Adresse Email" Variant="Variant.Outlined" Class="mb-4" FullWidth="true" Value="@Email" ValueChanged="@((string val) => Email = val)" />
+            <MudSelect T="string" Label="Sujet" Variant="Variant.Outlined" Class="mb-4" FullWidth="true" Value="@Subject" ValueChanged="@((string val) => Subject = val)">
                 <MudSelectItem Value="@("Assistance Technique")">Assistance Technique</MudSelectItem>
                 <MudSelectItem Value="@("Suggestions")">Suggestions</MudSelectItem>
                 <MudSelectItem Value="@("Problème de Compte")">Problème de Compte</MudSelectItem>
                 <MudSelectItem Value="@("Autre")">Autre</MudSelectItem>
             </MudSelect>
-            <MudTextField Label="Message" Variant="Variant.Outlined" Class="mb-4" FullWidth="true" Rows="5" Textarea="true" @bind-Value="Message" />
+            <MudTextField T="string" Label="Message" Variant="Variant.Outlined" Class="mb-4" FullWidth="true" rows="5" textarea="true" Value="@Message" ValueChanged="@((string val) => Message = val)" />
             <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" ButtonType="ButtonType.Submit">
                 Envoyer le Message
             </MudButton>
@@ -70,7 +70,7 @@
 <MudText Class="mb-5">
     Visitez-nous à : <br />
     Matcha Web<br />
-    123 Rue de l’Amour,<br />
+    123 Rue de l'Amour,<br />
     75000 Paris, France
 </MudText>
 
@@ -94,11 +94,11 @@
 
 
 @code {
-    private MudForm form;
-    private string FullName;
-    private string Email;
-    private string Subject;
-    private string Message;
+    private MudForm? form;
+    private string FullName = string.Empty;
+    private string Email = string.Empty;
+    private string Subject = string.Empty;
+    private string Message = string.Empty;
     private bool FormSubmitted = false;
 
     private async Task HandleSubmit()

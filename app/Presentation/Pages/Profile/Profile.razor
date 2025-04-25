@@ -87,18 +87,27 @@
             NavigationManager.NavigateTo("/login");
             return;
         }
-        userId = int.Parse(user.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier").Value);
+        
+        var userIdClaim = user.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+        if (userIdClaim != null)
+        {
+            userId = int.Parse(userIdClaim.Value);
 
-        // Charger le profil utilisateur et autres données
-        userProfile = await UserService.GetUserProfileAsync(userId);
-        genre = await GenreService.GetGenresAsync();
-        prefSex = await PrefSexService.GetPrefSexAsync();
-        
-        // Charger les tags disponibles
-        tags = await TagService.GetTagsAsync();
-        
-        // Récupérer les tags actuels de l'utilisateur
-        selectedTagIds = await TagService.GetTagUserAsync(userId);
+            // Charger le profil utilisateur et autres données
+            userProfile = await UserService.GetUserProfileAsync(userId);
+            genre = await GenreService.GetGenresAsync();
+            prefSex = await PrefSexService.GetPrefSexAsync();
+            
+            // Charger les tags disponibles
+            tags = await TagService.GetTagsAsync();
+            
+            // Récupérer les tags actuels de l'utilisateur
+            selectedTagIds = await TagService.GetTagUserAsync(userId);
+        }
+        else
+        {
+            NavigationManager.NavigateTo("/login");
+        }
     }
 
     /** Appel dans OnAfterRenderAsync uniquement si le profil est chargé et LocalisationIsActive est true */

@@ -9,9 +9,9 @@
 @implements IDisposable
 
 <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
-    <MudStack Direction="Row"
-            Align="Center"
-            JustifyContent="SpaceBetween"
+    <MudStack direction="Row"
+            align="Center"
+            justifyContent="SpaceBetween"
             Class="my-2">
         <MudText Typo="Typo.h5" Class="d-flex align-items-center m-0">
             <MudIcon Icon="@Icons.Material.Filled.Notifications" Class="mr-1" />
@@ -31,7 +31,7 @@
       @foreach (var group in notifications.GroupBy(n => n.TypeLibelle))
       {
         <MudText Typo="Typo.h6" Class="mt-4 mb-2">@group.Key</MudText>
-        <MudGrid GutterSize="3">
+        <MudGrid gutterSize="3">
           @foreach (var notif in group.OrderByDescending(n => n.Timestamp))
           {
             <MudItem xs="12">
@@ -52,10 +52,10 @@
                         <text> vous a liké</text>;
                         break;
                         case "Unlike":
-                        <text> n’aime plus votre profil</text>;
+                        <text> n'aime plus votre profil</text>;
                         break;
                         case "Match":
-                        <text> vous a matché !</text>;
+                        <text> vous a matché !</text>;
                         break;
                         case "Visite":
                         <text> a visité votre profil</text>;

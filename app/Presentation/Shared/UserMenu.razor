@@ -113,10 +113,10 @@
     [Parameter]
     public EventCallback OnToggleDrawer { get; set; }
 
-    private Action _onProfileImageChanged;
-    private Action<int> _onUserImageChanged;
+    private Action? _onProfileImageChanged;
+    private Action<int>? _onUserImageChanged;
     private int notificationCount = 0; // Compteur de notifications
-    private string userProfileImage; // Image de profil spécifique à cet utilisateur
+    private string userProfileImage = string.Empty; // Image de profil spécifique à cet utilisateur
 
     private bool isAuthenticated;
     private bool isOnLoginPage;
@@ -195,7 +195,7 @@
         catch (Exception ex)
         {
             Console.WriteLine($"Erreur lors du chargement de l'image de profil: {ex.Message}");
-            userProfileImage = null;
+            userProfileImage = string.Empty;
         }
     }
 
@@ -255,7 +255,7 @@
 
     private async void OnNotificationReceived(int receiverId)
     {
-        UserProfileDto userForNotif = await UserService.GetUserProfileAsync(CurrentUserId);
+        UserProfileDto? userForNotif = await UserService.GetUserProfileAsync(CurrentUserId);
         if (userForNotif != null)
         {
             if (userForNotif.NotifIsActive == true)
@@ -271,7 +271,7 @@
 
     private async Task UpdateNotificationsAsync()
     {
-        UserProfileDto userForNotif = await UserService.GetUserProfileAsync(CurrentUserId);
+        UserProfileDto? userForNotif = await UserService.GetUserProfileAsync(CurrentUserId);
         if (userForNotif != null)
         {
             if (userForNotif.NotifIsActive == true)
