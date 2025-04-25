@@ -10,11 +10,9 @@ public interface INotificationService
     Task NotifyMessageReceivedAsync(int receiverId, int senderId);
     Task<List<NotificationDto>> GetNotificationsForUserAsync(int userId);
     Task DeleteNotificationAsync(int notificationId, int userId);
-    Task DeleteNotificationsByUserIdAsync(int userId);
     Task NotifyProfileLikedAsync(int likedUserId, int likerUserId);
     Task NotifyProfileUnLikedAsync(int unLikedUserId, int unLikerUserId);
     Task NotifyVisitPofileAsync(int visitedUserId, int visitUserId);
     Task NotifyMatchAsync(int matchedUserId, int matchUserId);
     Task ClearAllNotificationsAsync(int userId);
 }
-

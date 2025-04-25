@@ -9,110 +9,149 @@
 @implements IDisposable
 
 <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
-    <MudPaper Class="p-4" Elevation="2">
-        <MudStack Spacing="2">
-            <!-- En-tête avec compteur et bouton "Tout supprimer" -->
-            <MudStack Direction="Row" Align="Center">
-                <MudText Typo="Typo.h5" Align="Align.Center">
-                    🔔 Mes notifications (@notifications.Count)
-                </MudText>
-                <MudSpacer />
-                <MudButton Variant="Variant.Outlined"
-                           Color="Color.Error"
-                           StartIcon="@Icons.Material.Filled.DeleteForever"
-                           OnClick="ClearAll">
-                    Tout supprimer
-                </MudButton>
-            </MudStack>
+    <MudStack Direction="Row"
+            Align="Center"
+            JustifyContent="SpaceBetween"
+            Class="my-2">
+        <MudText Typo="Typo.h5" Class="d-flex align-items-center m-0">
+            <MudIcon Icon="@Icons.Material.Filled.Notifications" Class="mr-1" />
+            Mes notifications (@notifications.Count)
+            <MudIconButton Icon="@Icons.Material.Filled.DeleteForever"
+                        Color="Color.Error"
+                        OnClick="ClearAll" />
+        </MudText>
+    </MudStack>
 
-            <MudDivider />
-
-            @if (notifications == null || notifications.Count == 0)
-            {
-                <MudText Class="mt-4" Align="Align.Center" Color="Color.Secondary">
-                    — Aucune notification pour le moment —
-                </MudText>
-            }
-            else
-            {
-                <MudList T="NotificationDto" Dense="true" Class="mt-2">
-                    @foreach (var group in notifications.GroupBy(n => n.TypeLibelle))
+    @if (notifications == null || notifications.Count == 0)
+    {
+      <MudText  Color="Color.Secondary">— Aucune notification —</MudText>
+    }
+    else
+    {
+      @foreach (var group in notifications.GroupBy(n => n.TypeLibelle))
+      {
+        <MudText Typo="Typo.h6" Class="mt-4 mb-2">@group.Key</MudText>
+        <MudGrid GutterSize="3">
+          @foreach (var notif in group.OrderByDescending(n => n.Timestamp))
+          {
+            <MudItem xs="12">
+              <MudPaper Elevation="1" Class="d-flex align-center pa-3">
+                <MudIcon Icon="@GetIcon(notif.TypeLibelle)"
+                         Size="Size.Large"
+                         Color="@GetColor(notif.TypeLibelle)"
+                         Class="mr-3" />
+                <MudStack Spacing="0">
+                    <MudText>
+                    @notif.SenderUsername
+                    @switch (notif.TypeLibelle)
                     {
-                        <MudListSubheader>@group.Key</MudListSubheader>
-                        @foreach (var notif in group.OrderByDescending(n => n.Timestamp))
-                        {
-                            <MudListItem T="NotificationDto" Class="d-flex justify-space-between">
-                                <div>
-                                    <b>@notif.TypeLibelle</b> – de @notif.SenderUsername  
-                                    <MudText Typo="Typo.caption" Class="ml-2">
-                                        @notif.Timestamp.ToString("dd/MM/yyyy HH:mm")
-                                    </MudText>
-                                </div>
-                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
-                                               Color="Color.Error"
-                                               Size="Size.Small"
-                                               OnClick="@(() => DeleteOne(notif.Id))" />
-                            </MudListItem>
-                        }
+                        case "Message":
+                        <text> vous a envoyé un message</text>;
+                        break;
+                        case "Like":
+                        <text> vous a liké</text>;
+                        break;
+                        case "Unlike":
+                        <text> n’aime plus votre profil</text>;
+                        break;
+                        case "Match":
+                        <text> vous a matché !</text>;
+                        break;
+                        case "Visite":
+                        <text> a visité votre profil</text>;
+                        break;
+                        default:
+                        <text> @notif.TypeLibelle</text>;
+                        break;
                     }
-                </MudList>
-            }
-        </MudStack>
-    </MudPaper>
+                    </MudText>
+                  <MudText Typo="Typo.caption">
+                    @notif.Timestamp.ToString("dd/MM/yyyy HH:mm")
+                  </MudText>
+                </MudStack>
+                <MudSpacer />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                               Color="Color.Error"
+                               OnClick="@(() => DeleteOne(notif.Id))" />
+              </MudPaper>
+            </MudItem>
+          }
+        </MudGrid>
+      }
+    }
 </MudContainer>
 
 @code {
-    private List<NotificationDto> notifications = new();
-    private int currentUserId;
-    private System.Threading.Timer? _timer;
+  private List<NotificationDto> notifications = new();
+  private int currentUserId;
+  private System.Threading.Timer? _timer;
 
-    protected override async Task OnInitializedAsync()
+  protected override async Task OnInitializedAsync()
+  {
+    var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+    var user      = authState.User;
+    if (!int.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out currentUserId))
     {
-        // Récupérer l’ID courant
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        var user      = authState.User;
-        if (!int.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out currentUserId))
-        {
-            NavigationManager.NavigateTo("/login");
-            return;
-        }
+      NavigationManager.NavigateTo("/login", forceLoad: true);
+      return;
+    }
 
-        // Chargement initial
+    await LoadNotifications();
+
+    _timer = new System.Threading.Timer(
+      async _ =>
+      {
         await LoadNotifications();
+        await InvokeAsync(StateHasChanged);
+      },
+      null,
+      dueTime: TimeSpan.FromSeconds(10),
+      period:  TimeSpan.FromSeconds(10)
+    );
+  }
 
-        // Mise en place du polling toutes les 10s
-        _timer = new System.Threading.Timer(
-            async _ =>
-            {
-                await LoadNotifications();
-                await InvokeAsync(StateHasChanged);
-            },
-            null,
-            dueTime: TimeSpan.FromSeconds(10),
-            period:  TimeSpan.FromSeconds(10)
-        );
-    }
+  private async Task LoadNotifications()
+  {
+    var list = await NotificationService.GetNotificationsForUserAsync(currentUserId);
+    notifications = list.OrderByDescending(n => n.Timestamp).ToList();
+  }
 
-    private async Task LoadNotifications()
+  private async Task DeleteOne(int id)
+  {
+    await NotificationService.DeleteNotificationAsync(id, currentUserId);
+    await LoadNotifications();
+  }
+
+  private async Task ClearAll()
+  {
+    await NotificationService.ClearAllNotificationsAsync(currentUserId);
+    await LoadNotifications();
+  }
+
+  public void Dispose()
+  {
+    _timer?.Dispose();
+  }
+
+  // Mappe chaque type de notif à une icône MudBlazor
+  private string GetIcon(string type)
+    => type switch
     {
-        var list = await NotificationService.GetNotificationsForUserAsync(currentUserId);
-        notifications = list.OrderByDescending(n => n.Timestamp).ToList();
-    }
+      "Message" => Icons.Material.Filled.Email,
+      "Like"    => Icons.Material.Filled.Favorite,
+      "Match"   => Icons.Material.Filled.FavoriteBorder,
+      "Visite"   => Icons.Material.Filled.Visibility,
+      _         => Icons.Material.Filled.Notifications
+    };
 
-    private async Task DeleteOne(int id)
+  // Choisit une couleur selon le type
+  private Color GetColor(string type)
+    => type switch
     {
-        await NotificationService.DeleteNotificationAsync(id, currentUserId);
-        await LoadNotifications();
-    }
-
-    private async Task ClearAll()
-    {
-        await NotificationService.ClearAllNotificationsAsync(currentUserId);
-        await LoadNotifications();
-    }
-
-    public void Dispose()
-    {
-        _timer?.Dispose();
-    }
+      "Message" => Color.Primary,
+      "Like"    => Color.Secondary,
+      "Match"   => Color.Info,
+      "Visite"   => Color.Tertiary,
+      _         => Color.Default
+    };
 }
