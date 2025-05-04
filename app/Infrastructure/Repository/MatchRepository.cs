@@ -13,27 +13,51 @@ namespace Infrastructure.Repository
             _connectionString = config.GetConnectionString("DefaultConnection")
                 ?? throw new InvalidOperationException("Missing connection string 'DefaultConnection'.");
         }
-        public async Task CreateMatchAsync(int userId1, int userId2)
+    public async Task<bool> CreateMatchAsync(int userId1, int userId2)
+    {
+        var ordered = new[] { userId1, userId2 }.OrderBy(i => i).ToArray();
+        using var connection = new MySqlConnection(_connectionString);
+        await connection.OpenAsync();
+
+        // 1) Vérifier si une ligne existe déjà
+        var checkSql = @"
+        SELECT is_active
+            FROM matches
+        WHERE user1_id = @u1 AND user2_id = @u2
+        LIMIT 1";
+        using var checkCmd = new MySqlCommand(checkSql, connection);
+        checkCmd.Parameters.AddWithValue("@u1", ordered[0]);
+        checkCmd.Parameters.AddWithValue("@u2", ordered[1]);
+        var exists = await checkCmd.ExecuteScalarAsync();
+        if (exists != null)
         {
-            using var connection = new MySqlConnection(_connectionString);
-            await connection.OpenAsync();
-
-            // Toujours user1 < user2
-            var ordered = new[] { userId1, userId2 }.OrderBy(i => i).ToArray();
-
-            var query = @"
-                INSERT INTO matches (user1_id, user2_id, matched_at, is_active)
-                VALUES (@u1, @u2, NOW(), TRUE)
-                ON DUPLICATE KEY UPDATE
-                    is_active = VALUES(is_active),
-                    matched_at = VALUES(matched_at);
-            ";
-
-            using var cmd = new MySqlCommand(query, connection);
-            cmd.Parameters.AddWithValue("@u1", ordered[0]);
-            cmd.Parameters.AddWithValue("@u2", ordered[1]);
-            await cmd.ExecuteNonQueryAsync();
+            bool wasActive = Convert.ToBoolean(exists);
+            if (wasActive)
+            {
+                // match déjà actif : rien de neuf
+                return false;
+            }
+            // match existait mais inactif : on le réactive
+            var reactSql = @"
+            UPDATE matches
+                SET is_active = TRUE, matched_at = NOW()
+            WHERE user1_id = @u1 AND user2_id = @u2";
+            using var reactCmd = new MySqlCommand(reactSql, connection);
+            reactCmd.Parameters.AddWithValue("@u1", ordered[0]);
+            reactCmd.Parameters.AddWithValue("@u2", ordered[1]);
+            await reactCmd.ExecuteNonQueryAsync();
+            return true;
         }
+        // 2) Pas de ligne : on insère un nouveau match
+        var insertSql = @"
+        INSERT INTO matches (user1_id, user2_id, matched_at, is_active)
+            VALUES (@u1, @u2, NOW(), TRUE)";
+        using var insCmd = new MySqlCommand(insertSql, connection);
+        insCmd.Parameters.AddWithValue("@u1", ordered[0]);
+        insCmd.Parameters.AddWithValue("@u2", ordered[1]);
+        await insCmd.ExecuteNonQueryAsync();
+        return true;
+    }
 
         public async Task DeleteMatchAsync(int userId1, int userId2)
         {

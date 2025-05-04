@@ -1,17 +1,21 @@
 @page "/profile/{UserId:int}"
 @using Core.Data.DTOs
+@using Core.Data.Entity
 @using System.Security.Claims
 @using Core.Interfaces.Services
+@using MudBlazor
 @inject IUserService UserService
 @inject IVisitService VisitService
 @inject IPhotoService PhotoService
-@inject AuthenticationStateProvider AuthStateProvider
-@inject NavigationManager NavigationManager
+@inject IBlockReportService BlockReportService
+@inject INotificationService NotificationService
+@inject ILikeService LikeService
 @inject ITagService TagService
 @inject IGenreService GenreService
-@inject IPrefSexService PrefSex
-@inject ILikeService LikeService
-@inject INotificationService NotificationService
+@inject IPrefSexService PrefSexService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JS
 
 <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4">
     @if (_loading)
@@ -26,21 +30,22 @@
     {
         <MudPaper Elevation="3" Class="p-4">
             <MudGrid>
+
+                <!-- Header -->
                 <MudItem xs="12" Class="text-center">
                     <MudText Typo="Typo.h4">Profil de @_userProfile.Username</MudText>
                 </MudItem>
 
+                <!-- Photos -->
                 <MudItem xs="12" Class="text-center my-2">
-                    @if (_photos?.Any() == true)
+                    @if (_photos.Any())
                     {
-                        <MudCarousel TData="string" Class="mb-3" Style="height: 300px;">
+                        <MudCarousel TData="string" Class="mb-3" Style="height:300px">
                             @foreach (var photo in _photos)
                             {
-                                <MudCarouselItem Style="height: 90%;">
-                                    <div style="height: 90%; width: 100%; display: flex; align-items: center; justify-content: center;">
-                                        <img src="@photo"
-                                             alt="Photo"
-                                             style="max-height: 90%; width: auto; object-fit: contain;" />
+                                <MudCarouselItem Style="height:90%">
+                                    <div class="d-flex align-center justify-center" style="height:90%; width:100%">
+                                        <img src="@photo" alt="Photo" style="max-height:90%; object-fit:contain" />
                                     </div>
                                 </MudCarouselItem>
                             }
@@ -48,21 +53,41 @@
                     }
                     else
                     {
-                        <MudAvatar Style="height: 150px; width: 150px;" Color="Color.Primary">
+                        <MudAvatar Size="Size.Large" Color="Color.Primary" Class="mx-auto">
                             <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Large" />
                         </MudAvatar>
                     }
                 </MudItem>
 
+                <!-- Actions: Like / Block / Report -->
                 <MudItem xs="12" Class="text-center mb-4">
                     <MudButton Color="@(_hasLiked ? Color.Secondary : Color.Primary)"
                                Variant="Variant.Filled"
                                StartIcon="@Icons.Material.Filled.Favorite"
+                               Disabled="isBlocked"
+                               Class="mx-1"
                                OnClick="ToggleLike">
                         @_likeButtonLabel
                     </MudButton>
+
+                    <MudButton Color="@(isBlocked ? Color.Default : Color.Error)"
+                               Variant="Variant.Outlined"
+                               Size="Size.Small"
+                               Class="mx-1"
+                               OnClick="ToggleBlock">
+                        @(isBlocked ? "Débloquer" : "Bloquer")
+                    </MudButton>
+
+                    <MudButton Color="Color.Warning"
+                               Variant="Variant.Outlined"
+                               Size="Size.Small"
+                               Class="mx-1"
+                               OnClick="ReportUser">
+                        Signaler
+                    </MudButton>
                 </MudItem>
 
+                <!-- Details panels -->
                 <MudItem xs="12">
                     <MudExpansionPanels Elevation="1" Class="mb-4">
 
@@ -86,7 +111,7 @@
                                 <MudChipSet T="string">
                                     @foreach (var tag in _userTags)
                                     {
-                                        <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined">@tag</MudChip>
+                                        <MudChip T="string" Variant="Variant.Outlined">@tag</MudChip>
                                     }
                                 </MudChipSet>
                             }
@@ -104,6 +129,7 @@
 
                     </MudExpansionPanels>
                 </MudItem>
+
             </MudGrid>
         </MudPaper>
     }
@@ -111,27 +137,35 @@
 
 @code {
     [Parameter] public int UserId { get; set; }
-    public int currentUserId {get; set;}
+
+    private int currentUserId;
     private UserProfileDto? _userProfile;
     private List<string> _photos = new();
     private List<string> _userTags = new();
+    private List<Genre> _genres = new();
+    private List<PrefSex> _prefSexes = new();
     private bool _loading = true;
-    private bool _hasLiked = false;
+    private bool _hasLiked;
+    private bool isBlocked;
+
     private string _likeButtonLabel => _hasLiked ? "Profil liké" : "Liker ce profil";
-    
-    // S'assurer que ces listes ne sont jamais null
-    private List<Core.Data.Entity.Genre> _genres = new();
-    private List<Core.Data.Entity.PrefSex> _prefSexes = new();
 
     protected override async Task OnInitializedAsync()
     {
-        await GetCurrentUserIdAsync();
-        if (currentUserId == 0)
+        // Récupérer l’utilisateur courant
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if (!int.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out currentUserId))
         {
-            NavigationManager.NavigateTo("/login");
+            NavigationManager.NavigateTo("/login", forceLoad: true);
             return;
         }
 
+        // Charger genres/préfs
+        _genres    = await GenreService.GetGenresAsync();
+        _prefSexes = await PrefSexService.GetPrefSexAsync();
+
+        // Charger le profil
         _userProfile = await UserService.GetUserProfileAsync(UserId);
         if (_userProfile == null)
         {
@@ -139,142 +173,109 @@
             return;
         }
 
+        // Enregistrer la visite et notifier
         if (currentUserId != UserId)
         {
             await VisitService.RecordVisitAsync(currentUserId, UserId);
-            await NotificationService.NotifyVisitPofileAsync(_userProfile.Id, currentUserId);
+            if (!await BlockReportService.HasBlockBetweenAsync(currentUserId, UserId))
+                await NotificationService.NotifyVisitPofileAsync(UserId, currentUserId);
         }
 
-
-        _userTags = await TagService.GetTagNamesForUserAsync(UserId);
-        await LoadPhotos();
-        _hasLiked = await LikeService.HasLikedAsync(currentUserId, UserId);
+        // Charger tags, photos et états
+        _userTags  = await TagService.GetTagNamesForUserAsync(UserId);
+        await LoadPhotosAsync();
+        _hasLiked  = await LikeService.HasLikedAsync(currentUserId, UserId);
+        isBlocked  = await BlockReportService.IsBlockedAsync(currentUserId, UserId);
 
         _loading = false;
     }
 
-    private async Task GetCurrentUserIdAsync()
+    private async Task LoadPhotosAsync()
     {
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-
-        if (user.Identity is not null && user.Identity.IsAuthenticated)
-        {
-            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier);
-
-            if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var id))
-            {
-                currentUserId = id;
-            }
-            else
-            {
-                Console.WriteLine("ID utilisateur non trouvé ou invalide.");
-            }
-        }
-        else
-        {
-            Console.WriteLine("Utilisateur non authentifié.");
-        }
+        var photos = await PhotoService.GetUserPhotosAsync(UserId);
+        _photos = photos
+            .Where(p => p.ImageData?.Length > 0)
+            .Select(p => $"data:image/jpeg;base64,{Convert.ToBase64String(p.ImageData!)}")
+            .ToList();
     }
 
-    private async Task LoadUserProfile()
-    {
-        _loading = true;
-
-        try
-        {
-            _userProfile = await UserService.GetUserProfileAsync(UserId);
-            _userTags = await TagService.GetTagNamesForUserAsync(UserId);
-            if (_userProfile != null)
-            {
-                await LoadPhotos();
-                _hasLiked = await LikeService.HasLikedAsync(currentUserId, UserId);
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Erreur lors du chargement du profil : {ex.Message}");
-        }
-        finally
-        {
-            _loading = false;
-        }
-    }
-
-    private async Task LoadPhotos()
-    {
-        try
-        {
-            var photos = await PhotoService.GetUserPhotosAsync(UserId);
-            _photos = photos
-                .Where(p => p.ImageData != null && p.ImageData.Length > 0)
-                .Select(p => $"data:image/jpeg;base64,{Convert.ToBase64String(p.ImageData)}")
-                .ToList();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Erreur chargement photos : {ex.Message}");
-        }
-    }
+    private bool _isHandlingLike;
 
     private async Task ToggleLike()
     {
-        try
+        // éviter les clics en double
+        if (_isHandlingLike) return;
+        _isHandlingLike = true;
+
+        if (_hasLiked)
         {
-            if (_hasLiked)
+            await LikeService.UnlikeProfileAsync(currentUserId, UserId);
+            _hasLiked = false;
+            await NotificationService.NotifyProfileUnLikedAsync(UserId, currentUserId);
+        }
+        else
+        {
+            var isMatch = await LikeService.LikeProfileAsync(currentUserId, UserId);
+            _hasLiked = true;
+
+            // 1) notif Like
+            await NotificationService.NotifyProfileLikedAsync(UserId, currentUserId);
+
+            // 2) si match, notif EXACTEMENT une seule fois chacun
+            if (isMatch)
             {
-                // L'utilisateur a déjà liké le profil, on l'enlève
-                await LikeService.UnlikeProfileAsync(currentUserId, UserId);
-                _hasLiked = false;
-                if (_userProfile != null)
-                {
-                    await NotificationService.NotifyProfileUnLikedAsync(_userProfile.Id, currentUserId);
-                }
+                // seulement la notif de match
+                await NotificationService.NotifyMatchAsync(UserId, currentUserId);
             }
             else
             {
-                // L'utilisateur n'a pas encore liké, on l'ajoute
-                var match = await LikeService.LikeProfileAsync(currentUserId, UserId);
-                if (match)
-                    await NotificationService.NotifyMatchAsync(_userProfile.Id, currentUserId);
-                    
-                _hasLiked = true;
-                if (_userProfile != null)
-                {
-                    await NotificationService.NotifyProfileLikedAsync(_userProfile.Id, currentUserId);
-                }
+                // simple like
+                await NotificationService.NotifyProfileLikedAsync(UserId, currentUserId);
             }
         }
-        catch (Exception ex)
+
+        _isHandlingLike = false;
+    }
+
+    private async Task ToggleBlock()
+    {
+        if (isBlocked)
         {
-            // Ici tu pourrais gérer les erreurs en affichant un message ou en loggant l'erreur
-            Console.WriteLine($"Erreur lors de l'ajout du like : {ex.Message}");
+            // Débloquer
+            await BlockReportService.UnblockUserAsync(currentUserId, UserId);
+        }
+        else
+        {
+            // Si liké, retirer le like
+            if (_hasLiked)
+            {
+                await LikeService.UnlikeProfileAsync(currentUserId, UserId);
+                await NotificationService.NotifyProfileUnLikedAsync(UserId, currentUserId);
+                _hasLiked = false;
+            }
+            // Bloquer
+            await BlockReportService.BlockUserAsync(currentUserId, UserId);
+        }
+        isBlocked = !isBlocked;
+    }
+
+    private async Task ReportUser()
+    {
+        var reason = await JS.InvokeAsync<string>("prompt", "Raison du signalement :");
+        if (!string.IsNullOrWhiteSpace(reason))
+        {
+            await BlockReportService.ReportUserAsync(currentUserId, UserId, reason);
+            // Optionnel : toast de confirmation
         }
     }
 
-    private string GetGenreLibelle(int? genreId)
-    {
-        if (genreId == null)
-            return "Non spécifié";
-            
-        // Vérifier si _genres est null avant d'utiliser Any()
-        if (_genres == null || _genres.Count == 0)
-            return "Non spécifié";
-            
-        var genre = _genres.FirstOrDefault(g => g.Id == genreId);
-        return genre?.Libelle ?? "Non spécifié";
-    }
-    
-    private string GetPrefSexLibelle(int? prefSexId)
-    {
-        if (prefSexId == null)
-            return "Non spécifié";
-            
-        // Vérifier si _prefSexes est null avant d'utiliser Any()
-        if (_prefSexes == null || _prefSexes.Count == 0)
-            return "Non spécifié";
-            
-        var prefSex = _prefSexes.FirstOrDefault(p => p.Id == prefSexId);
-        return prefSex?.Libelle ?? "Non spécifié";
-    }
+    private string GetGenreLibelle(int? genreId) =>
+        genreId.HasValue
+            ? _genres.FirstOrDefault(g => g.Id == genreId)?.Libelle ?? "Non spécifié"
+            : "Non spécifié";
+
+    private string GetPrefSexLibelle(int? prefSexId) =>
+        prefSexId.HasValue
+            ? _prefSexes.FirstOrDefault(p => p.Id == prefSexId)?.Libelle ?? "Non spécifié"
+            : "Non spécifié";
 }
