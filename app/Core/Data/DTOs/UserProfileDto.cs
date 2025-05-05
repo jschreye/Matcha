@@ -35,4 +35,5 @@ public class UserProfileDto
     public bool NotifIsActive {get; set;}
     public bool IsActive {get; set;}
     public bool LocalisationIsActive { get; set; }
+    public DateTime LastActivity {get; set;}
 }

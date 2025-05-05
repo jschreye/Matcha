@@ -43,7 +43,7 @@ namespace Core.Data.Entity
         public bool ProfileComplete { get; set; } = false;
 
         public bool LocalisationIsActive { get; set; } = false;
-        
+        public DateTime LastActivity {get; set;} = DateTime.MinValue;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

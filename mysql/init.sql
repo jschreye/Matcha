@@ -57,6 +57,7 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     profile_complete BOOLEAN DEFAULT FALSE,
     localisation_isactive BOOLEAN DEFAULT FALSE,
+    last_activity DATETIME NULL,
     FOREIGN KEY (genre_id) REFERENCES genre(id),
     FOREIGN KEY (sexual_preferences_id) REFERENCES prefsex(id),
     FOREIGN KEY (tag_id) REFERENCES tags(id)

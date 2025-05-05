@@ -14,5 +14,8 @@ namespace Core.Interfaces.Services
         Task<bool> UpdateUserProfileAsync(UserProfileDto profileDto);
         Task<bool> UpdatePasswordAsync(int userId, string newPassword);
         Task UpdateLocationAsync(int userId, double latitude, double longitude, bool localisationIsActive = false);
+        Task<bool> IsUserOnlineAsync(int userId);
+         Task<DateTime?> GetLastActivityAsync(int userId);
+         Task DeleteSessionsByUserIdAsync(int userId);
     }
 }

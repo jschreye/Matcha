@@ -30,12 +30,24 @@
     {
         <MudPaper Elevation="3" Class="p-4">
             <MudGrid>
+            <MudItem xs="12" Class="text-center mb-2">
+                <MudText Typo="Typo.h4">Profil de @_userProfile.Username</MudText>
 
-                <!-- Header -->
-                <MudItem xs="12" Class="text-center">
-                    <MudText Typo="Typo.h4">Profil de @_userProfile.Username</MudText>
-                </MudItem>
-
+                @if (_isProfileOnline)
+                {
+                    <MudText Color="Color.Success" Typo="Typo.subtitle2">● En ligne</MudText>
+                }
+                else
+                {
+                    <MudText Color="Color.Secondary" Typo="Typo.subtitle2">
+                        ● Hors ligne
+                        @if (_lastActivity.HasValue)
+                        {
+                            <span> - Dernière connexion : @_lastActivity.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                        }
+                    </MudText>
+                }
+            </MudItem>
                 <!-- Photos -->
                 <MudItem xs="12" Class="text-center my-2">
                     @if (_photos.Any())
@@ -147,14 +159,18 @@
     private bool _loading = true;
     private bool _hasLiked;
     private bool isBlocked;
-
+    private DateTime? _lastActivity;
     private string _likeButtonLabel => _hasLiked ? "Profil liké" : "Liker ce profil";
-
+    private bool _isProfileOnline;
     protected override async Task OnInitializedAsync()
     {
         // Récupérer l’utilisateur courant
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
+        _isProfileOnline = await UserService.IsUserOnlineAsync(UserId);
+        if (!_isProfileOnline)
+            _lastActivity = await UserService.GetLastActivityAsync(UserId);
+
         if (!int.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out currentUserId))
         {
             NavigationManager.NavigateTo("/login", forceLoad: true);

@@ -358,5 +358,33 @@ namespace Infrastructure.Repository
             cmd.Parameters.AddWithValue("@userId", userId);
             await cmd.ExecuteNonQueryAsync();
         }
+        public async Task UpdateLastActivityAsync(int userId)
+        {
+            const string sql = @"
+                UPDATE users
+                SET last_activity = NOW()
+                WHERE id = @userId;";
+            await using var cn  = new MySqlConnection(_connectionString);
+            await cn.OpenAsync();
+            await using var cmd = new MySqlCommand(sql, cn);
+            cmd.Parameters.AddWithValue("@userId", userId);
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        public async Task<DateTime?> GetLastActivityAsync(int userId)
+        {
+            const string sql = @"
+                SELECT last_activity
+                FROM users
+                WHERE id = @userId;";
+            await using var cn  = new MySqlConnection(_connectionString);
+            await cn.OpenAsync();
+            await using var cmd = new MySqlCommand(sql, cn);
+            cmd.Parameters.AddWithValue("@userId", userId);
+            var result = await cmd.ExecuteScalarAsync();
+            return result == null || result == DBNull.Value
+                ? null
+                : (DateTime?) Convert.ToDateTime(result);
+        }
     }
 }

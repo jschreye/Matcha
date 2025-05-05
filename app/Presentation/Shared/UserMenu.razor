@@ -241,7 +241,8 @@
 
     private void NavigateToNotifications() => NavigationManager.NavigateTo("/notifications");
 
-    private void Logout() => NavigationManager.NavigateTo("/logout", true);
+  private void Logout()
+    => NavigationManager.NavigateTo("/auth/logout", forceLoad: true);
 
     private async Task ToggleDrawerAsync()
     {

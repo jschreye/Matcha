@@ -34,6 +34,8 @@ namespace Presentation.Controllers // Remplacez par votre espace de noms appropr
                 if(user == null || !user.IsActive) 
                     return Unauthorized("Identifiants incorrects ou compte non actif.");
 
+                await _userRepository.UpdateLastActivityAsync(user.Id);
+
                 // Créer les claims et l'identité pour le cookie d'authentification
                 var claims = new List<Claim>
                 {
@@ -58,14 +60,19 @@ namespace Presentation.Controllers // Remplacez par votre espace de noms appropr
 
                 // Stocker la session en base
                 await _userService.CreateSessionAsync(user.Id, sessionToken, expiresAt);
-
+                #if DEBUG
+                    var cookieSecure = false;
+                #else
+                    var cookieSecure = true;
+                #endif
                 // Créer le cookie de session
                 Response.Cookies.Append("SessionToken", sessionToken, new CookieOptions
                 {
                     HttpOnly = true,
-                    Secure = true,
+                    Secure   = cookieSecure,
                     SameSite = SameSiteMode.Strict,
-                    Expires = expiresAt
+                    Expires  = expiresAt,
+                    Path     = "/"
                 });
 
                 return Ok(new { Message = "Connexion réussie" });
@@ -75,19 +82,35 @@ namespace Presentation.Controllers // Remplacez par votre espace de noms appropr
             return Unauthorized("Nom d'utilisateur ou mot de passe incorrect.");
         }
 
+        [HttpGet("logout")]
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
         {
-            if (Request.Cookies.TryGetValue("SessionToken", out var sessionToken))
+            Console.WriteLine($"🔐 logout");
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (int.TryParse(userIdClaim?.Value, out var userId))
             {
-                await _userService.DeleteSessionAsync(sessionToken);
-                Response.Cookies.Delete("SessionToken");
+                Console.WriteLine($"🔐 Logout pour userId = {userId}");
+                // 1) Supprimer TOUTES les sessions en base
+                await _userService.DeleteSessionsByUserIdAsync(userId);
+
+                // 2) Effacer le cookie côté client
+                Response.Cookies.Delete("SessionToken", new CookieOptions {
+                    HttpOnly = true,
+                    Secure   = false,
+                    SameSite = SameSiteMode.Strict,
+                    Path     = "/"
+                });
+
+                // 3) Mettre à jour last_activity
+                await _userRepository.UpdateLastActivityAsync(userId);
             }
-            
-            // Déconnexion de l'authentification
+
+            // 4) Sign‐out du cookie d’authentification ASP.NET
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
-            return Ok("Déconnecté");
+            // 5) Redirection
+            return Redirect("/login");
         }
 
         [HttpGet("confirmation")]
