@@ -36,13 +36,11 @@ namespace Presentation.Controllers // Remplacez par votre espace de noms appropr
 
                 await _userRepository.UpdateLastActivityAsync(user.Id);
 
-                // Créer les claims et l'identité pour le cookie d'authentification
                 var claims = new List<Claim>
                 {
                     new Claim(ClaimTypes.Name, username),
                     new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                     new Claim("ProfileComplete", user.ProfileComplete ? "true" : "false")
-                    // Ajoutez d'autres claims si nécessaire
                 };
 
                 var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -50,15 +48,12 @@ namespace Presentation.Controllers // Remplacez par votre espace de noms appropr
 
                 Console.WriteLine("Utilisateur validé. Tentative de création du cookie d'authentification.");
 
-                // Créer le cookie d'authentification
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal);
                 Console.WriteLine("Cookie d'authentification créé.");
 
-                // Gérer la session
                 var sessionToken = Guid.NewGuid().ToString();
                 var expiresAt = DateTime.UtcNow.AddHours(4);
 
-                // Stocker la session en base
                 await _userService.CreateSessionAsync(user.Id, sessionToken, expiresAt);
                 #if DEBUG
                     var cookieSecure = false;
@@ -91,10 +86,8 @@ namespace Presentation.Controllers // Remplacez par votre espace de noms appropr
             if (int.TryParse(userIdClaim?.Value, out var userId))
             {
                 Console.WriteLine($"🔐 Logout pour userId = {userId}");
-                // 1) Supprimer TOUTES les sessions en base
                 await _userService.DeleteSessionsByUserIdAsync(userId);
 
-                // 2) Effacer le cookie côté client
                 Response.Cookies.Delete("SessionToken", new CookieOptions {
                     HttpOnly = true,
                     Secure   = false,
@@ -102,14 +95,11 @@ namespace Presentation.Controllers // Remplacez par votre espace de noms appropr
                     Path     = "/"
                 });
 
-                // 3) Mettre à jour last_activity
                 await _userRepository.UpdateLastActivityAsync(userId);
             }
 
-            // 4) Sign‐out du cookie d’authentification ASP.NET
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
-            // 5) Redirection
             return Redirect("/login");
         }
 

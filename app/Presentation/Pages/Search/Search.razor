@@ -361,42 +361,57 @@
 
     protected override async Task OnInitializedAsync()
     {
+        // 1) Récupérer l'état d'authentification
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var isAuthenticated = authState.User.Identity?.IsAuthenticated ?? false;
         var user = authState.User;
-
-        if (user.Identity?.IsAuthenticated == true)
-        {
-            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier);
-            
-            if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
-            {
-                CurrentUserId = userId;
-                
-                // Initialiser le timer de debounce
-                _searchDebounceTimer = new System.Timers.Timer(_debounceDelayMs);
-                _searchDebounceTimer.Elapsed += async (sender, e) => await SearchWithDebounce();
-                _searchDebounceTimer.AutoReset = false;
-                
-                // Charger les tags disponibles pour le sélecteur
-                try
-                {
-                    AvailableTags = await TagService.GetTagsAsync();
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Erreur lors du chargement des tags : {ex.Message}");
-                    AvailableTags = new List<Tag>();
-                }
-            }
-            else
-            {
-                NavigationManager.NavigateTo("/login");
-            }
-        }
-        else
+        if (!(user.Identity?.IsAuthenticated ?? false))
         {
             NavigationManager.NavigateTo("/login");
+            return;
+        }
+
+        // 2) Extraire l'ID
+        var claim = user.FindFirst(ClaimTypes.NameIdentifier);
+        if (claim == null || !int.TryParse(claim.Value, out int userId))
+        {
+            NavigationManager.NavigateTo("/login");
+            return;
+        }
+        CurrentUserId = userId;
+
+        // 3) Charger le profil et vérifier profile_complete
+        var profile = await UserService.GetUserProfileAsync(CurrentUserId);
+        if (profile == null)
+        {
+            // Pas de profil : on renvoie vers login ou création
+            NavigationManager.NavigateTo("/login");
+            return;
+        }
+
+        if (!profile.ProfileComplete)
+        {
+            // Profil incomplet → redirection vers la page de profil à compléter
+            NavigationManager.NavigateTo($"/profile");
+            return;
+        }
+
+        // 4) Si on arrive ici, le profil est complet : on poursuit l'initialisation
+        await InitializeSearchAsync();
+    }
+    private async Task InitializeSearchAsync()
+    {
+        // Votre code existant pour charger les tags, initialiser le timer, etc.
+        _searchDebounceTimer = new System.Timers.Timer(_debounceDelayMs);
+        _searchDebounceTimer.Elapsed += async (s,e) => await SearchWithDebounce();
+        _searchDebounceTimer.AutoReset = false;
+
+        try
+        {
+            AvailableTags = await TagService.GetTagsAsync();
+        }
+        catch
+        {
+            AvailableTags = new List<Tag>();
         }
     }
 
