@@ -133,4 +133,11 @@ public class NotificationService : INotificationService
         await _notificationRepository.DeleteNotificationsByUserIdAsync(userId);
         OnNotificationsUpdated?.Invoke(userId);
     }
+    
+    public async Task MarkMessagesAsReadAsync(int userId, int senderId)
+    {
+        // 1 est l'ID du type de notification pour les messages
+        await _notificationRepository.MarkMessagesAsReadAsync(userId, senderId, 1);
+        OnNotificationsUpdated?.Invoke(userId);
+    }
 }

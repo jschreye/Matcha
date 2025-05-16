@@ -15,4 +15,5 @@ public interface INotificationService
     Task NotifyVisitPofileAsync(int visitedUserId, int visitUserId);
     Task NotifyMatchAsync(int matchedUserId, int matchUserId);
     Task ClearAllNotificationsAsync(int userId);
+    Task MarkMessagesAsReadAsync(int userId, int senderId);
 }

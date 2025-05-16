@@ -4,56 +4,121 @@
 @using Microsoft.AspNetCore.Components.Web
 @inject IChatService ChatService
 @inject IUserService UserService
+@inject IPhotoService PhotoService
 @inject AuthenticationStateProvider AuthStateProvider
 @inject INotificationService NotificationService
+@inject IJSRuntime JS
 
-<MudPaper Class="p-4 mx-auto my-5" Elevation="3" MaxWidth="800px">
-    <MudText Typo="Typo.h5">Chat privé</MudText>
-    <MudDivider Class="my-2" />
-
-    <MudPaper Class="chat-box p-3 mb-4" Elevation="1">
-        @if (!conversationMessages.Any())
-        {
-            <MudText Class="text-muted">Aucun message pour le moment.</MudText>
-        }
-        else
-        {
-            @foreach (var msg in conversationMessages)
+<MudContainer MaxWidth="MaxWidth.Medium" Class="py-4">
+    <!-- Header de conversation -->
+    <MudPaper Elevation="3" Class="px-4 py-3 mb-3 rounded-lg">
+        <div class="d-flex align-center">
+            @if (!string.IsNullOrEmpty(receiverPhotoUrl))
             {
-                <MudPaper Class="p-2 my-1"
-                          color="@(msg.SenderId == currentUserId ? Color.Primary : Color.Secondary)"
-                          Elevation="0">
-                    <MudText Typo="Typo.body2" Class="fw-bold">
-                        @((msg.SenderId == currentUserId ? currentUsername : receiverUsername))
-                        : @msg.Contenu
-                    </MudText>
-                </MudPaper>
+                <div style="width: 50px; height: 50px; overflow: hidden; border-radius: 50%;" class="mr-3">
+                    <img src="@receiverPhotoUrl" alt="@receiverUsername" style="width: 100%; height: 100%; object-fit: cover;" />
+                </div>
             }
-        }
+            else
+            {
+                <MudAvatar Color="Color.Secondary" Size="Size.Large" Class="mr-3">
+                    @(receiverUsername.Length > 0 ? receiverUsername[0].ToString().ToUpper() : "?")
+                </MudAvatar>
+            }
+            <div>
+                <MudText Typo="Typo.h6">@receiverUsername</MudText>
+                <MudText Typo="Typo.caption" Class="mud-text-secondary">
+                    @(isOnline ? "En ligne" : "Hors ligne")
+                </MudText>
+            </div>
+        </div>
     </MudPaper>
 
-    <MudTextField @bind-Value="message"
-                  Placeholder="Entrez votre message..."
-                  FullWidth="true"
-                  Label="Votre message"
-                  Variant="Variant.Outlined"
-                  Adornment="Adornment.End"
-                  AdornmentIcon="@Icons.Material.Filled.Send"
-                  OnAdornmentClick="SendMessage"
-                  OnKeyDown="HandleKeyDown" />
-    <MudButton Class="mt-2"
-               Color="Color.Primary"
-               Variant="Variant.Filled"
-               OnClick="SendMessage">Envoyer</MudButton>
-</MudPaper>
+    <!-- Fenêtre de messages -->
+    <MudPaper Elevation="3" Class="rounded-lg p-4 mb-3" Style="height: 60vh;">
+        <div class="chat-container d-flex flex-column" style="height: 100%; overflow-y: auto;" @ref="chatContainer">
+            @if (!conversationMessages.Any())
+            {
+                <div class="mx-auto my-auto text-center">
+                    <MudIcon Icon="@Icons.Material.Filled.Chat" Color="Color.Default" Size="Size.Large" />
+                    <MudText Class="mt-2 mud-text-secondary">Commencez la conversation !</MudText>
+                </div>
+            }
+            else
+            {
+                <div class="message-list">
+                    @{
+                        DateTime? lastDate = null;
+                    }
+                    @foreach (var msg in conversationMessages)
+                    {
+                        // Afficher la date si elle change
+                        if (lastDate == null || !DateOnly.FromDateTime(lastDate.Value).Equals(DateOnly.FromDateTime(msg.Timestamp)))
+                        {
+                            <div class="date-separator d-flex justify-center my-3">
+                                <MudChip T="string" Color="Color.Default" Size="Size.Small" Variant="Variant.Text">
+                                    @FormatDate(msg.Timestamp)
+                                </MudChip>
+                            </div>
+                            lastDate = msg.Timestamp;
+                        }
+
+                        bool isCurrentUser = msg.SenderId == currentUserId;
+                        <div class="message-row d-flex @(isCurrentUser ? "justify-end" : "justify-start") mb-2">
+                            <div class="message-wrapper @(isCurrentUser ? "message-sent" : "message-received")"
+                                 style="max-width: 80%;">
+                                <div class="bubble @(isCurrentUser ? "bubble-sent" : "bubble-received") px-3 py-2 rounded-lg">
+                                    <MudText Typo="Typo.body1">@msg.Contenu</MudText>
+                                </div>
+                                <MudText Typo="Typo.caption" Class="@($"message-time mt-1 {(isCurrentUser ? "text-right" : "text-left")}")">
+                                    @msg.Timestamp.ToString("HH:mm")
+                                </MudText>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </MudPaper>
+
+    <!-- Zone de saisie du message -->
+    <MudPaper Elevation="3" Class="rounded-lg p-3">
+        <div class="d-flex">
+            <MudTextField 
+                @bind-Value="message"
+                Placeholder="Tapez votre message..."
+                Variant="Variant.Outlined"
+                Class="flex-grow-1 mr-2"
+                Immediate="true"
+                Lines="1"
+                Adornment="Adornment.End"
+                AdornmentIcon="@Icons.Material.Filled.InsertEmoticon"
+                OnAdornmentClick="OnEmojiButtonClick"
+                OnKeyDown="HandleKeyDown" />
+            
+            <MudButton 
+                Color="Color.Primary" 
+                Variant="Variant.Filled" 
+                StartIcon="@Icons.Material.Filled.Send" 
+                OnClick="SendMessage"
+                Disabled="@string.IsNullOrWhiteSpace(message)"
+                Class="align-self-end">
+                Envoyer
+            </MudButton>
+        </div>
+    </MudPaper>
+</MudContainer>
 
 @code {
     [Parameter] public int ReceiverId { get; set; }
     private int currentUserId;
     private string currentUsername = "";
     private string receiverUsername = "";
+    private string receiverPhotoUrl = "";
+    private bool isOnline = false;
     private string message = string.Empty;
     private List<Message> conversationMessages = new();
+    private ElementReference chatContainer;
 
     protected override async Task OnInitializedAsync()
     {
@@ -65,13 +130,52 @@
 
         // 2) Charger les deux noms
         currentUsername  = (await UserService.GetUserProfileAsync(currentUserId))?.Username ?? "Moi";
-        receiverUsername = (await UserService.GetUserProfileAsync(ReceiverId))?.Username ?? "Lui";
+        var receiverProfile = await UserService.GetUserProfileAsync(ReceiverId);
+        receiverUsername = receiverProfile?.Username ?? "Utilisateur";
+        
+        // 3) Récupérer la photo du destinataire
+        try {
+            var profilePhoto = await PhotoService.GetProfilePhotoAsync(ReceiverId);
+            if (profilePhoto?.ImageData != null && profilePhoto.ImageData.Length > 0)
+            {
+                receiverPhotoUrl = $"data:image/jpeg;base64,{Convert.ToBase64String(profilePhoto.ImageData)}";
+            }
+        }
+        catch (Exception) {
+            // En cas d'erreur, pas de photo
+        }
+        
+        // 3.1) Vérifier si l'utilisateur est en ligne
+        isOnline = await UserService.IsUserOnlineAsync(ReceiverId);
 
-        // 3) S'abonner & charger historique
+        // 4) S'abonner & charger historique
         ChatService.OnMessageReceived += OnMessageReceived;
         conversationMessages = (await ChatService.LoadConversationAsync(currentUserId, ReceiverId))
                                     .OrderBy(m => m.Timestamp)
                                     .ToList();
+
+        // 5) Marquer les notifications comme lues
+        await NotificationService.MarkMessagesAsReadAsync(currentUserId, ReceiverId);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await ScrollToBottomAsync();
+        }
+    }
+
+    private async Task ScrollToBottomAsync()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("scrollToBottom", chatContainer);
+        }
+        catch
+        {
+            // Ignorer l'erreur si JS n'est pas injecté
+        }
     }
 
     private void OnMessageReceived(Message newMsg)
@@ -80,7 +184,10 @@
             (newMsg.SenderId == ReceiverId  && newMsg.ReceiverId == currentUserId))
         {
             conversationMessages.Add(newMsg);
-            InvokeAsync(StateHasChanged);
+            InvokeAsync(async () => {
+                StateHasChanged();
+                await ScrollToBottomAsync();
+            });
         }
     }
 
@@ -89,15 +196,41 @@
         if (string.IsNullOrWhiteSpace(message))
             return;
 
-        await ChatService.SendMessageAsync(currentUserId, ReceiverId, message);
+        string trimmedMessage = message.Trim();
+        await ChatService.SendMessageAsync(currentUserId, ReceiverId, trimmedMessage);
         await NotificationService.NotifyMessageReceivedAsync(ReceiverId, currentUserId);
         message = string.Empty;
+        await ScrollToBottomAsync();
+    }
+
+    private void OnEmojiButtonClick()
+    {
+        // Fonction pour afficher un sélecteur d'emoji (à implémenter plus tard)
     }
 
     private async Task HandleKeyDown(KeyboardEventArgs e)
     {
-        if (e.Key == "Enter")
+        if (e.Key == "Enter" && !e.ShiftKey)
+        {
             await SendMessage();
+        }
+    }
+
+    private string FormatDate(DateTime date)
+    {
+        DateTime today = DateTime.Today;
+        if (date.Date == today)
+        {
+            return "Aujourd'hui";
+        }
+        else if (date.Date == today.AddDays(-1))
+        {
+            return "Hier";
+        }
+        else
+        {
+            return date.ToString("dddd d MMMM", System.Globalization.CultureInfo.CreateSpecificCulture("fr-FR"));
+        }
     }
 
     public void Dispose()
@@ -105,9 +238,41 @@
         ChatService.OnMessageReceived -= OnMessageReceived;
     }
 }
+
 <style>
-    .chat-box {
-        max-height: 400px;
-        overflow-y: auto;
+    .chat-container {
+        padding: 10px;
+        scroll-behavior: smooth;
+    }
+
+    .message-list {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .bubble-sent {
+        background-color: var(--mud-palette-primary);
+        color: var(--mud-palette-primary-text);
+        border-radius: 18px 18px 4px 18px;
+        align-self: flex-end;
+    }
+
+    .bubble-received {
+        background-color: var(--mud-palette-surface);
+        color: var(--mud-palette-text-primary);
+        border-radius: 18px 18px 18px 4px;
+        border: 1px solid var(--mud-palette-lines-default);
+        align-self: flex-start;
+    }
+
+    .message-time {
+        color: var(--mud-palette-text-secondary);
+        font-size: 0.75rem;
+    }
+
+    .date-separator {
+        position: relative;
+        z-index: 1;
     }
 </style>
