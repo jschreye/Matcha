@@ -149,6 +149,9 @@
         isOnline = await UserService.IsUserOnlineAsync(ReceiverId);
 
         // 4) S'abonner & charger historique
+        receiverUsername = (await UserService.GetUserProfileAsync(ReceiverId))?.Username ?? "Lui";
+        await NotificationService.DeleteMessageNotificationAsync(currentUserId, ReceiverId);
+        // 3) S'abonner & charger historique
         ChatService.OnMessageReceived += OnMessageReceived;
         conversationMessages = (await ChatService.LoadConversationAsync(currentUserId, ReceiverId))
                                     .OrderBy(m => m.Timestamp)

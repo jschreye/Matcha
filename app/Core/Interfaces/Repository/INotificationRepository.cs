@@ -15,5 +15,7 @@ namespace Core.Interfaces.Repository
         Task<int> CountUnreadLikesAsync(int userId);
         Task<int> CountUnreadMessagesAsync(int userId);
         Task MarkMessagesAsReadAsync(int userId, int senderId, int notificationTypeId);
+        Task DeleteMessageNotificationAsync(int userId, int senderId);
+        Task DeleteNotificationsByTypeAsync(int userId, string typeLibelle);
     }
 }

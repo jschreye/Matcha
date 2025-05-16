@@ -163,7 +163,6 @@ public class UserService : IUserService
                              !string.IsNullOrWhiteSpace(user.Username) &&
                              !string.IsNullOrWhiteSpace(user.Email) &&
                              user.Genre.HasValue &&
-                             user.SexualPreferences.HasValue &&
                              !string.IsNullOrWhiteSpace(user.Biography);
 
         user.ProfileComplete = isProfileComplete;
