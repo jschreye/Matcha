@@ -28,18 +28,31 @@
     }
     else
     {
-        <MudPaper Elevation="3" Class="p-4">
-            <MudGrid>
-            <MudItem xs="12" Class="text-center mb-2">
-                <MudText Typo="Typo.h4">Profil de @_userProfile.Username</MudText>
-
-                @if (_isProfileOnline)
+        <MudPaper Elevation="3" Class="pa-6 rounded-lg">
+            <!-- En-tête du profil avec avatar et nom -->
+            <div class="d-flex flex-column align-center mb-6">
+                @if (profilePhoto != null)
                 {
-                    <MudText Color="Color.Success" Typo="Typo.subtitle2">● En ligne</MudText>
+                    <div style="width: 150px; height: 150px; overflow: hidden; border-radius: 50%;" class="mb-3 mud-elevation-3">
+                        <img src="@profilePhoto" alt="Photo de profil" style="width: 100%; height: 100%; object-fit: cover;" />
+                    </div>
                 }
                 else
                 {
-                    <MudText Color="Color.Secondary" Typo="Typo.subtitle2">
+                    <MudAvatar Size="Size.Large" Style="width: 150px; height: 150px; font-size: 3rem;" Color="Color.Primary" Class="mb-3 mud-elevation-3">
+                        <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Large" />
+                    </MudAvatar>
+                }
+                
+                <MudText Typo="Typo.h4" Class="mb-1">@_userProfile.Username</MudText>
+                
+                @if (_isProfileOnline)
+                {
+                    <MudText Color="Color.Success" Typo="Typo.subtitle2" Class="mb-2">● En ligne</MudText>
+                }
+                else
+                {
+                    <MudText Color="Color.Secondary" Typo="Typo.subtitle2" Class="mb-2">
                         ● Hors ligne
                         @if (_lastActivity.HasValue)
                         {
@@ -47,32 +60,12 @@
                         }
                     </MudText>
                 }
-            </MudItem>
-                <!-- Photos -->
-                <MudItem xs="12" Class="text-center my-2">
-                    @if (_photos.Any())
-                    {
-                        <MudCarousel TData="string" Class="mb-3" Style="height:300px">
-                            @foreach (var photo in _photos)
-                            {
-                                <MudCarouselItem Style="height:90%">
-                                    <div class="d-flex align-center justify-center" style="height:90%; width:100%">
-                                        <img src="@photo" alt="Photo" style="max-height:90%; object-fit:contain" />
-                                    </div>
-                                </MudCarouselItem>
-                            }
-                        </MudCarousel>
-                    }
-                    else
-                    {
-                        <MudAvatar Size="Size.Large" Color="Color.Primary" Class="mx-auto">
-                            <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Large" />
-                        </MudAvatar>
-                    }
-                </MudItem>
-
-                <!-- Actions: Like / Block / Report -->
-                <MudItem xs="12" Class="text-center mb-4">
+                
+                <MudText Typo="Typo.subtitle1" Class="mb-2">Score de popularité: @_userProfile.PopularityScore</MudText>
+                <MudRating SelectedValue="@CalculateStarRating(_userProfile.PopularityScore)" ReadOnly="true" Class="mb-2" />
+                
+                <!-- Actions -->
+                <div class="d-flex justify-center mt-2">
                     <MudButton Color="@(_hasLiked ? Color.Secondary : Color.Primary)"
                                Variant="Variant.Filled"
                                StartIcon="@Icons.Material.Filled.Favorite"
@@ -97,52 +90,123 @@
                                OnClick="ReportUser">
                         Signaler
                     </MudButton>
+                </div>
+            </div>
+
+            <MudDivider Class="my-4" />
+            
+            <!-- Informations personnelles -->
+            <MudText Typo="Typo.h5" Class="mb-3">Informations personnelles</MudText>
+            <MudGrid>
+                <MudItem xs="12" sm="6">
+                    <MudPaper Elevation="0" Class="pa-3 d-flex align-center">
+                        <MudIcon Icon="@Icons.Material.Filled.Person" Class="mr-2" Color="Color.Primary" />
+                        <MudText>@_userProfile.Firstname @_userProfile.Lastname</MudText>
+                    </MudPaper>
                 </MudItem>
-
-                <!-- Details panels -->
-                <MudItem xs="12">
-                    <MudExpansionPanels Elevation="1" Class="mb-4">
-
-                        <MudExpansionPanel Text="Informations personnelles">
-                            <MudList T="string" Dense="true">
-                                <MudListItem T="string">Prénom : @_userProfile.Firstname</MudListItem>
-                                <MudListItem T="string">Nom : @_userProfile.Lastname</MudListItem>
-                                <MudListItem T="string">Âge : @_userProfile.Age</MudListItem>
-                                <MudListItem T="string">Genre : @GetGenreLibelle(_userProfile.Genre)</MudListItem>
-                                <MudListItem T="string">Préférences : @GetPrefSexLibelle(_userProfile.SexualPreferences)</MudListItem>
-                            </MudList>
-                        </MudExpansionPanel>
-
-                        <MudExpansionPanel Text="Biographie">
-                            <MudText>@(_userProfile.Biography ?? "Aucune biographie disponible.")</MudText>
-                        </MudExpansionPanel>
-
-                        <MudExpansionPanel Text="Centres d'intérêt">
-                            @if (_userTags.Any())
-                            {
-                                <MudChipSet T="string">
-                                    @foreach (var tag in _userTags)
-                                    {
-                                        <MudChip T="string" Variant="Variant.Outlined">@tag</MudChip>
-                                    }
-                                </MudChipSet>
-                            }
-                            else
-                            {
-                                <MudText Class="text-muted">Aucun tag renseigné.</MudText>
-                            }
-                        </MudExpansionPanel>
-
-                        <MudExpansionPanel Text="Statistiques">
-                            <MudList T="string" Dense="true">
-                                <MudListItem T="string">Popularité : @_userProfile.PopularityScore</MudListItem>
-                            </MudList>
-                        </MudExpansionPanel>
-
-                    </MudExpansionPanels>
+                
+                <MudItem xs="12" sm="6">
+                    <MudPaper Elevation="0" Class="pa-3 d-flex align-center">
+                        <MudIcon Icon="@Icons.Material.Filled.Cake" Class="mr-2" Color="Color.Primary" />
+                        <MudText>@_userProfile.Age ans</MudText>
+                    </MudPaper>
                 </MudItem>
-
+                
+                <MudItem xs="12" sm="6">
+                    <MudPaper Elevation="0" Class="pa-3 d-flex align-center">
+                        @{
+                            var isUserMale = _userProfile.Genre == 1;
+                            var genderIconColor = isUserMale ? Color.Info : Color.Secondary;
+                        }
+                        <div class="d-flex align-center">
+                            <MudIcon Icon="@(isUserMale ? Icons.Material.Filled.Male : Icons.Material.Filled.Female)" 
+                                     Class="mr-2" Color="@genderIconColor" />
+                            <MudText>@GetGenreLibelle(_userProfile.Genre)</MudText>
+                        </div>
+                    </MudPaper>
+                </MudItem>
+                
+                <MudItem xs="12" sm="6">
+                    <MudPaper Elevation="0" Class="pa-3 d-flex align-center">
+                        @{
+                            var prefSex = _userProfile.SexualPreferences;
+                            var isUserMale = _userProfile.Genre == 1;
+                            // Hetero = 1, Gay = 2, Bi = 3
+                        }
+                        <div class="d-flex align-center">
+                            @if (prefSex == 1) // Hétéro
+                            {
+                                <MudIcon Icon="@(isUserMale ? Icons.Material.Outlined.Female : Icons.Material.Outlined.Male)" 
+                                        Class="mr-1" />
+                                <MudIcon Icon="@(isUserMale ? Icons.Material.Outlined.Female : Icons.Material.Outlined.Male)" 
+                                        Class="mr-2" />
+                            }
+                            else if (prefSex == 2) // Gay
+                            {
+                                <MudIcon Icon="@(isUserMale ? Icons.Material.Outlined.Male : Icons.Material.Outlined.Female)" 
+                                        Class="mr-1" />
+                                <MudIcon Icon="@(isUserMale ? Icons.Material.Outlined.Male : Icons.Material.Outlined.Female)" 
+                                        Class="mr-2" />
+                            }
+                            else if (prefSex == 3) // Bi
+                            {
+                                <MudIcon Icon="@Icons.Material.Outlined.Male" Class="mr-1" />
+                                <MudIcon Icon="@Icons.Material.Outlined.Female" Class="mr-2" />
+                            }
+                            <MudText>@GetPrefSexLibelle(_userProfile.SexualPreferences)</MudText>
+                        </div>
+                    </MudPaper>
+                </MudItem>
             </MudGrid>
+            
+            <MudDivider Class="my-4" />
+            
+            <!-- Biographie -->
+            <MudText Typo="Typo.h5" Class="mb-3">Biographie</MudText>
+            <MudPaper Elevation="0" Class="pa-3 mb-4">
+                <MudText>@(_userProfile.Biography ?? "Aucune biographie disponible.")</MudText>
+            </MudPaper>
+            
+            <MudDivider Class="my-4" />
+            
+            <!-- Centres d'intérêt -->
+            <MudText Typo="Typo.h5" Class="mb-3">Centres d'intérêt</MudText>
+            @if (_userTags.Any())
+            {
+                <MudPaper Elevation="0" Class="pa-3 mb-4">
+                    <MudChipSet T="string">
+                        @foreach (var tag in _userTags)
+                        {
+                            <MudChip T="string" Variant="Variant.Outlined" Color="Color.Primary">@tag</MudChip>
+                        }
+                    </MudChipSet>
+                </MudPaper>
+            }
+            else
+            {
+                <MudPaper Elevation="0" Class="pa-3 mb-4">
+                    <MudText Class="mud-text-secondary">Aucun centre d'intérêt renseigné.</MudText>
+                </MudPaper>
+            }
+            
+            <MudDivider Class="my-4" />
+            
+            <!-- Photos -->
+            @if (_photos.Any())
+            {
+                <MudText Typo="Typo.h5" Class="mb-3">Photos</MudText>
+                <MudCarousel TData="string" Class="mb-4" Style="height:400px" 
+                             ShowArrows="true" ShowDelimiters="true" AutoCycle="false" EnableSwipeGesture="true">
+                    @foreach (var photo in _photos)
+                    {
+                        <MudCarouselItem>
+                            <div class="d-flex justify-center" style="height:100%">
+                                <img src="@photo" alt="Photo" style="max-height:100%; max-width:100%; object-fit:contain" />
+                            </div>
+                        </MudCarouselItem>
+                    }
+                </MudCarousel>
+            }
         </MudPaper>
     }
 </MudContainer>
@@ -152,6 +216,7 @@
 
     private int currentUserId;
     private UserProfileDto? _userProfile;
+    private string? profilePhoto = null;
     private List<string> _photos = new();
     private List<string> _userTags = new();
     private List<Genre> _genres = new();
@@ -162,9 +227,10 @@
     private DateTime? _lastActivity;
     private string _likeButtonLabel => _hasLiked ? "Profil liké" : "Liker ce profil";
     private bool _isProfileOnline;
+    
     protected override async Task OnInitializedAsync()
     {
-        // Récupérer l’utilisateur courant
+        // Récupérer l'utilisateur courant
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
         _isProfileOnline = await UserService.IsUserOnlineAsync(UserId);
@@ -208,6 +274,14 @@
 
     private async Task LoadPhotosAsync()
     {
+        // 1. Récupérer la photo de profil
+        var profilePhotoObj = await PhotoService.GetProfilePhotoAsync(UserId);
+        if (profilePhotoObj?.ImageData != null && profilePhotoObj.ImageData.Length > 0)
+        {
+            profilePhoto = $"data:image/jpeg;base64,{Convert.ToBase64String(profilePhotoObj.ImageData)}";
+        }
+        
+        // 2. Récupérer les autres photos (qui ne sont pas des photos de profil)
         var photos = await PhotoService.GetUserPhotosAsync(UserId);
         _photos = photos
             .Where(p => p.ImageData?.Length > 0)
@@ -294,4 +368,10 @@
         prefSexId.HasValue
             ? _prefSexes.FirstOrDefault(p => p.Id == prefSexId)?.Libelle ?? "Non spécifié"
             : "Non spécifié";
+            
+    private int CalculateStarRating(int popularityScore)
+    {
+        // Convertir le score de popularité en notation d'étoiles (1-5)
+        return Math.Min(5, Math.Max(1, (int)Math.Ceiling(popularityScore / 20.0)));
+    }
 }
