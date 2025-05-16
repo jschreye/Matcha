@@ -131,7 +131,7 @@
                                 @if (NotificationCounts.Messages > 3)
                                 {
                                     <MudButton Color="Color.Info" Variant="Variant.Text" FullWidth="true" Class="mt-2"
-                                              OnClick="@(() => NavigationManager.NavigateTo("/chat"))">
+                                              OnClick="@(() => NavigationManager.NavigateTo("/notifications"))">
                                         Voir tous les messages
                                     </MudButton>
                                 }
@@ -221,7 +221,7 @@
                     @if (Conversations.Count > 5)
                     {
                         <MudButton Color="Color.Primary" Variant="Variant.Text" FullWidth="true" Class="mt-3"
-                                  OnClick="@(() => NavigationManager.NavigateTo("/chat"))">
+                                  OnClick="@(() => NavigationManager.NavigateTo("/notifications"))">
                             Voir toutes les conversations
                         </MudButton>
                     }
@@ -257,7 +257,7 @@
                         @if (VisitedProfiles.Count > 4)
                         {
                             <MudButton Color="Color.Info" Variant="Variant.Text" FullWidth="true" Class="mt-3"
-                                      OnClick="@(() => NavigationManager.NavigateTo("/history"))">
+                                      OnClick="@(() => NavigationManager.NavigateTo("/notifications"))">
                                 Voir l'historique complet
                             </MudButton>
                         }
@@ -289,7 +289,7 @@
                         @if (ProfileVisitors.Count > 4)
                         {
                             <MudButton Color="Color.Tertiary" Variant="Variant.Text" FullWidth="true" Class="mt-3"
-                                      OnClick="@(() => NavigationManager.NavigateTo("/history"))">
+                                      OnClick="@(() => NavigationManager.NavigateTo("/notifications"))">
                                 Voir tous les visiteurs
                             </MudButton>
                         }
