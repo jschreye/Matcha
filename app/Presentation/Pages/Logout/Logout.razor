@@ -9,7 +9,17 @@
 @code {
     protected override async Task OnInitializedAsync()
     {
-        await HttpContextAccessor.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        var context = HttpContextAccessor.HttpContext;
+        if (context != null)
+        {
+            await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        }
+        else
+        {
+            // Journaliser ou gérer le cas où HttpContext est null
+            Console.WriteLine("Attention: HttpContext est null lors de la déconnexion");
+        }
+        
         Navigation.NavigateTo("/");
     }
 }

@@ -7,14 +7,14 @@
 
 <MudText Typo="Typo.h3">Connexion</MudText>
 
-<MudForm @ref="form" @bind-IsValid="@isFormValid" Outlined="true">
+<MudForm @ref="form" IsValid="@isFormValid" IsValidChanged="@((bool val) => isFormValid = val)" outlined="true">
     <!-- Nom d'utilisateur -->
     <MudTextField T="string" Label="Nom d'utilisateur" Variant="Variant.Outlined" Required="true"
-                  RequiredError="Le nom d'utilisateur est requis" @bind-Value="loginDto.Username"/>
+                  RequiredError="Le nom d'utilisateur est requis" Value="@loginDto.Username" ValueChanged="@((string val) => loginDto.Username = val)"/>
     
     <!-- Mot de passe -->
     <MudTextField T="string" Label="Mot de passe" Variant="Variant.Outlined" InputType="InputType.Password"
-                  Required="true" RequiredError="Le mot de passe est requis" @bind-Value="loginDto.Password" />
+                  Required="true" RequiredError="Le mot de passe est requis" Value="@loginDto.Password" ValueChanged="@((string val) => loginDto.Password = val)" />
 
     <!-- Boutons -->
     <div class="d-flex justify-content-between align-items-center">
@@ -34,7 +34,7 @@
 
 @code {
     private LoginDto loginDto = new LoginDto();
-    private MudForm form;
+    private MudForm? form;
     private string message = string.Empty;
     private bool isFormValid;
     private bool operationSuccess;

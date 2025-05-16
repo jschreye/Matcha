@@ -9,7 +9,7 @@
 
 <!-- Conteneur centré pour l'image de profil -->
 <div class="d-flex justify-center mb-4">
-    @if (GetProfileImageSrc() != null)
+    @if (!string.IsNullOrWhiteSpace(GetProfileImageSrc()))
     {
         <div style="position: relative; display: inline-block;">
             <MudImage Src="@GetProfileImageSrc()" Alt="Photo de profil" Elevation="25" 
@@ -29,12 +29,8 @@
     }
     else
     {
-        <MudAvatar Size="Size.Large" Class="rounded-circle" Style="width:150px; height:150px;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icon-tabler-user">
-                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                <circle cx="12" cy="7" r="4"/>
-                <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
-            </svg>
+        <MudAvatar Color="Color.Default" Size="Size.Large" Class="rounded-circle" Style="width:150px; height:150px;">
+            <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Large" />
         </MudAvatar>
     }
 </div>
@@ -70,8 +66,8 @@
 
 <!-- Upload de nouvelles photos -->
 <div class="d-flex flex-row justify-content-end align-items-center mt-4">
-    <MudFileUpload T="IReadOnlyList<IBrowserFile>" FilesChanged="UploadFiles" MaxFileSize="5242880" 
-                FileFilter="image/*" Multiple="true" Class="me-2">
+    <MudFileUpload T="IReadOnlyList<IBrowserFile>" FilesChanged="UploadFiles" maxFileSize="5242880" 
+                fileFilter="image/*" multiple="true" Class="me-2">
         <ActivatorContent>
             <MudButton Variant="Variant.Filled" Color="@Color.Primary" StartIcon="@Icons.Material.Filled.CloudUpload">
                 Choisir des photos
@@ -93,7 +89,7 @@
     /** Classe locale pour la prévisualisation des photos */
     private class PhotoPreview {
         public int? Id { get; set; }
-        public byte[] Data { get; set; }
+        public byte[] Data { get; set; } = Array.Empty<byte>();
         public bool IsNew { get; set; }
         public bool IsProfile { get; set; }
     }
@@ -105,7 +101,7 @@
     private List<PhotoPreview> _otherPhotos => _photoPreviews.Where(p => !p.IsProfile).ToList();
 
     // Delegate pour l'abonnement au service d'état
-    private Action _onProfileImageChanged;
+    private Action _onProfileImageChanged = null!;
 
     protected override async Task OnInitializedAsync()
     {
@@ -147,7 +143,7 @@
         var profile = _photoPreviews.FirstOrDefault(p => p.IsProfile);
         if (profile != null)
             return $"data:image/jpeg;base64,{Convert.ToBase64String(profile.Data)}";
-        return null;
+        return string.Empty;
     }
 
     /** Callback lors de l'upload de nouvelles photos */

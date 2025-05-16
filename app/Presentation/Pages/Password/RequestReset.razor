@@ -4,11 +4,11 @@
 
 <MudText Typo="Typo.h3">Réinitialiser le mot de passe</MudText>
 
-<MudForm @ref="form" @bind-IsValid="@isFormValid" Outlined="true">
+<MudForm @ref="form" IsValid="@isFormValid" IsValidChanged="@((bool val) => isFormValid = val)" outlined="true">
     <!-- Email -->
     <MudTextField T="string" Label="Email" Variant="Variant.Outlined" Required="true"
                   RequiredError="L'email est requis" Validation="@(new EmailAddressAttribute())" 
-                  @bind-Value="email" />
+                  Value="@email" ValueChanged="@((string val) => email = val)" />
 
     <!-- Boutons -->
     <div class="d-flex justify-content-end">
@@ -20,9 +20,9 @@
 
 
 @code {
-    private string email;
+    private string email = string.Empty;
     private bool isFormValid;
-    private MudForm form;
+    private MudForm form = null!;
 
     protected override void OnInitialized()
     {

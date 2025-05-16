@@ -9,7 +9,7 @@
 
 <MudText Typo="Typo.h3">Inscription</MudText>
 
-<MudForm @ref="form" @bind-IsValid="isFormValid" Outlined="true">
+<MudForm @ref="form" @bind-IsValid="isFormValid" outlined="true">
     <!-- Nom -->
     <MudTextField T="string" Label="Nom" Variant="Variant.Outlined" Required="true" RequiredError="Le nom est requis" @bind-Value="registerModel.Lastname"/>
     
@@ -53,16 +53,16 @@
 @code {
     private RegisterDto registerModel = new RegisterDto();
     private bool isFormValid;
-    private MudForm form;
+    private MudForm form = null!;
 
     private async Task RegisterUser()
     {
         // Valider les champs
-        var usernameErrors = ValidationService.ValidateUsername(registerModel.Username);
-        var lastnameErrors = ValidationService.ValidateName(registerModel.Lastname, "Le nom");
-        var firstnameErrors = ValidationService.ValidateName(registerModel.Firstname, "Le prénom");
-        var emailErrors = ValidationService.ValidateEmail(registerModel.Email);
-        var passwordErrors = ValidationService.ValidatePassword(registerModel.Password);
+        var usernameErrors = ValidationService.ValidateUsername(registerModel.Username ?? string.Empty);
+        var lastnameErrors = ValidationService.ValidateName(registerModel.Lastname ?? string.Empty, "Le nom");
+        var firstnameErrors = ValidationService.ValidateName(registerModel.Firstname ?? string.Empty, "Le prénom");
+        var emailErrors = ValidationService.ValidateEmail(registerModel.Email ?? string.Empty);
+        var passwordErrors = ValidationService.ValidatePassword(registerModel.Password ?? string.Empty);
 
         var allErrors = new List<string>();
         allErrors.AddRange(usernameErrors);
@@ -113,6 +113,6 @@
     {
         if (registerModel.Password != confirmPassword)
             return "Les mots de passe ne correspondent pas.";
-        return null;
+        return string.Empty;
     }
 }

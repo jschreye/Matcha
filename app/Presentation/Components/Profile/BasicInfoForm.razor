@@ -4,27 +4,27 @@
 <MudGrid Spacing="2">
     <MudItem xs="12" sm="6">
         <MudTextField T="string" Label="Prénom" Variant="Variant.Outlined" 
-                    @bind-Value="UserProfile.Firstname" Required="true" 
+                    Value="@(UserProfile?.Firstname ?? string.Empty)" ValueChanged="@((string val) => { if (UserProfile != null) UserProfile.Firstname = val; })" Required="true" 
                     RequiredError="Le prénom est requis" />
     </MudItem>
     <MudItem xs="12" sm="6">
         <MudTextField T="string" Label="Nom" Variant="Variant.Outlined" 
-                    @bind-Value="UserProfile.Lastname" Required="true" 
+                    Value="@(UserProfile?.Lastname ?? string.Empty)" ValueChanged="@((string val) => { if (UserProfile != null) UserProfile.Lastname = val; })" Required="true" 
                     RequiredError="Le nom est requis" />
     </MudItem>
     <MudItem xs="12" sm="6">
         <MudTextField T="string" Label="Nom d'utilisateur" Variant="Variant.Outlined" 
-                    @bind-Value="UserProfile.Username" Required="true" 
+                    Value="@(UserProfile?.Username ?? string.Empty)" ValueChanged="@((string val) => { if (UserProfile != null) UserProfile.Username = val; })" Required="true" 
                     RequiredError="Le nom d'utilisateur est requis" />
     </MudItem>
     <MudItem xs="12" sm="6">
         <MudTextField T="string" Label="Email" Variant="Variant.Outlined" InputType="InputType.Email" 
-                    @bind-Value="UserProfile.Email" Required="true" 
+                    Value="@(UserProfile?.Email ?? string.Empty)" ValueChanged="@((string val) => { if (UserProfile != null) UserProfile.Email = val; })" Required="true" 
                     RequiredError="L'email est requis" />
     </MudItem>
 </MudGrid>
 
 @code {
     [Parameter]
-    public UserProfileDto UserProfile { get; set; }
+    public UserProfileDto? UserProfile { get; set; }
 } 

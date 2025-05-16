@@ -20,22 +20,24 @@
     <MudSpacer />
     <AuthorizeView>
         <Authorized>
+            <!-- Bouton de notification déplacé en dehors du menu -->
+            @if(notificationCount > 0)
+            {
+                <MudButton OnClick="@NavigateToNotifications" Class="mr-2 p-4" Style="min-width:auto; vertical-align:middle;">
+                    <MudBadge Content="@notificationCount" Color="Color.Primary" Overlap="true">
+                        <MudIcon Icon="@Icons.Material.Filled.Notifications" Color="Color.Default" />
+                    </MudBadge>
+                </MudButton>
+            }
+            
+            <!-- Menu de l'avatar séparé -->
             <MudMenu>
                 <ActivatorContent>
                     <!-- Badge avec la pastie verte indiquant que l'utilisateur est connecté -->
-                    @if(notificationCount > 0)
-                    {
-                        <MudButton OnClick="@NavigateToNotifications" Class="mr-2" Style="min-width:auto; vertical-align:middle;">
-                            <MudBadge Content="@notificationCount" Color="Color.Primary" Overlap="true">
-                                <MudIcon Icon="@Icons.Material.Filled.Notifications" Color="Color.Default" />
-                            </MudBadge>
-                        </MudButton>
-                    }
-                    <MudBadge Class="mr-3 ml-3"
+                    <MudBadge Class="mx-3"
                               Color="Color.Success"
                               Overlap="true"
-                              Bordered="true"
-                              BadgeContent="@(notificationCount > 0 ? notificationCount.ToString() : null)">
+                              Bordered="true">
                         @if (!string.IsNullOrWhiteSpace(userProfileImage))
                         {
                             <!-- Affiche l'image de profil spécifique à cet utilisateur -->
@@ -45,11 +47,7 @@
                         {
                             <!-- Affiche le SVG par défaut -->
                             <MudAvatar Size="Size.Medium" Style="cursor:pointer; transition: all 0.3s ease;" Class="profile-avatar">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icon-tabler-user">
-                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                                    <circle cx="12" cy="7" r="4"/>
-                                    <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
-                                </svg>
+                                <MudIcon Icon="@Icons.Material.Filled.Person" />
                             </MudAvatar>
                         }
                     </MudBadge>
@@ -111,10 +109,10 @@
     [Parameter]
     public EventCallback OnToggleDrawer { get; set; }
 
-    private Action _onProfileImageChanged;
-    private Action<int> _onUserImageChanged;
+    private Action? _onProfileImageChanged;
+    private Action<int>? _onUserImageChanged;
     private int notificationCount = 0; // Compteur de notifications
-    private string userProfileImage; // Image de profil spécifique à cet utilisateur
+    private string userProfileImage = string.Empty; // Image de profil spécifique à cet utilisateur
 
     private bool isAuthenticated;
     private bool isOnLoginPage;
@@ -193,7 +191,7 @@
         catch (Exception ex)
         {
             Console.WriteLine($"Erreur lors du chargement de l'image de profil: {ex.Message}");
-            userProfileImage = null;
+            userProfileImage = string.Empty;
         }
     }
 
@@ -215,7 +213,7 @@
         NotificationService.OnNotificationsUpdated -= OnNotificationsUpdated;
     }
 
-    private async void OnLocationChanged(object sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    private async void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
     {
         UpdateCurrentPage();
         
@@ -248,13 +246,13 @@
     {
         if (OnToggleDrawer.HasDelegate)
         {
-            await OnToggleDrawer.InvokeAsync(null);
+            await OnToggleDrawer.InvokeAsync();
         }
     }
 
     private async void OnNotificationReceived(int receiverId)
     {
-        UserProfileDto userForNotif = await UserService.GetUserProfileAsync(CurrentUserId);
+        UserProfileDto? userForNotif = await UserService.GetUserProfileAsync(CurrentUserId);
         if (userForNotif != null)
         {
             if (userForNotif.NotifIsActive == true)
@@ -270,7 +268,7 @@
 
     private async Task UpdateNotificationsAsync()
     {
-        UserProfileDto userForNotif = await UserService.GetUserProfileAsync(CurrentUserId);
+        UserProfileDto? userForNotif = await UserService.GetUserProfileAsync(CurrentUserId);
         if (userForNotif != null)
         {
             if (userForNotif.NotifIsActive == true)

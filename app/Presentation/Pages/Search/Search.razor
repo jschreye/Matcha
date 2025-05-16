@@ -351,11 +351,11 @@
     private int MinPopularity { get; set; } = 0;
     private int MaxPopularity { get; set; } = 100;
     private double MaxDistance { get; set; } = 100;
-    private List<int> SelectedTagIds { get; set; } = new();
-    private List<Tag> AvailableTags { get; set; } = new();
+    private List<int> SelectedTagIds { get; set; } = new List<int>();
+    private List<Tag> AvailableTags { get; set; } = new List<Tag>();
 
     // Variables pour éviter trop d'appels à l'API
-    private System.Timers.Timer _searchDebounceTimer;
+    private System.Timers.Timer? _searchDebounceTimer;
     private bool _isSearchPending = false;
     private int _debounceDelayMs = 500; // 500ms de délai avant déclenchement de la recherche
 
@@ -525,13 +525,13 @@
                 }
                 else
                 {
-                    ProfileImages[user.Id] = null;
+                    ProfileImages[user.Id] = string.Empty;
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Erreur lors du chargement de la photo pour l'utilisateur {user.Id}: {ex.Message}");
-                ProfileImages[user.Id] = null;
+                ProfileImages[user.Id] = string.Empty;
             }
         }
         
@@ -546,7 +546,7 @@
         return Math.Min(5, Math.Max(1, (int)Math.Ceiling(popularityScore / 20.0)));
     }
 
-    private async Task UpdateAgeFilter(int value, bool isMin)
+    private void UpdateAgeFilter(int value, bool isMin)
     {
         if (isMin)
         {
@@ -565,7 +565,7 @@
         TriggerDebouncedSearch();
     }
 
-    private async Task UpdatePopularityFilter(int value, bool isMin)
+    private void UpdatePopularityFilter(int value, bool isMin)
     {
         if (isMin)
         {
@@ -584,7 +584,7 @@
         TriggerDebouncedSearch();
     }
 
-    private async Task UpdateDistanceFilter(double value)
+    private void UpdateDistanceFilter(double value)
     {
         MaxDistance = value;
         
@@ -606,8 +606,8 @@
     private void TriggerDebouncedSearch()
     {
         // Réinitialiser le timer à chaque mouvement du curseur
-        _searchDebounceTimer.Stop();
-        _searchDebounceTimer.Start();
+        _searchDebounceTimer?.Stop();
+        _searchDebounceTimer?.Start();
         _isSearchPending = true;
     }
 
@@ -627,7 +627,7 @@
         }
     }
 
-    private async Task ShowMoreTags()
+    @* private async Task ShowMoreTags()
     {
         var parameters = new DialogParameters
         {
@@ -650,10 +650,13 @@
         var dialog = await DialogService.ShowAsync<CustomSearchDialog>("Sélection des tags", parameters, options);
         var result = await dialog.Result;
 
-        if (!result.Canceled)
+        if (!result.Canceled && result.Data != null)
         {
             var customSearchParams = (CustomSearchParameters)result.Data;
-            SelectedTagIds = customSearchParams.SelectedTagIds;
+            if (customSearchParams.SelectedTagIds != null)
+            {
+                SelectedTagIds = customSearchParams.SelectedTagIds;
+            }
         }
     }
 
@@ -680,7 +683,7 @@
         var dialog = await DialogService.ShowAsync<CustomSearchDialog>("Recherche personnalisée", parameters, options);
         var result = await dialog.Result;
 
-        if (!result.Canceled)
+        if (!result.Canceled && result.Data != null)
         {
             var customSearchParams = (CustomSearchParameters)result.Data;
             MinAge = customSearchParams.MinAge;
@@ -688,11 +691,14 @@
             MinPopularity = customSearchParams.MinPopularity;
             MaxPopularity = customSearchParams.MaxPopularity;
             MaxDistance = customSearchParams.MaxDistance;
-            SelectedTagIds = customSearchParams.SelectedTagIds;
+            if (customSearchParams.SelectedTagIds != null)
+            {
+                SelectedTagIds = customSearchParams.SelectedTagIds;
+            }
 
             await SearchCustomProfiles();
         }
-    }
+    } *@
 
     private void ViewProfile(int userId)
     {
@@ -707,7 +713,7 @@
         public int MinPopularity { get; set; }
         public int MaxPopularity { get; set; }
         public double MaxDistance { get; set; }
-        public List<int> SelectedTagIds { get; set; }
+        public List<int> SelectedTagIds { get; set; } = new List<int>();
     }
 
     public void Dispose()

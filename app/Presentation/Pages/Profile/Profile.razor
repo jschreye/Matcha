@@ -3,6 +3,7 @@
 @using Core.Data.DTOs
 @using Core.Data.Entity
 @using Core.Interfaces.Services
+@using System.Diagnostics.CodeAnalysis
 @inject IUserService UserService
 @inject IPhotoService PhotoService
 @inject IAlertService AlertService
@@ -19,7 +20,7 @@
     <!-- Gestionnaire de photos de profil -->
     <ProfilePhotoManager UserId="@userId" />
 
-    <MudForm @ref="form" @bind-IsValid="isFormValid" Outlined="true">
+    <MudForm @ref="form" IsValid="@isFormValid" IsValidChanged="@((bool val) => isFormValid = val)" outlined="true">
         <!-- Informations de base -->
         <BasicInfoForm UserProfile="@userProfile" />
 
@@ -38,15 +39,15 @@
         <div class="d-flex justify-content-between align-items-center mt-4">
             <div>
                 <MudButton Variant="Variant.Text" Color="Color.Primary" DropShadow="false" 
-                        OnClick="@(() => form.Validate())">
+                        OnClick="@(() => form?.Validate())">
                     Valider
                 </MudButton>
                 <MudButton Variant="Variant.Text" Color="Color.Secondary" DropShadow="false" 
-                        OnClick="@(() => form.ResetAsync())" Class="mx-2">
+                        OnClick="@(() => form?.ResetAsync())" Class="mx-2">
                     Réinitialiser
                 </MudButton>
                 <MudButton Variant="Variant.Text" DropShadow="false" 
-                        OnClick="@(() => form.ResetValidation())">
+                        OnClick="@(() => form?.ResetValidation())">
                     Réinitialiser la validation
                 </MudButton>
             </div>
@@ -64,19 +65,20 @@
 </MudPaper>
 
 @code {
-    private MudForm form;
+    private MudForm? form;
     private bool isFormValid;
     private int userId;
     /** Objet contenant les infos du profil utilisateur */
     private UserProfileDto userProfile = new();
     /** Listes des genres et préférences sexuelles */
-    private List<Genre> genre;
-    private List<PrefSex> prefSex;
+    private List<Genre> genre = new();
+    private List<PrefSex> prefSex = new();
     /** Liste des tags disponibles */
     private List<Tag> tags = new();
     /** IDs des tags sélectionnés */
     private IEnumerable<int> selectedTagIds = new List<int>();
 
+    [SuppressMessage("Usage", "CS8603:Existence possible d'un retour de référence null")]
     protected override async Task OnInitializedAsync()
     {
         // Récupérer l'utilisateur authentifié
@@ -87,18 +89,37 @@
             NavigationManager.NavigateTo("/login");
             return;
         }
-        userId = int.Parse(user.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier").Value);
+        
+        var userIdClaim = user.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+        if (userIdClaim != null)
+        {
+            userId = int.Parse(userIdClaim.Value);
 
-        // Charger le profil utilisateur et autres données
-        userProfile = await UserService.GetUserProfileAsync(userId);
-        genre = await GenreService.GetGenresAsync();
-        prefSex = await PrefSexService.GetPrefSexAsync();
-        
-        // Charger les tags disponibles
-        tags = await TagService.GetTagsAsync();
-        
-        // Récupérer les tags actuels de l'utilisateur
-        selectedTagIds = await TagService.GetTagUserAsync(userId);
+            // Charger le profil utilisateur et autres données
+            var profileData = await UserService.GetUserProfileAsync(userId);
+            if (profileData != null)
+            {
+                userProfile = profileData;
+            }
+            
+            var genreData = await GenreService.GetGenresAsync();
+            genre = genreData ?? new List<Genre>();
+            
+            var prefSexData = await PrefSexService.GetPrefSexAsync();
+            prefSex = prefSexData ?? new List<PrefSex>();
+            
+            // Charger les tags disponibles
+            var tagsData = await TagService.GetTagsAsync();
+            tags = tagsData ?? new List<Tag>();
+            
+            // Récupérer les tags actuels de l'utilisateur
+            var userTags = await TagService.GetTagUserAsync(userId);
+            selectedTagIds = userTags ?? new List<int>();
+        }
+        else
+        {
+            NavigationManager.NavigateTo("/login");
+        }
     }
 
     /** Appel dans OnAfterRenderAsync uniquement si le profil est chargé et LocalisationIsActive est true */
@@ -110,7 +131,7 @@
             // Cet appel est fait dans OnAfterRenderAsync pour éviter les erreurs de rendu statique
             try
             {
-                var serverStatus = await GetCurrentLocalisationStatus();
+                bool serverStatus = await GetCurrentLocalisationStatus();
                 if (userProfile.LocalisationIsActive != serverStatus)
                 {
                     Console.WriteLine($"Correction de LocalisationIsActive: {userProfile.LocalisationIsActive} -> {serverStatus}");
@@ -138,7 +159,7 @@
         allErrors.AddRange(ValidationService.ValidateEmail(userProfile.Email));
         allErrors.AddRange(ValidationService.ValidateLatitude(userProfile.Latitude));
         allErrors.AddRange(ValidationService.ValidateLongitude(userProfile.Longitude));
-        allErrors.AddRange(ValidationService.ValidateBiography(userProfile.Biography));
+        allErrors.AddRange(ValidationService.ValidateBiography(userProfile.Biography ?? string.Empty));
         
         if (allErrors.Any())
         {
@@ -188,8 +209,16 @@
         if (result)
         {
             // Mettre à jour également la localisation pour s'assurer que le statut est bien enregistré
-            await UserService.UpdateLocationAsync(userProfile.Id, userProfile.Latitude.Value, userProfile.Longitude.Value, userProfile.LocalisationIsActive);
-            Console.WriteLine($"UpdateLocationAsync appelé avec LocalisationIsActive: {userProfile.LocalisationIsActive}");
+            if (userProfile.Latitude.HasValue && userProfile.Longitude.HasValue)
+            {
+                await UserService.UpdateLocationAsync(userProfile.Id, userProfile.Latitude.Value, userProfile.Longitude.Value, userProfile.LocalisationIsActive);
+                Console.WriteLine($"UpdateLocationAsync appelé avec LocalisationIsActive: {userProfile.LocalisationIsActive}");
+            }
+            else
+            {
+                Console.WriteLine("Erreur : Latitude ou Longitude non définies");
+                AlertService.ShowMessage("Erreur : Coordonnées géographiques non définies. Veuillez activer la géolocalisation.", false);
+            }
             
             // Mettre à jour également les tags de l'utilisateur
             await TagService.SaveUserTagsAsync(userProfile.Id, selectedTagIds.ToList());
@@ -229,8 +258,14 @@
             
             var userInfo = System.Text.Json.JsonSerializer.Deserialize<UserInfoDto>(userInfoJson, options);
             
-            Console.WriteLine($"GetCurrentLocalisationStatus - userInfo.localisationIsActive: {userInfo.LocalisationIsActive}");
-            return userInfo.LocalisationIsActive;
+            if (userInfo != null)
+            {
+                Console.WriteLine($"GetCurrentLocalisationStatus - userInfo.localisationIsActive: {userInfo.LocalisationIsActive}");
+                return userInfo.LocalisationIsActive;
+            }
+            
+            // Retourne la valeur actuelle si userInfo est null
+            return userProfile.LocalisationIsActive;
         }
         catch (Exception ex)
         {
@@ -268,7 +303,7 @@
     private class UserInfoDto
     {
         public int Id { get; set; }
-        public string Username { get; set; }
+        public string Username { get; set; } = string.Empty;
         public bool ProfileComplete { get; set; }
         public bool LocalisationIsActive { get; set; }
     }
