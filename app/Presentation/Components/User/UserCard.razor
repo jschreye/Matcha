@@ -60,18 +60,19 @@
                     <div class="d-flex">
                         @if (HasMatch)
                         {
-                            <MudIconButton Icon="@Icons.Material.Filled.Chat"
-                                        Color="Color.Tertiary"
-                                        OnClick="() => NavigateToChat(User.Id)"
-                                        Tooltip="Ouvrir le chat"
-                                        Class="mx-1" />
+                            <MudTooltip Text="Ouvrir le chat">
+                                <MudIconButton Icon="@Icons.Material.Filled.Chat"
+                                            Color="Color.Tertiary"
+                                            OnClick="() => NavigateToChat(User.Id)"
+                                            Class="mx-1" />
+                            </MudTooltip>
                         }
-                        
-                        <MudIconButton Icon="@Icons.Material.Filled.Person"
-                                    Color="Color.Primary"
-                                    OnClick="() => ViewProfile(User.Id)"
-                                    Tooltip="Voir le profil"
-                                    Class="mx-1" />
+                            <MudTooltip Text="Voir le profil">
+                                <MudIconButton Icon="@Icons.Material.Filled.Person"
+                                            Color="Color.Primary"
+                                            OnClick="() => ViewProfile(User.Id)"
+                                            Class="mx-1" />
+                            </MudTooltip>
                     </div>
                 }
             </MudItem>

@@ -80,23 +80,25 @@
                 <MudSpacer />
                 @if (notif.TypeLibelle == "Match" || notif.TypeLibelle == "Message")
                 {
-                  <MudIconButton Icon="@Icons.Material.Filled.Chat"
-                                Color="Color.Tertiary"
-                                OnClick="@(() => NavigateToChat(notif.SenderId))"
-                                Tooltip="Ouvrir le chat"
-                                Class="mx-1" />
+                  <MudTooltip Text="Ouvrir le chat">
+                    <MudIconButton Icon="@Icons.Material.Filled.Chat"
+                                  Color="Color.Tertiary"
+                                  OnClick="@(() => NavigateToChat(notif.SenderId))"
+                                  Class="mx-1" />
+                  </MudTooltip>
                 }
-                <MudIconButton Icon="@Icons.Material.Filled.Person"
-                              Color="Color.Primary"
-                              OnClick="@(() => NavigateToProfile(notif.SenderId))"
-                              Tooltip="Voir le profil"
-                              Class="mx-1" />
-                
-                <MudIconButton Icon="@Icons.Material.Filled.Delete"
-                               Color="Color.Error"
-                               OnClick="@(() => DeleteOne(notif.Id))"
-                               Tooltip="Supprimer"
-                               Class="mx-1" />
+                <MudTooltip Text="Voir le profil">
+                  <MudIconButton Icon="@Icons.Material.Filled.Person"
+                                Color="Color.Primary"
+                                OnClick="@(() => NavigateToProfile(notif.SenderId))"
+                                Class="mx-1" />
+                </MudTooltip>
+                <MudTooltip Text="Supprimer">
+                  <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                Color="Color.Error"
+                                OnClick="@(() => DeleteOne(notif.Id))"
+                                Class="mx-1" />
+                </MudTooltip>
               </MudPaper>
             </MudItem>
           }

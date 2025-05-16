@@ -49,7 +49,7 @@
                             
                             @if (Likes != null && Likes.Any())
                             {
-                                <MudList T="UserDto" Clickable="true" Class="pa-0">
+                                <MudList T="UserDto" Class="pa-0">
                                     @foreach (var like in Likes.Take(3))
                                     {
                                         <MudListItem T="UserDto" OnClick="@(() => GoToProfile(like.Id))">
@@ -100,7 +100,7 @@
                             
                             @if (UnreadMessages != null && UnreadMessages.Any())
                             {
-                                <MudList T="ConversationDto" Clickable="true" Class="pa-0">
+                                <MudList T="ConversationDto" Class="pa-0">
                                     @foreach (var msg in UnreadMessages.Take(3))
                                     {
                                         <MudListItem T="ConversationDto" OnClick="@(() => GoToChat(msg.UserId))">
@@ -187,7 +187,7 @@
                 </MudText>
                 @if (Conversations.Any())
                 {
-                    <MudList T="ConversationDto" Clickable="true" Class="pa-0">
+                    <MudList T="ConversationDto" Class="pa-0">
                         @foreach (var conv in Conversations.Take(5))
                         {
                             <MudListItem T="ConversationDto" OnClick="@(() => GoToChat(conv.UserId))" Class="pa-2 rounded-lg mb-2" Style="border: 1px solid var(--mud-palette-lines-default)">
