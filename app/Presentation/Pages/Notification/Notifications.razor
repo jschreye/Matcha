@@ -70,9 +70,25 @@
                   </MudText>
                 </MudStack>
                 <MudSpacer />
+                @if (notif.TypeLibelle == "Match" || notif.TypeLibelle == "Message")
+                {
+                  <MudIconButton Icon="@Icons.Material.Filled.Chat"
+                                Color="Color.Tertiary"
+                                OnClick="@(() => NavigateToChat(notif.SenderId))"
+                                Tooltip="Ouvrir le chat"
+                                Class="mx-1" />
+                }
+                <MudIconButton Icon="@Icons.Material.Filled.Person"
+                              Color="Color.Primary"
+                              OnClick="@(() => NavigateToProfile(notif.SenderId))"
+                              Tooltip="Voir le profil"
+                              Class="mx-1" />
+                
                 <MudIconButton Icon="@Icons.Material.Filled.Delete"
                                Color="Color.Error"
-                               OnClick="@(() => DeleteOne(notif.Id))" />
+                               OnClick="@(() => DeleteOne(notif.Id))"
+                               Tooltip="Supprimer"
+                               Class="mx-1" />
               </MudPaper>
             </MudItem>
           }
@@ -133,7 +149,6 @@
     _timer?.Dispose();
   }
 
-  // Mappe chaque type de notif à une icône MudBlazor
   private string GetIcon(string type)
     => type switch
     {
@@ -144,7 +159,6 @@
       _         => Icons.Material.Filled.Notifications
     };
 
-  // Choisit une couleur selon le type
   private Color GetColor(string type)
     => type switch
     {
@@ -154,4 +168,14 @@
       "Visite"   => Color.Tertiary,
       _         => Color.Default
     };
+
+  private void NavigateToProfile(int userId)
+  {
+    NavigationManager.NavigateTo($"/profile/{userId}");
+  }
+
+  private void NavigateToChat(int userId)
+  {
+    NavigationManager.NavigateTo($"/chat/{userId}");
+  }
 }

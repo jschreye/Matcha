@@ -1,0 +1,151 @@
+@namespace Presentation.Components.User
+@using Core.Data.DTOs
+@using MudBlazor
+@inject NavigationManager NavigationManager
+@inject IUserService UserService
+
+<MudItem xs="@XsColumns" sm="@SmColumns" md="@MdColumns" Class="@Class">
+    <MudPaper Elevation="@Elevation" Class="pa-2 pa-sm-4 rounded-lg relative">
+        <MudBadge Color="@(IsOnline ? Color.Success : Color.Error)" 
+                 Overlap="true" 
+                 Class="position-absolute" 
+                 Style="top: 10px; right: 10px;"
+                 Bordered="true">
+        </MudBadge>
+        <MudGrid>
+            <MudItem xs="4" Class="d-flex justify-center">
+                @if (!string.IsNullOrWhiteSpace(ProfileImage))
+                {
+                    <div style="width: 65px; height: 65px; overflow: hidden; border-radius: 50%;" class="d-flex flex-column justify-center align-center">
+                        <img src="@ProfileImage" alt="Photo de profil" 
+                            style="width: 100%; height: 100%; object-fit: cover;" />
+                    </div>
+                }
+                else
+                {
+                    <MudAvatar Color="Color.Primary" Style="width: 65px; height: 65px; font-size: 1.5rem;" Class="my-1">
+                        @(User.Username.Length > 0 ? User.Username[0].ToString().ToUpper() : "?")
+                    </MudAvatar>
+                }
+            </MudItem>
+            <MudItem xs="8">
+                <div class="d-flex flex-column">
+                    <MudText Typo="Typo.body1" Class="font-weight-bold text-truncate">
+                        @User.Username
+                    </MudText>
+                    
+                    <div class="d-flex align-center mt-1">
+                        <MudText Typo="Typo.body2">@User.Age ans</MudText>
+                        <MudIcon Icon="@(User.Genre == 1 ? Icons.Material.Filled.Male : User.Genre == 2 ? Icons.Material.Filled.Female : Icons.Material.Filled.Help)" 
+                                Size="Size.Small"
+                                Class="ml-2" 
+                                Color="@(User.Genre == 1 ? Color.Info : User.Genre == 2 ? Color.Secondary : Color.Default)" />
+                    </div>
+                    
+                    <div class="mt-1">
+                        <MudRating ReadOnly="true" 
+                                SelectedValue="@CalculateStarRating(User.PopularityScore)" 
+                                MaxValue="5" 
+                                Size="Size.Small" />
+                    </div>
+                </div>
+            </MudItem>
+            <MudItem xs="12" Class="d-flex justify-end mt-2">
+                @if (CustomContent != null)
+                {
+                    @CustomContent
+                }
+                else
+                {
+                    <div class="d-flex">
+                        @if (HasMatch)
+                        {
+                            <MudIconButton Icon="@Icons.Material.Filled.Chat"
+                                        Color="Color.Tertiary"
+                                        OnClick="() => NavigateToChat(User.Id)"
+                                        Tooltip="Ouvrir le chat"
+                                        Class="mx-1" />
+                        }
+                        
+                        <MudIconButton Icon="@Icons.Material.Filled.Person"
+                                    Color="Color.Primary"
+                                    OnClick="() => ViewProfile(User.Id)"
+                                    Tooltip="Voir le profil"
+                                    Class="mx-1" />
+                    </div>
+                }
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+</MudItem>
+
+@code {
+    [Parameter]
+    public UserProfileDto User { get; set; } = new UserProfileDto();
+
+    [Parameter]
+    public string ProfileImage { get; set; } = string.Empty;
+    
+    [Parameter]
+    public int CurrentUserId { get; set; }
+
+    [Parameter]
+    public int XsColumns { get; set; } = 12;
+
+    [Parameter]
+    public int SmColumns { get; set; } = 6;
+    
+    [Parameter]
+    public int MdColumns { get; set; } = 6;
+
+    [Parameter]
+    public int Elevation { get; set; } = 2;
+
+    [Parameter]
+    public string Class { get; set; } = "mb-2 mb-sm-3";
+
+    [Parameter]
+    public RenderFragment? CustomContent { get; set; }
+
+    [Parameter]
+    public EventCallback<int> OnProfileClick { get; set; }
+
+    private bool IsOnline { get; set; }
+    private bool HasMatch { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        IsOnline = await UserService.IsUserOnlineAsync(User.Id);
+        
+        // Vérifier s'il y a un match entre l'utilisateur actuel et cet utilisateur
+        if (CurrentUserId > 0 && User.Id > 0)
+        {
+            HasMatch = await UserService.HasMatchWithUserAsync(CurrentUserId, User.Id);
+        }
+        
+        await base.OnInitializedAsync();
+    }
+
+    private void ViewProfile(int userId)
+    {
+        if (OnProfileClick.HasDelegate)
+        {
+            OnProfileClick.InvokeAsync(userId);
+        }
+        else
+        {
+            NavigationManager.NavigateTo($"/profile/{userId}");
+        }
+    }
+    
+    private void NavigateToChat(int userId)
+    {
+        NavigationManager.NavigateTo($"/chat/{userId}");
+    }
+
+    private int CalculateStarRating(int popularityScore)
+    {
+        // Convertir le score de popularité en notation d'étoiles (1-5)
+        return Math.Min(5, Math.Max(1, (int)Math.Ceiling(popularityScore / 20.0)));
+    }
+} 
