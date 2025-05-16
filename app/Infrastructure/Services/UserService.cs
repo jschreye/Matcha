@@ -16,7 +16,8 @@ public class UserService : IUserService
     private readonly IPasswordHasher _passwordHasher;
     private readonly ISessionRepository _sessionRepository;
     private readonly IEmailService _emailService;
-    public UserService(IConfiguration config, IUserRepository userRepository, IPasswordHasher passwordHasher, ISessionRepository sessionRepository, IEmailService emailService)
+    private readonly IMatchRepository _matchRepository;
+    public UserService(IConfiguration config, IUserRepository userRepository, IPasswordHasher passwordHasher, ISessionRepository sessionRepository, IEmailService emailService, IMatchRepository matchRepository)
     {
         _connectionString = config.GetConnectionString("DefaultConnection")
                             ?? throw new InvalidOperationException("La chaîne de connexion 'DefaultConnection' est introuvable.");
@@ -24,6 +25,7 @@ public class UserService : IUserService
         _passwordHasher = passwordHasher;
         _sessionRepository = sessionRepository;
         _emailService = emailService;
+        _matchRepository = matchRepository;
     }
 
     public async Task<bool> IsUserOnlineAsync(int userId)
@@ -213,4 +215,9 @@ public class UserService : IUserService
     
     public Task<DateTime?> GetLastActivityAsync(int userId)
         => _userRepository.GetLastActivityAsync(userId);
+
+    public async Task<bool> HasMatchWithUserAsync(int currentUserId, int otherUserId)
+    {
+        return await _matchRepository.HasMatchAsync(currentUserId, otherUserId);
+    }
 }

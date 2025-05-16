@@ -5,7 +5,7 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
 @using MudBlazor
-@using Presentation.Components.Search
+@using Presentation.Components.User
 @inject IUserService UserService
 @inject ISearchService SearchService
 @inject IPhotoService PhotoService
@@ -19,38 +19,6 @@
     .mobile-paper {
         box-shadow: none !important;
         border-radius: 0 !important;
-    }
-
-    /* Styles pour cartes utilisateurs */
-    .user-avatar {
-        width: 65px;
-        height: 65px;
-        margin: 0 auto;
-        font-size: 1.5rem;
-    }
-    
-    .user-name {
-        font-size: 1.1rem;
-        font-weight: 500;
-        margin: 0;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-    
-    .user-age-gender {
-        display: flex;
-        align-items: center;
-        margin-top: 4px;
-    }
-    
-    .user-rating {
-        margin-top: 4px;
-    }
-    
-    .user-button {
-        margin-top: 8px;
-        height: 36px;
     }
 
     /* Styles pour desktop */
@@ -79,20 +47,6 @@
         
         .button-custom {
             height: 45px !important;
-        }
-        
-        .user-avatar {
-            width: 100px !important;
-            height: 100px !important;
-            font-size: 2rem !important;
-        }
-        
-        .user-name {
-            font-size: 1.25rem;
-        }
-        
-        .user-button {
-            height: 40px;
         }
     }
     
@@ -271,62 +225,13 @@
             <MudGrid>
                 @foreach (var user in Users)
                 {
-                    <MudItem xs="12" sm="6" Class="mb-2 mb-sm-3">
-                        <MudPaper Elevation="2" Class="pa-2 pa-sm-4 rounded-lg" Style="position: relative;">
-                            @if (user.IsActive)
-                            {
-                                <MudIcon Icon="@Icons.Material.Filled.Circle" 
-                                        Color="Color.Success" 
-                                        Style="position: absolute; top: 6px; right: 6px; height: 14px; width: 14px;" />
-                            }
-                            <MudGrid>
-                                <MudItem xs="4">
-                                    @if (ProfileImages.ContainsKey(user.Id) && !string.IsNullOrWhiteSpace(ProfileImages[user.Id]))
-                                    {
-                                        <div class="user-avatar" style="overflow: hidden; border-radius: 50%; margin: 0 auto;">
-                                            <img src="@ProfileImages[user.Id]" alt="Photo de profil" 
-                                                style="width: 100%; height: 100%; object-fit: cover;" />
-                                        </div>
-                                    }
-                                    else
-                                    {
-                                        <MudAvatar Color="Color.Primary" Class="user-avatar">
-                                            @(user.Username.Length > 0 ? user.Username[0].ToString() : "?")
-                                        </MudAvatar>
-                                    }
-                                </MudItem>
-                                <MudItem xs="8">
-                                    <div>
-                                        <p class="user-name">@user.Username</p>
-                                        
-                                        <div class="user-age-gender">
-                                            <span>@user.Age ans</span>
-                                            <MudIcon Icon="@(user.Genre == 1 ? Icons.Material.Filled.Male : Icons.Material.Filled.Female)" 
-                                                    Size="Size.Small"
-                                                    Class="ml-2" 
-                                                    Color="@(user.Genre == 1 ? Color.Info : Color.Secondary)" />
-                                        </div>
-                                        
-                                        <div class="user-rating">
-                                            <MudRating ReadOnly="true" 
-                                                    SelectedValue="@CalculateStarRating(user.PopularityScore)" 
-                                                    MaxValue="5" 
-                                                    Size="Size.Small" />
-                                        </div>
-                                    </div>
-                                </MudItem>
-                                <MudItem xs="12">
-                                    <MudButton Variant="Variant.Outlined" 
-                                            Color="Color.Primary" 
-                                            OnClick="() => ViewProfile(user.Id)"
-                                            FullWidth="true"
-                                            Class="user-button">
-                                        Voir profil
-                                    </MudButton>
-                                </MudItem>
-                            </MudGrid>
-                        </MudPaper>
-                    </MudItem>
+                    <UserCard 
+                        User="user" 
+                        ProfileImage="@(ProfileImages.ContainsKey(user.Id) ? ProfileImages[user.Id] : string.Empty)" 
+                        XsColumns="12" 
+                        SmColumns="6" 
+                        OnProfileClick="ViewProfile" 
+                        CurrentUserId="@CurrentUserId"/>
                 }
             </MudGrid>
         }
@@ -626,79 +531,6 @@
             });
         }
     }
-
-    @* private async Task ShowMoreTags()
-    {
-        var parameters = new DialogParameters
-        {
-            ["MinAge"] = MinAge,
-            ["MaxAge"] = MaxAge,
-            ["MinPopularity"] = MinPopularity,
-            ["MaxPopularity"] = MaxPopularity,
-            ["MaxDistance"] = MaxDistance,
-            ["SelectedTagIds"] = SelectedTagIds,
-            ["AvailableTags"] = AvailableTags
-        };
-
-        var options = new DialogOptions
-        {
-            CloseOnEscapeKey = true,
-            MaxWidth = MaxWidth.Medium,
-            FullWidth = true
-        };
-
-        var dialog = await DialogService.ShowAsync<CustomSearchDialog>("Sélection des tags", parameters, options);
-        var result = await dialog.Result;
-
-        if (!result.Canceled && result.Data != null)
-        {
-            var customSearchParams = (CustomSearchParameters)result.Data;
-            if (customSearchParams.SelectedTagIds != null)
-            {
-                SelectedTagIds = customSearchParams.SelectedTagIds;
-            }
-        }
-    }
-
-    private async Task OpenCustomSearchDialog()
-    {
-        var parameters = new DialogParameters
-        {
-            ["MinAge"] = MinAge,
-            ["MaxAge"] = MaxAge,
-            ["MinPopularity"] = MinPopularity,
-            ["MaxPopularity"] = MaxPopularity,
-            ["MaxDistance"] = MaxDistance,
-            ["SelectedTagIds"] = SelectedTagIds,
-            ["AvailableTags"] = AvailableTags
-        };
-
-        var options = new DialogOptions
-        {
-            CloseOnEscapeKey = true,
-            MaxWidth = MaxWidth.Medium,
-            FullWidth = true
-        };
-
-        var dialog = await DialogService.ShowAsync<CustomSearchDialog>("Recherche personnalisée", parameters, options);
-        var result = await dialog.Result;
-
-        if (!result.Canceled && result.Data != null)
-        {
-            var customSearchParams = (CustomSearchParameters)result.Data;
-            MinAge = customSearchParams.MinAge;
-            MaxAge = customSearchParams.MaxAge;
-            MinPopularity = customSearchParams.MinPopularity;
-            MaxPopularity = customSearchParams.MaxPopularity;
-            MaxDistance = customSearchParams.MaxDistance;
-            if (customSearchParams.SelectedTagIds != null)
-            {
-                SelectedTagIds = customSearchParams.SelectedTagIds;
-            }
-
-            await SearchCustomProfiles();
-        }
-    } *@
 
     private void ViewProfile(int userId)
     {

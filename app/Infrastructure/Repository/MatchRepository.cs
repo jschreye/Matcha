@@ -1,5 +1,4 @@
 using Core.Interfaces.Repository;
-using Core.Data.Entity;
 using MySql.Data.MySqlClient;
 using Microsoft.Extensions.Configuration;
 
@@ -104,6 +103,55 @@ namespace Infrastructure.Repository
             }
 
             return matchedUserIds;
+        }
+
+        public async Task<bool> HasMatchAsync(int userId1, int userId2)
+        {
+            using var connection = new MySqlConnection(_connectionString);
+            await connection.OpenAsync();
+            
+            var query = @"
+                SELECT COUNT(*) FROM matches 
+                WHERE 
+                    ((user1_id = @UserId1 AND user2_id = @UserId2) OR (user1_id = @UserId2 AND user2_id = @UserId1))
+                    AND is_active = TRUE";
+            
+            using var command = new MySqlCommand(query, connection);
+            command.Parameters.AddWithValue("@UserId1", userId1);
+            command.Parameters.AddWithValue("@UserId2", userId2);
+            
+            var count = Convert.ToInt32(await command.ExecuteScalarAsync());
+            return count > 0;
+        }
+        
+        public async Task<List<int>> GetUserMatchesAsync(int userId)
+        {
+            var result = new List<int>();
+            
+            using var connection = new MySqlConnection(_connectionString);
+            await connection.OpenAsync();
+            
+            var query = @"
+                SELECT 
+                    CASE 
+                        WHEN user1_id = @UserId THEN user2_id 
+                        ELSE user1_id 
+                    END as matched_user_id
+                FROM matches 
+                WHERE 
+                    (user1_id = @UserId OR user2_id = @UserId)
+                    AND is_active = TRUE";
+            
+            using var command = new MySqlCommand(query, connection);
+            command.Parameters.AddWithValue("@UserId", userId);
+            
+            using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                result.Add(reader.GetInt32(reader.GetOrdinal("matched_user_id")));
+            }
+            
+            return result;
         }
     }
 }
