@@ -10,5 +10,6 @@ namespace Core.Interfaces.Repository
         Task SaveMessageAsync(Message message);
         Task<List<Message>> GetConversationAsync(int userId1, int userId2);
         Task<List<ConversationDto>> GetConversationsForUserAsync(int userId);
+        Task<List<ConversationDto>> GetUnreadMessagesAsync(int userId);
     }
 }
