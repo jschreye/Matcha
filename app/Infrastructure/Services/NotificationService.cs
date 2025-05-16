@@ -133,4 +133,17 @@ public class NotificationService : INotificationService
         await _notificationRepository.DeleteNotificationsByUserIdAsync(userId);
         OnNotificationsUpdated?.Invoke(userId);
     }
+
+    public async Task DeleteMessageNotificationAsync(int userId, int senderId)
+    {
+        await _notificationRepository.DeleteMessageNotificationAsync(userId, senderId);
+        OnNotificationsUpdated?.Invoke(userId);
+    }
+    
+    public async Task DeleteNotificationsByTypeAsync(int userId, string typeLibelle)
+    {
+        await _notificationRepository.DeleteNotificationsByTypeAsync(userId, typeLibelle);
+        OnNotificationsUpdated?.Invoke(userId);
+    }
+
 }

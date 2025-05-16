@@ -135,4 +135,37 @@ public class NotificationRepository : INotificationRepository
 
         return Convert.ToInt32(await command.ExecuteScalarAsync());
     }
+
+    public async Task DeleteMessageNotificationAsync(int userId, int senderId)
+    {
+        using var connection = new MySqlConnection(_connectionString);
+        await connection.OpenAsync();
+
+        using var command = new MySqlCommand(
+            "DELETE FROM notifications WHERE user_id = @userId AND sender_id = @senderId AND notification_type_id = 1",
+            connection);
+
+        command.Parameters.AddWithValue("@userId", userId);
+        command.Parameters.AddWithValue("@senderId", senderId);
+
+        await command.ExecuteNonQueryAsync();
+    }
+
+    public async Task DeleteNotificationsByTypeAsync(int userId, string typeLibelle)
+    {
+        using var connection = new MySqlConnection(_connectionString);
+        await connection.OpenAsync();
+
+        var command = new MySqlCommand(@"
+            DELETE FROM notifications 
+            WHERE user_id = @userId 
+            AND notification_type_id = (
+                SELECT id FROM notification_types WHERE libelle = @typeLibelle LIMIT 1
+            )", connection);
+
+        command.Parameters.AddWithValue("@userId", userId);
+        command.Parameters.AddWithValue("@typeLibelle", typeLibelle);
+
+        await command.ExecuteNonQueryAsync();
+    }
 }

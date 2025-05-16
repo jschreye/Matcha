@@ -316,7 +316,7 @@
     private Dictionary<int, int> UserAges = new(); // Cache pour les âges des utilisateurs
     private int CurrentUserId;
     private bool isAuthenticated;
-    
+    private System.Threading.Timer? _dashboardRefreshTimer;
     // Informations de l'utilisateur courant
     private string CurrentUserName = "";
     private string CurrentUserPhoto = "";
@@ -355,21 +355,35 @@
             }
         }
 
-        // Récupérer les données du dashboard
+        await LoadDashboardData();
+
+        _dashboardRefreshTimer = new System.Threading.Timer(
+            async _ =>
+            {
+                await InvokeAsync(async () =>
+                {
+                    await LoadDashboardData();
+                    StateHasChanged();
+                });
+            },
+            null,
+            TimeSpan.FromSeconds(4), // premier délai
+            TimeSpan.FromSeconds(4)  // intervalle
+        );
+        
+        // Précharger les genres et les âges des utilisateurs
+        await LoadUserGenres();
+    }
+    private async Task LoadDashboardData()
+    {
         Matches = await DashboardService.GetMatchesAsync(CurrentUserId);
         Conversations = await DashboardService.GetConversationsAsync(CurrentUserId);
         NotificationCounts = await DashboardService.GetNotificationStatsAsync(CurrentUserId);
         VisitedProfiles = await DashboardService.GetVisitedProfilesAsync(CurrentUserId);
         ProfileVisitors = await DashboardService.GetProfileVisitorsAsync(CurrentUserId);
-        
-        // Récupérer les likes reçus et les messages non lus
         Likes = await DashboardService.GetRecentLikesAsync(CurrentUserId);
         UnreadMessages = await DashboardService.GetUnreadMessagesAsync(CurrentUserId);
-        
-        // Précharger les genres et les âges des utilisateurs
-        await LoadUserGenres();
     }
-    
     private async Task LoadUserGenres()
     {
         try

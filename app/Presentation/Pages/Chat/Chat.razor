@@ -66,7 +66,7 @@
         // 2) Charger les deux noms
         currentUsername  = (await UserService.GetUserProfileAsync(currentUserId))?.Username ?? "Moi";
         receiverUsername = (await UserService.GetUserProfileAsync(ReceiverId))?.Username ?? "Lui";
-
+        await NotificationService.DeleteMessageNotificationAsync(currentUserId, ReceiverId);
         // 3) S'abonner & charger historique
         ChatService.OnMessageReceived += OnMessageReceived;
         conversationMessages = (await ChatService.LoadConversationAsync(currentUserId, ReceiverId))
