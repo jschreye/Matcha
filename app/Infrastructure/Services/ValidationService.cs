@@ -10,7 +10,7 @@ namespace Infrastructure.Services
     {
         private const int MaxUsernameLength = 20;
         private const int MaxNameLength = 50;
-        private const long MaxImageSizeInBytes = 2 * 1024 * 1024; // 2 MB
+        private const long MaxImageSizeInBytes = 5 * 1024 * 1024; // 5 MB
 
         private readonly Regex _usernameRegex = new Regex(@"^[a-zA-Z0-9_]+$");
         private readonly Regex _nameRegex = new Regex(@"^[a-zA-ZÀ-ÿ\s\-]+$"); // Support for accented characters and spaces

@@ -31,7 +31,7 @@
     <MudItem xs="12" sm="6">
         <MudNumericField T="int" Label="Âge" Variant="Variant.Outlined"
                       Value="GetAgeValue()" ValueChanged="OnAgeChanged"
-                      Max="99" Required="true" 
+                      Min="18" Max="99" Required="true" 
                       For="@(() => UserProfile.Age)"
                       Error="@(UserProfile.Age < 18)"
                       ErrorText="L'âge minimum requis est de 18 ans" />
@@ -163,7 +163,17 @@
             );
         }
         
-        // L'initialisation de l'âge est maintenant gérée par GetAgeValue()
+        // S'assurer que l'âge est initialisé à 18 si non défini
+        if (UserProfile.Age <= 0)
+        {
+            UserProfile.Age = 18;
+        }
+        
+        // S'assurer que la préférence sexuelle est initialisée à "bisexual" (ID 3) si non définie
+        if (UserProfile.SexualPreferences == null || UserProfile.SexualPreferences <= 0)
+        {
+            UserProfile.SexualPreferences = 3; // ID pour Bisexual
+        }
     }
     
     private int GetAgeValue()
@@ -174,7 +184,16 @@
     
     private void OnAgeChanged(int newAge)
     {
-        UserProfile.Age = newAge;
+        if (newAge < 18)
+        {
+            AlertService.ShowMessage("L'âge minimum requis est de 18 ans.", false);
+            // On garde quand même la valeur pour le message d'erreur
+            UserProfile.Age = newAge;
+        }
+        else
+        {
+            UserProfile.Age = newAge;
+        }
     }
     
     private async Task ToggleTagSelection(Tag tag)
