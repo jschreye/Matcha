@@ -6,6 +6,8 @@
 @inject IUserService UserService
 @inject AuthenticationStateProvider AuthStateProvider
 @inject INotificationService NotificationService
+@inject IMatchRepository MatchRepository
+@inject NavigationManager NavigationManager
 
 <MudPaper Class="p-4 mx-auto my-5" Elevation="3" MaxWidth="800px">
     <MudText Typo="Typo.h5">Chat privé</MudText>
@@ -57,17 +59,27 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // 1) ID courant
+        // 1) Récupération de l’ID courant
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         var user      = authState.User;
         if (!int.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out currentUserId))
             return;
 
-        // 2) Charger les deux noms
+        // 2) Vérifier le match
+        bool hasMatch = await MatchRepository.HasMatchAsync(currentUserId, ReceiverId);
+        if (!hasMatch)
+        {
+            // Vous pouvez rediriger vers le dashboard, une 404 ou montrer un message
+            NavigationManager.NavigateTo("/dashboard");
+            return;
+        }
+
+        // 3) Charger les noms et supprimer la notification
         currentUsername  = (await UserService.GetUserProfileAsync(currentUserId))?.Username ?? "Moi";
         receiverUsername = (await UserService.GetUserProfileAsync(ReceiverId))?.Username ?? "Lui";
         await NotificationService.DeleteMessageNotificationAsync(currentUserId, ReceiverId);
-        // 3) S'abonner & charger historique
+
+        // 4) S’abonner et charger l’historique
         ChatService.OnMessageReceived += OnMessageReceived;
         conversationMessages = (await ChatService.LoadConversationAsync(currentUserId, ReceiverId))
                                     .OrderBy(m => m.Timestamp)

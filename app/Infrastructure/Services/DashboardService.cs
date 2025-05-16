@@ -107,23 +107,32 @@ public class DashboardService : IDashboardService
     {
         try
         {
-            // Obtenir les utilisateurs qui ont envoyé des messages non lus
+            // 1) Récupérer tous les messages non lus
             var unreadMessages = await _messageRepository.GetUnreadMessagesAsync(userId);
 
-            foreach (var message in unreadMessages)
+            // 2) Récupérer la liste des IDs avec qui on a un match actif
+            var matchedIds = await _matchRepository.GetMatchedUserIdsAsync(userId);
+
+            // 3) Ne garder que ceux envoyés par un match
+            var filtered = unreadMessages
+                .Where(m => matchedIds.Contains(m.UserId))
+                .ToList();
+
+            // 4) Charger la photo de profil pour chaque conversation filtrée
+            foreach (var convo in filtered)
             {
-                var profilePhoto = await _photoService.GetProfilePhotoAsync(message.UserId);
-                if (profilePhoto != null && profilePhoto.ImageData != null)
+                var profilePhoto = await _photoService.GetProfilePhotoAsync(convo.UserId);
+                if (profilePhoto?.ImageData?.Length > 0)
                 {
-                    message.Photo = $"data:image/jpeg;base64,{Convert.ToBase64String(profilePhoto.ImageData)}";
+                    convo.Photo = $"data:image/jpeg;base64,{Convert.ToBase64String(profilePhoto.ImageData)}";
                 }
             }
 
-            return unreadMessages;
+            return filtered;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erreur lors de la récupération des messages non lus pour l'utilisateur {UserId}", userId);
+            _logger.LogError(ex, "Erreur lors de la récupération des messages non lus filtrés pour l'utilisateur {UserId}", userId);
             return new List<ConversationDto>();
         }
     }

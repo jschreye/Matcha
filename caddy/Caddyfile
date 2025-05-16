@@ -1,7 +1,7 @@
 {
-    auto_https off
+  auto_https off
 }
 
 http:// {
-    reverse_proxy app:5000
+  reverse_proxy app:5000
 }
