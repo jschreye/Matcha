@@ -43,7 +43,7 @@ public class NotificationRepository : INotificationRepository
         await connection.OpenAsync();
 
         using var command = new MySqlCommand(
-            @"SELECT n.id, n.user_id, 
+            @"SELECT n.id, n.user_id, n.sender_id, 
                      u.username AS sender_username, 
                      nt.libelle AS type_libelle, 
                      n.lu, n.timestamp 
@@ -63,6 +63,7 @@ public class NotificationRepository : INotificationRepository
             {
                 Id = reader.GetInt32(reader.GetOrdinal("id")),
                 UserId = reader.GetInt32(reader.GetOrdinal("user_id")),
+                SenderId = reader.GetInt32(reader.GetOrdinal("sender_id")),
                 SenderUsername = reader.IsDBNull(reader.GetOrdinal("sender_username"))
                     ? "Utilisateur inconnu"
                     : reader.GetString(reader.GetOrdinal("sender_username")),
