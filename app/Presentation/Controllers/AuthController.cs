@@ -34,13 +34,13 @@ namespace Presentation.Controllers // Remplacez par votre espace de noms appropr
                 if(user == null || !user.IsActive) 
                     return Unauthorized("Identifiants incorrects ou compte non actif.");
 
-                // Créer les claims et l'identité pour le cookie d'authentification
+                await _userRepository.UpdateLastActivityAsync(user.Id);
+
                 var claims = new List<Claim>
                 {
                     new Claim(ClaimTypes.Name, username),
                     new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                     new Claim("ProfileComplete", user.ProfileComplete ? "true" : "false")
-                    // Ajoutez d'autres claims si nécessaire
                 };
 
                 var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -48,24 +48,26 @@ namespace Presentation.Controllers // Remplacez par votre espace de noms appropr
 
                 Console.WriteLine("Utilisateur validé. Tentative de création du cookie d'authentification.");
 
-                // Créer le cookie d'authentification
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal);
                 Console.WriteLine("Cookie d'authentification créé.");
 
-                // Gérer la session
                 var sessionToken = Guid.NewGuid().ToString();
                 var expiresAt = DateTime.UtcNow.AddHours(4);
 
-                // Stocker la session en base
                 await _userService.CreateSessionAsync(user.Id, sessionToken, expiresAt);
-
+                #if DEBUG
+                    var cookieSecure = false;
+                #else
+                    var cookieSecure = true;
+                #endif
                 // Créer le cookie de session
                 Response.Cookies.Append("SessionToken", sessionToken, new CookieOptions
                 {
                     HttpOnly = true,
-                    Secure = true,
+                    Secure   = cookieSecure,
                     SameSite = SameSiteMode.Strict,
-                    Expires = expiresAt
+                    Expires  = expiresAt,
+                    Path     = "/"
                 });
 
                 return Ok(new { Message = "Connexion réussie" });
@@ -75,19 +77,30 @@ namespace Presentation.Controllers // Remplacez par votre espace de noms appropr
             return Unauthorized("Nom d'utilisateur ou mot de passe incorrect.");
         }
 
+        [HttpGet("logout")]
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
         {
-            if (Request.Cookies.TryGetValue("SessionToken", out var sessionToken))
+            Console.WriteLine($"🔐 logout");
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (int.TryParse(userIdClaim?.Value, out var userId))
             {
-                await _userService.DeleteSessionAsync(sessionToken);
-                Response.Cookies.Delete("SessionToken");
+                Console.WriteLine($"🔐 Logout pour userId = {userId}");
+                await _userService.DeleteSessionsByUserIdAsync(userId);
+
+                Response.Cookies.Delete("SessionToken", new CookieOptions {
+                    HttpOnly = true,
+                    Secure   = false,
+                    SameSite = SameSiteMode.Strict,
+                    Path     = "/"
+                });
+
+                await _userRepository.UpdateLastActivityAsync(userId);
             }
-            
-            // Déconnexion de l'authentification
+
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
-            return Ok("Déconnecté");
+            return Redirect("/login");
         }
 
         [HttpGet("confirmation")]

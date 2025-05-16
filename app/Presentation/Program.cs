@@ -65,7 +65,7 @@ builder.Services.AddScoped<ILikeService, LikeService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IVisitService, VisiteService>();
 builder.Services.AddScoped<ISearchService, SearchService>();
-
+builder.Services.AddScoped<IBlockReportService, BlockReportService>();
 builder.Services.AddSingleton<IChatService, ChatService>();
 builder.Services.AddSingleton<INotificationService, NotificationService>();
 
@@ -82,6 +82,7 @@ builder.Services.AddSingleton<IMessageRepository, MessageRepository>();
 builder.Services.AddScoped<ISearchRepository, SearchRepository>();
 builder.Services.AddScoped<IVisitRepository, VisitRepository>();
 builder.Services.AddScoped<IMatchRepository, MatchRepository>();
+builder.Services.AddScoped<IBlockReportRepository, BlockReportRepository>();
 
 builder.Services.AddSingleton<IProfileImageStateService ,ProfileImageStateService>();
 

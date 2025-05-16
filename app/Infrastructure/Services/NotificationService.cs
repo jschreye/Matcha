@@ -10,9 +10,10 @@ public class NotificationService : INotificationService
     
     private readonly INotificationRepository _notificationRepository;
 
-    public NotificationService(INotificationRepository notificationRepository)
+    public NotificationService(
+        INotificationRepository notificationRepository)
     {
-        _notificationRepository = notificationRepository;
+        _notificationRepository   = notificationRepository;
     }
 
     public async Task NotifyMessageReceivedAsync(int receiverId, int senderId)
@@ -78,23 +79,25 @@ public class NotificationService : INotificationService
         OnNotify?.Invoke(unLikedUserId);
         OnNotificationsUpdated?.Invoke(unLikedUserId);
     }
+
     public async Task NotifyVisitPofileAsync(int visitedUserId, int visitUserId)
     {
-        int notificationTypeId = 4;
 
+        int notificationTypeId = 4;
         var notification = new Notification
         {
-            UserId = visitedUserId,
-            SenderId = visitUserId,
+            UserId             = visitedUserId,
+            SenderId           = visitUserId,
             NotificationTypeId = notificationTypeId,
-            Lu = false,
-            Timestamp = DateTime.Now
+            Lu                 = false,
+            Timestamp          = DateTime.Now
         };
 
         await _notificationRepository.SaveNotificationAsync(notification);
         OnNotify?.Invoke(visitedUserId);
         OnNotificationsUpdated?.Invoke(visitedUserId);
     }
+
     public async Task NotifyMatchAsync(int userAId, int userBId)
     {
         const int notificationTypeId = 5;

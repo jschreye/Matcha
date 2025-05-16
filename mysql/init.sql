@@ -57,6 +57,7 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     profile_complete BOOLEAN DEFAULT FALSE,
     localisation_isactive BOOLEAN DEFAULT FALSE,
+    last_activity DATETIME NULL,
     FOREIGN KEY (genre_id) REFERENCES genre(id),
     FOREIGN KEY (sexual_preferences_id) REFERENCES prefsex(id),
     FOREIGN KEY (tag_id) REFERENCES tags(id)
@@ -105,11 +106,12 @@ CREATE TABLE IF NOT EXISTS matches (
 
 -- Table Visits
 CREATE TABLE IF NOT EXISTS visits (
-    user_id INT NOT NULL,
-    visited_user_id INT NOT NULL,
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (user_id, visited_user_id, timestamp),
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    id                BIGINT        NOT NULL AUTO_INCREMENT,
+    user_id           INT           NOT NULL,
+    visited_user_id   INT           NOT NULL,
+    timestamp         TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    FOREIGN KEY (user_id)         REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (visited_user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 

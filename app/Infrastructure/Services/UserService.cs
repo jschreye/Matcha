@@ -26,6 +26,11 @@ public class UserService : IUserService
         _emailService = emailService;
     }
 
+    public async Task<bool> IsUserOnlineAsync(int userId)
+    {
+        return await _sessionRepository.HasActiveSessionAsync(userId);
+    }
+
     public async Task<List<UserDto>> GetAllUsersAsync()
     {
         return await _userRepository.GetAllUserAsync();
@@ -96,6 +101,12 @@ public class UserService : IUserService
     {
         await _sessionRepository.DeleteSessionAsync(sessionToken);
     }
+    
+    public async Task DeleteSessionsByUserIdAsync(int userId)
+    {
+        await _sessionRepository.DeleteSessionsByUserIdAsync(userId);
+    }
+
     public async Task<UserProfileDto?> GetUserProfileAsync(int userId)
     {
         var user = await _userRepository.GetByIdAsync(userId);
@@ -199,4 +210,7 @@ public class UserService : IUserService
         // Persiste les modifications en base de données
         await _userRepository.UpdateUserAsync(user);
     }
+    
+    public Task<DateTime?> GetLastActivityAsync(int userId)
+        => _userRepository.GetLastActivityAsync(userId);
 }

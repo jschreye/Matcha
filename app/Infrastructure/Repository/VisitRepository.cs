@@ -20,14 +20,19 @@ namespace Infrastructure.Repository
         {
             var visited = new List<int>();
             const string sql = @"
-                SELECT visited_user_id
-                FROM visits
-                WHERE user_id = @userId
-            ORDER BY timestamp DESC;
+                SELECT v.visited_user_id
+                FROM visits AS v
+                LEFT JOIN blocksReports AS b
+                ON b.user_id         = v.visited_user_id
+                AND b.blocked_user_id = @userId
+                WHERE v.user_id          = @userId
+                AND b.user_id IS NULL
+                ORDER BY v.timestamp DESC;
             ";
 
             await using var conn = new MySqlConnection(_connectionString);
             await conn.OpenAsync();
+
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@userId", userId);
 
@@ -39,14 +44,19 @@ namespace Infrastructure.Repository
             return visited;
         }
 
+        // 2) Les visiteurs du profil userId, sauf ceux que userId a bloqués
         public async Task<List<int>> GetProfileVisitorsIdsAsync(int userId)
         {
             var visitors = new List<int>();
             const string sql = @"
-                SELECT user_id
-                FROM visits
-                WHERE visited_user_id = @userId
-            ORDER BY timestamp DESC;
+                SELECT v.user_id
+                FROM visits AS v
+                LEFT JOIN blocksReports AS b
+                ON b.user_id         = v.user_id     
+                AND b.blocked_user_id = @userId       
+                WHERE v.visited_user_id = @userId        
+                AND b.user_id IS NULL                
+                ORDER BY v.timestamp DESC;
             ";
 
             await using var conn = new MySqlConnection(_connectionString);

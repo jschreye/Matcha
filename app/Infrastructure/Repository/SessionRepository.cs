@@ -51,5 +51,30 @@ namespace Infrastructure.Repository
 
             await command.ExecuteNonQueryAsync();
         }
+        public async Task<bool> HasActiveSessionAsync(int userId)
+        {
+            const string sql = @"
+                SELECT EXISTS(
+                    SELECT 1
+                    FROM sessions
+                    WHERE user_id = @userId
+                    AND expires_at > NOW()
+                )";
+            await using var cn = new MySqlConnection(_connectionString);
+            await cn.OpenAsync();
+            await using var cmd = new MySqlCommand(sql, cn);
+            cmd.Parameters.AddWithValue("@userId", userId);
+            var exists = await cmd.ExecuteScalarAsync();
+            return Convert.ToInt32(exists) == 1;
+        }
+        public async Task DeleteSessionsByUserIdAsync(int userId)
+        {
+            const string sql = "DELETE FROM sessions WHERE user_id = @userId;";
+            await using var cn = new MySqlConnection(_connectionString);
+            await cn.OpenAsync();
+            await using var cmd = new MySqlCommand(sql, cn);
+            cmd.Parameters.AddWithValue("@userId", userId);
+            await cmd.ExecuteNonQueryAsync();
+        }
     }
 }
