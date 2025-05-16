@@ -108,10 +108,13 @@ namespace Infrastructure.Repository
                     ) AS similarity_score
                 FROM 
                     users u
+                LEFT JOIN
+                    blocksReports br ON (br.user_id = @UserId AND br.blocked_user_id = u.id) OR (br.user_id = u.id AND br.blocked_user_id = @UserId)
                 WHERE 
                     u.id != @UserId AND
                     u.profile_complete = 1 AND
-                    u.isactive = 1");
+                    u.isactive = 1 AND
+                    br.user_id IS NULL");
 
             // Ajout des conditions de filtrage selon les préférences sexuelles
             if (userGenre.HasValue && userSexualPreferences.HasValue)
@@ -224,10 +227,13 @@ namespace Infrastructure.Repository
                     u.localisation_isactive, u.notifisactive, u.created_at
                 FROM 
                     users u
+                LEFT JOIN
+                    blocksReports br ON (br.user_id = @UserId AND br.blocked_user_id = u.id) OR (br.user_id = u.id AND br.blocked_user_id = @UserId)
                 WHERE 
                     u.id != @UserId AND
                     u.profile_complete = 1 AND
-                    u.isactive = 1");
+                    u.isactive = 1 AND
+                    br.user_id IS NULL");
 
             // Ajout des conditions de filtrage selon les préférences sexuelles
             if (userGenre.HasValue && userSexualPreferences.HasValue)
@@ -373,7 +379,9 @@ namespace Infrastructure.Repository
                 FROM 
                     users u
                 LEFT JOIN 
-                    userTags ut ON u.id = ut.user_id");
+                    userTags ut ON u.id = ut.user_id
+                LEFT JOIN
+                    blocksReports br ON (br.user_id = @UserId AND br.blocked_user_id = u.id) OR (br.user_id = u.id AND br.blocked_user_id = @UserId)");
             }
             else
             {
@@ -386,7 +394,9 @@ namespace Infrastructure.Repository
                     u.popularity_score, u.profile_complete, u.isactive,
                     u.localisation_isactive, u.notifisactive, u.created_at
                 FROM 
-                    users u");
+                    users u
+                LEFT JOIN
+                    blocksReports br ON (br.user_id = @UserId AND br.blocked_user_id = u.id) OR (br.user_id = u.id AND br.blocked_user_id = @UserId)");
             }
             
             // Construction des clauses WHERE
@@ -394,7 +404,8 @@ namespace Infrastructure.Repository
                 WHERE 
                     u.id != @UserId AND
                     u.profile_complete = 1 AND
-                    u.isactive = 1");
+                    u.isactive = 1 AND
+                    br.user_id IS NULL");
 
             // Appliquer les filtres de compatibilité sexuelle (obligatoires)
             if (userGenre == 1) // Homme
