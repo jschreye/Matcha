@@ -164,7 +164,7 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
-        {
+        {            
             await ScrollToBottomAsync();
         }
     }
@@ -200,9 +200,10 @@
             return;
 
         string trimmedMessage = message.Trim();
+        message = string.Empty; // Vider l'input AVANT d'envoyer
+        
         await ChatService.SendMessageAsync(currentUserId, ReceiverId, trimmedMessage);
         await NotificationService.NotifyMessageReceivedAsync(ReceiverId, currentUserId);
-        message = string.Empty;
         await ScrollToBottomAsync();
     }
 

@@ -1,10 +1,10 @@
 ﻿@page "/"
-@using Microsoft.AspNetCore.Components.Web
 @namespace Presentation.Pages
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Microsoft.AspNetCore.Components.Web
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -15,9 +15,18 @@
     <link rel="icon" type="image/png" href="favicon.png"/>
     <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
     <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
+    <title>Matcha</title>
     <script>
+        // Scroll vers le bas de l'élément de chat
+        window.scrollToBottom = function(element) {
+            if (element) {
+                element.scrollTop = element.scrollHeight;
+            }
+        };
+        
+        // Autres fonctions JS existantes
         window.resizeListeners = [];
-        window.addResizeListener = (dotNetHelper) => {
+        window.addResizeListener = function(dotNetHelper) {
             const resizeHandler = () => {
                 const width = window.innerWidth;
                 let breakpoint = "Xl";
@@ -25,17 +34,17 @@
                 else if (width < 960) breakpoint = "Sm";
                 else if (width < 1280) breakpoint = "Md";
                 else if (width < 1920) breakpoint = "Lg";
-
+                
                 dotNetHelper.invokeMethodAsync('OnResize', breakpoint);
             };
-
+            
             window.resizeListeners.push(resizeHandler);
             window.addEventListener('resize', resizeHandler);
-            resizeHandler(); // Trigger immediately on setup
+            resizeHandler();
         };
-
-        window.removeResizeListener = () => {
-            window.resizeListeners.forEach((listener) => {
+        
+        window.removeResizeListener = function() {
+            window.resizeListeners.forEach(function(listener) {
                 window.removeEventListener('resize', listener);
             });
             window.resizeListeners = [];
@@ -44,21 +53,21 @@
     <script src="js/localization.js"></script>
 </head>
 <body>
-    <!-- Ajout du CascadingAuthenticationState -->
     <CascadingAuthenticationState>
         <component type="typeof(App)" render-mode="ServerPrerendered" />
     </CascadingAuthenticationState>
     
     <div id="blazor-error-ui">
         <environment include="Staging,Production">
-            An error has occurred. This application may no longer respond until reloaded.
+            Une erreur s'est produite. Cette application peut ne plus répondre jusqu'à ce qu'elle soit rechargée.
         </environment>
         <environment include="Development">
-            An unhandled exception has occurred. See browser dev tools for details.
+            Une exception non gérée s'est produite. Voir les outils de développement du navigateur pour plus de détails.
         </environment>
-        <a href="" class="reload">Reload</a>
+        <a href="" class="reload">Recharger</a>
         <a class="dismiss">🗙</a>
     </div>
+    
     <script src="js/auth.js"></script>
     <script src="js/chat.js"></script>
     <script src="_framework/blazor.server.js"></script>
