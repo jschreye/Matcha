@@ -49,39 +49,33 @@
                             
                             @if (Likes != null && Likes.Any())
                             {
-                                <MudList T="UserDto" Class="pa-0">
-                                    @foreach (var like in Likes.Take(3))
-                                    {
-                                        <MudListItem T="UserDto" OnClick="@(() => GoToProfile(like.Id))">
-                                            <div class="d-flex align-center">
-                                                @if (!string.IsNullOrWhiteSpace(like.Photo))
-                                                {
-                                                    <div style="width: 40px; height: 40px; overflow: hidden; border-radius: 50%;" class="mr-3">
-                                                        <img src="@like.Photo" alt="Photo" style="width: 100%; height: 100%; object-fit: cover;" />
+                                <div style="max-height: 300px; overflow-y: auto;">
+                                    <MudList T="UserDto" Class="pa-0">
+                                        @foreach (var like in Likes)
+                                        {
+                                            <MudListItem T="UserDto" OnClick="@(() => GoToProfile(like.Id))">
+                                                <div class="d-flex align-center">
+                                                    @if (!string.IsNullOrWhiteSpace(like.Photo))
+                                                    {
+                                                        <div style="width: 40px; height: 40px; overflow: hidden; border-radius: 50%;" class="mr-3">
+                                                            <img src="@like.Photo" alt="Photo" style="width: 100%; height: 100%; object-fit: cover;" />
+                                                        </div>
+                                                    }
+                                                    else
+                                                    {
+                                                        <MudAvatar Color="Color.Primary" Size="Size.Small" Class="mr-3">
+                                                            @(like.Username.Length > 0 ? like.Username[0].ToString().ToUpper() : "?")
+                                                        </MudAvatar>
+                                                    }
+                                                    <div>
+                                                        <MudText Typo="Typo.body1">@like.Username</MudText>
+                                                        <MudText Typo="Typo.caption" Class="mud-text-secondary">vous a liké</MudText>
                                                     </div>
-                                                }
-                                                else
-                                                {
-                                                    <MudAvatar Color="Color.Primary" Size="Size.Small" Class="mr-3">
-                                                        @(like.Username.Length > 0 ? like.Username[0].ToString().ToUpper() : "?")
-                                                    </MudAvatar>
-                                                }
-                                                <div>
-                                                    <MudText Typo="Typo.body1">@like.Username</MudText>
-                                                    <MudText Typo="Typo.caption" Class="mud-text-secondary">vous a liké</MudText>
                                                 </div>
-                                            </div>
-                                        </MudListItem>
-                                    }
-                                </MudList>
-                                
-                                @if (Likes.Count > 3)
-                                {
-                                    <MudButton Color="Color.Secondary" Variant="Variant.Text" FullWidth="true" Class="mt-2"
-                                              OnClick="@(() => NavigationManager.NavigateTo("/notifications"))">
-                                        Voir tous les likes
-                                    </MudButton>
-                                }
+                                            </MudListItem>
+                                        }
+                                    </MudList>
+                                </div>
                             }
                             else
                             {
@@ -100,41 +94,35 @@
                             
                             @if (UnreadMessages != null && UnreadMessages.Any())
                             {
-                                <MudList T="ConversationDto" Class="pa-0">
-                                    @foreach (var msg in UnreadMessages.Take(3))
-                                    {
-                                        <MudListItem T="ConversationDto" OnClick="@(() => GoToChat(msg.UserId))">
-                                            <div class="d-flex align-center">
-                                                @if (!string.IsNullOrWhiteSpace(msg.Photo))
-                                                {
-                                                    <div style="width: 40px; height: 40px; overflow: hidden; border-radius: 50%;" class="mr-3">
-                                                        <img src="@msg.Photo" alt="Photo" style="width: 100%; height: 100%; object-fit: cover;" />
+                                <div style="max-height: 300px; overflow-y: auto;">
+                                    <MudList T="ConversationDto" Class="pa-0">
+                                        @foreach (var msg in UnreadMessages)
+                                        {
+                                            <MudListItem T="ConversationDto" OnClick="@(() => GoToChat(msg.UserId))">
+                                                <div class="d-flex align-center">
+                                                    @if (!string.IsNullOrWhiteSpace(msg.Photo))
+                                                    {
+                                                        <div style="width: 40px; height: 40px; overflow: hidden; border-radius: 50%;" class="mr-3">
+                                                            <img src="@msg.Photo" alt="Photo" style="width: 100%; height: 100%; object-fit: cover;" />
+                                                        </div>
+                                                    }
+                                                    else
+                                                    {
+                                                        <MudAvatar Color="Color.Primary" Size="Size.Small" Class="mr-3">
+                                                            @(msg.Username?.Length > 0 ? msg.Username[0].ToString().ToUpper() : "?")
+                                                        </MudAvatar>
+                                                    }
+                                                    <div>
+                                                        <MudText Typo="Typo.body1">@msg.Username</MudText>
+                                                        <MudText Typo="Typo.caption" Class="mud-text-secondary text-truncate" Style="max-width: 150px;">
+                                                            @(string.IsNullOrEmpty(msg.LastMessage) ? "Nouveau message" : msg.LastMessage)
+                                                        </MudText>
                                                     </div>
-                                                }
-                                                else
-                                                {
-                                                    <MudAvatar Color="Color.Primary" Size="Size.Small" Class="mr-3">
-                                                        @(msg.Username?.Length > 0 ? msg.Username[0].ToString().ToUpper() : "?")
-                                                    </MudAvatar>
-                                                }
-                                                <div>
-                                                    <MudText Typo="Typo.body1">@msg.Username</MudText>
-                                                    <MudText Typo="Typo.caption" Class="mud-text-secondary text-truncate" Style="max-width: 150px;">
-                                                        @(string.IsNullOrEmpty(msg.LastMessage) ? "Nouveau message" : msg.LastMessage)
-                                                    </MudText>
                                                 </div>
-                                            </div>
-                                        </MudListItem>
-                                    }
-                                </MudList>
-                                
-                                @if (NotificationCounts.Messages > 3)
-                                {
-                                    <MudButton Color="Color.Info" Variant="Variant.Text" FullWidth="true" Class="mt-2"
-                                              OnClick="@(() => NavigationManager.NavigateTo("/notifications"))">
-                                        Voir tous les messages
-                                    </MudButton>
-                                }
+                                            </MudListItem>
+                                        }
+                                    </MudList>
+                                </div>
                             }
                             else
                             {
@@ -156,20 +144,45 @@
 
                 @if (Matches.Any())
                 {
-                    <MudGrid>
-                        @foreach (var user in Matches)
+                    <MudTabs Elevation="0" Rounded="true" PanelClass="pt-2">
+                        <MudTabPanel Text="@($"Tous ({Matches.Count})")">
+                            <div style="@(Matches.Count > 8 ? "max-height: 550px; overflow-y: auto;" : "")">
+                                <MudGrid>
+                                    @foreach (var user in Matches)
+                                    {
+                                        <DashboardUserCard 
+                                            User="user" 
+                                            ProfileImage="@(user.Photo ?? string.Empty)"
+                                            CurrentUserId="@CurrentUserId"
+                                            XsColumns="12" 
+                                            SmColumns="6" 
+                                            MdColumns="3"
+                                            Elevation="2"
+                                            OnProfileClick="GoToProfile" />
+                                    }
+                                </MudGrid>
+                            </div>
+                        </MudTabPanel>
+                        @if (Matches.Count > 8)
                         {
-                            <DashboardUserCard 
-                                User="user" 
-                                ProfileImage="@(user.Photo ?? string.Empty)"
-                                CurrentUserId="@CurrentUserId"
-                                XsColumns="12" 
-                                SmColumns="6" 
-                                MdColumns="3"
-                                Elevation="2"
-                                OnProfileClick="GoToProfile" />
+                            <MudTabPanel Text="Récents (8)">
+                                <MudGrid>
+                                    @foreach (var user in Matches.Take(8))
+                                    {
+                                        <DashboardUserCard 
+                                            User="user" 
+                                            ProfileImage="@(user.Photo ?? string.Empty)"
+                                            CurrentUserId="@CurrentUserId"
+                                            XsColumns="12" 
+                                            SmColumns="6" 
+                                            MdColumns="3"
+                                            Elevation="2"
+                                            OnProfileClick="GoToProfile" />
+                                    }
+                                </MudGrid>
+                            </MudTabPanel>
                         }
-                    </MudGrid>
+                    </MudTabs>
                 }
                 else
                 {
@@ -187,44 +200,38 @@
                 </MudText>
                 @if (Conversations.Any())
                 {
-                    <MudList T="ConversationDto" Class="pa-0">
-                        @foreach (var conv in Conversations.Take(5))
-                        {
-                            <MudListItem T="ConversationDto" OnClick="@(() => GoToChat(conv.UserId))" Class="pa-2 rounded-lg mb-2" Style="border: 1px solid var(--mud-palette-lines-default)">
-                                <div class="d-flex align-center">
-                                    @if (!string.IsNullOrWhiteSpace(conv.Photo))
-                                    {
-                                        <div style="width: 50px; height: 50px; overflow: hidden; border-radius: 50%;" class="mr-3">
-                                            <img src="@conv.Photo" alt="Photo" style="width: 100%; height: 100%; object-fit: cover;" />
+                    <div style="max-height: 400px; overflow-y: auto;">
+                        <MudList T="ConversationDto" Class="pa-0">
+                            @foreach (var conv in Conversations)
+                            {
+                                <MudListItem T="ConversationDto" OnClick="@(() => GoToChat(conv.UserId))" Class="pa-2 rounded-lg mb-2" Style="border: 1px solid var(--mud-palette-lines-default)">
+                                    <div class="d-flex align-center">
+                                        @if (!string.IsNullOrWhiteSpace(conv.Photo))
+                                        {
+                                            <div style="width: 50px; height: 50px; overflow: hidden; border-radius: 50%;" class="mr-3">
+                                                <img src="@conv.Photo" alt="Photo" style="width: 100%; height: 100%; object-fit: cover;" />
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <MudAvatar Color="Color.Primary" Style="width: 50px; height: 50px;" Class="mr-3">
+                                                @(conv.Username?.Length > 0 ? conv.Username[0].ToString().ToUpper() : "?")
+                                            </MudAvatar>
+                                        }
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex justify-space-between align-center">
+                                                <MudText Typo="Typo.body1" Class="font-weight-bold">@conv.Username</MudText>
+                                                <MudText Typo="Typo.caption" Class="mud-text-secondary">@conv.LastMessageDate.ToString("dd/MM HH:mm")</MudText>
+                                            </div>
+                                            <MudText Typo="Typo.body2" Class="mt-1 text-truncate">
+                                                @(string.IsNullOrEmpty(conv.LastMessage) ? "Pas de message" : conv.LastMessage)
+                                            </MudText>
                                         </div>
-                                    }
-                                    else
-                                    {
-                                        <MudAvatar Color="Color.Primary" Style="width: 50px; height: 50px;" Class="mr-3">
-                                            @(conv.Username?.Length > 0 ? conv.Username[0].ToString().ToUpper() : "?")
-                                        </MudAvatar>
-                                    }
-                                    <div class="flex-grow-1">
-                                        <div class="d-flex justify-space-between align-center">
-                                            <MudText Typo="Typo.body1" Class="font-weight-bold">@conv.Username</MudText>
-                                            <MudText Typo="Typo.caption" Class="mud-text-secondary">@conv.LastMessageDate.ToString("dd/MM HH:mm")</MudText>
-                                        </div>
-                                        <MudText Typo="Typo.body2" Class="mt-1 text-truncate">
-                                            @(string.IsNullOrEmpty(conv.LastMessage) ? "Pas de message" : conv.LastMessage)
-                                        </MudText>
                                     </div>
-                                </div>
-                            </MudListItem>
-                        }
-                    </MudList>
-                    
-                    @if (Conversations.Count > 5)
-                    {
-                        <MudButton Color="Color.Primary" Variant="Variant.Text" FullWidth="true" Class="mt-3"
-                                  OnClick="@(() => NavigationManager.NavigateTo("/notifications"))">
-                            Voir toutes les conversations
-                        </MudButton>
-                    }
+                                </MudListItem>
+                            }
+                        </MudList>
+                    </div>
                 }
                 else
                 {
@@ -239,28 +246,22 @@
                 <MudTabPanel Text="Profils visités" Icon="@Icons.Material.Filled.Visibility">
                     @if (VisitedProfiles.Any())
                     {
-                        <MudGrid>
-                            @foreach (var user in VisitedProfiles.Take(4))
-                            {
-                                <DashboardUserCard 
-                                    User="user" 
-                                    ProfileImage="@(user.Photo ?? string.Empty)"
-                                    CurrentUserId="@CurrentUserId"
-                                    XsColumns="12" 
-                                    SmColumns="6" 
-                                    MdColumns="6"
-                                    Elevation="1"
-                                    OnProfileClick="GoToProfile" />
-                            }
-                        </MudGrid>
-                        
-                        @if (VisitedProfiles.Count > 4)
-                        {
-                            <MudButton Color="Color.Info" Variant="Variant.Text" FullWidth="true" Class="mt-3"
-                                      OnClick="@(() => NavigationManager.NavigateTo("/notifications"))">
-                                Voir l'historique complet
-                            </MudButton>
-                        }
+                        <div style="@(VisitedProfiles.Count > 4 ? "max-height: 370px; overflow-y: auto;" : "")">
+                            <MudGrid>
+                                @foreach (var user in VisitedProfiles)
+                                {
+                                    <DashboardUserCard 
+                                        User="user" 
+                                        ProfileImage="@(user.Photo ?? string.Empty)"
+                                        CurrentUserId="@CurrentUserId"
+                                        XsColumns="12" 
+                                        SmColumns="6" 
+                                        MdColumns="6"
+                                        Elevation="1"
+                                        OnProfileClick="GoToProfile" />
+                                }
+                            </MudGrid>
+                        </div>
                     }
                     else
                     {
@@ -271,28 +272,22 @@
                 <MudTabPanel Text="Qui m'ont visité" Icon="@Icons.Material.Filled.Pageview">
                     @if (ProfileVisitors.Any())
                     {
-                        <MudGrid>
-                            @foreach (var user in ProfileVisitors.Take(4))
-                            {
-                                <DashboardUserCard 
-                                    User="user" 
-                                    ProfileImage="@(user.Photo ?? string.Empty)"
-                                    CurrentUserId="@CurrentUserId"
-                                    XsColumns="12" 
-                                    SmColumns="6" 
-                                    MdColumns="6"
-                                    Elevation="1"
-                                    OnProfileClick="GoToProfile" />
-                            }
-                        </MudGrid>
-                        
-                        @if (ProfileVisitors.Count > 4)
-                        {
-                            <MudButton Color="Color.Tertiary" Variant="Variant.Text" FullWidth="true" Class="mt-3"
-                                      OnClick="@(() => NavigationManager.NavigateTo("/notifications"))">
-                                Voir tous les visiteurs
-                            </MudButton>
-                        }
+                        <div style="@(ProfileVisitors.Count > 4 ? "max-height: 370px; overflow-y: auto;" : "")">
+                            <MudGrid>
+                                @foreach (var user in ProfileVisitors)
+                                {
+                                    <DashboardUserCard 
+                                        User="user" 
+                                        ProfileImage="@(user.Photo ?? string.Empty)"
+                                        CurrentUserId="@CurrentUserId"
+                                        XsColumns="12" 
+                                        SmColumns="6" 
+                                        MdColumns="6"
+                                        Elevation="1"
+                                        OnProfileClick="GoToProfile" />
+                                }
+                            </MudGrid>
+                        </div>
                     }
                     else
                     {

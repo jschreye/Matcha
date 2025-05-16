@@ -136,6 +136,22 @@ public class NotificationRepository : INotificationRepository
         return Convert.ToInt32(await command.ExecuteScalarAsync());
     }
 
+    public async Task MarkMessagesAsReadAsync(int userId, int senderId, int notificationTypeId)
+    {
+        using var connection = new MySqlConnection(_connectionString);
+        await connection.OpenAsync();
+
+        using var command = new MySqlCommand(
+            "UPDATE notifications SET lu = true WHERE user_id = @userId AND sender_id = @senderId AND notification_type_id = @notificationTypeId",
+            connection);
+
+        command.Parameters.AddWithValue("@userId", userId);
+        command.Parameters.AddWithValue("@senderId", senderId);
+        command.Parameters.AddWithValue("@notificationTypeId", notificationTypeId);
+
+        await command.ExecuteNonQueryAsync();
+    }
+
     public async Task DeleteMessageNotificationAsync(int userId, int senderId)
     {
         using var connection = new MySqlConnection(_connectionString);
