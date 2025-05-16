@@ -44,7 +44,7 @@
                         <MudPaper Elevation="1" Class="pa-4 h-100">
                             <MudText Typo="Typo.h6" Class="mb-3 d-flex align-center">
                                 <MudIcon Icon="@Icons.Material.Filled.ThumbUp" Class="mr-2" Color="Color.Secondary" />
-                                Likes reçus (@NotificationCounts.Likes)
+                                Likes reçus (@Likes.Count)
                             </MudText>
                             
                             @if (Likes != null && Likes.Any())
@@ -75,7 +75,7 @@
                                     }
                                 </MudList>
                                 
-                                @if (NotificationCounts.Likes > 3)
+                                @if (Likes.Count > 3)
                                 {
                                     <MudButton Color="Color.Secondary" Variant="Variant.Text" FullWidth="true" Class="mt-2"
                                               OnClick="@(() => NavigationManager.NavigateTo("/notifications"))">
