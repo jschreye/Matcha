@@ -172,14 +172,6 @@
         await NotificationService.MarkMessagesAsReadAsync(currentUserId, ReceiverId);
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {            
-            await ScrollToBottomAsync();
-        }
-    }
-
     private async Task ScrollToBottomAsync()
     {
         try
@@ -195,6 +187,7 @@
     {
         if (firstRender)
         {
+            await ScrollToBottomAsync();
             await NotificationService.DeleteMessageNotificationAsync(currentUserId, ReceiverId);
             _firstRender = false;
         }
