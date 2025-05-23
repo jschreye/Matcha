@@ -77,6 +77,8 @@
     private List<Tag> tags = new();
     /** IDs des tags sélectionnés */
     private IEnumerable<int> selectedTagIds = new List<int>();
+    private string email {get; set; } = string.Empty;
+    private string username {get; set; } = string.Empty;
 
     [SuppressMessage("Usage", "CS8603:Existence possible d'un retour de référence null")]
     protected override async Task OnInitializedAsync()
@@ -100,6 +102,8 @@
             if (profileData != null)
             {
                 userProfile = profileData;
+                email = userProfile.Email;
+                username = userProfile.Username;
             }
             
             var genreData = await GenreService.GetGenresAsync();
@@ -153,10 +157,16 @@
         Console.WriteLine($"Début UpdateUserProfile - LocalisationIsActive: {userProfile.LocalisationIsActive}");
         
         var allErrors = new List<string>();
-        allErrors.AddRange(ValidationService.ValidateUsername(userProfile.Username));
+        if(userProfile.Username != username)
+        {
+            allErrors.AddRange(await ValidationService.ValidateUsername(userProfile.Username));
+        }
         allErrors.AddRange(ValidationService.ValidateName(userProfile.Firstname, "Le prénom"));
         allErrors.AddRange(ValidationService.ValidateName(userProfile.Lastname, "Le nom"));
-        allErrors.AddRange(await ValidationService.ValidateEmail(userProfile.Email));
+        if (email != userProfile.Email)
+        {
+            allErrors.AddRange(await ValidationService.ValidateEmail(email));
+        }
         allErrors.AddRange(ValidationService.ValidateLatitude(userProfile.Latitude));
         allErrors.AddRange(ValidationService.ValidateLongitude(userProfile.Longitude));
         allErrors.AddRange(ValidationService.ValidateBiography(userProfile.Biography ?? string.Empty));

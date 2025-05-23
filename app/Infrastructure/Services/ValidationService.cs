@@ -19,10 +19,15 @@ namespace Infrastructure.Services
         {
             UserRepository = userRepository;
         }
-        public IEnumerable<string> ValidateUsername(string username)
+        public async Task<IEnumerable<string>> ValidateUsername(string username)
         {
             var errors = new List<string>();
-
+            var existe = await UserRepository.UsernameExistsAsync(username);
+            if(existe)
+            {
+                errors.Add("Le nom d'utilisateur existe déjà.");
+            }
+            
             if (string.IsNullOrWhiteSpace(username))
             {
                 errors.Add("Le nom d'utilisateur est requis.");

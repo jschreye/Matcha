@@ -58,7 +58,7 @@
     private async Task RegisterUser()
     {
         // Valider les champs
-        var usernameErrors = ValidationService.ValidateUsername(registerModel.Username ?? string.Empty);
+        var usernameErrors = await ValidationService.ValidateUsername(registerModel.Username ?? string.Empty);
         var lastnameErrors = ValidationService.ValidateName(registerModel.Lastname ?? string.Empty, "Le nom");
         var firstnameErrors = ValidationService.ValidateName(registerModel.Firstname ?? string.Empty, "Le prénom");
         var emailErrors = await ValidationService.ValidateEmail(registerModel.Email ?? string.Empty);

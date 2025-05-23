@@ -18,5 +18,6 @@ namespace Core.Interfaces.Repository
         Task UpdateLastActivityAsync(int userId);
         Task<DateTime?> GetLastActivityAsync(int userId);
         Task<bool> EmailExistsAsync(string email);
+        Task<bool> UsernameExistsAsync(string username);
     }
 }
