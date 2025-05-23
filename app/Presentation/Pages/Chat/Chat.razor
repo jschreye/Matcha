@@ -8,6 +8,8 @@
 @inject AuthenticationStateProvider AuthStateProvider
 @inject INotificationService NotificationService
 @inject IJSRuntime JS
+@inject IMatchRepository MatchRepository
+@inject NavigationManager NavigationManager
 
 <MudContainer MaxWidth="MaxWidth.Medium" Class="py-4">
     <!-- Header de conversation -->
@@ -120,15 +122,24 @@
     private List<Message> conversationMessages = new();
     private ElementReference chatContainer;
 
+    private bool _firstRender = true;
     protected override async Task OnInitializedAsync()
     {
-        // 1) ID courant
+        // 1) Récupération de l’ID courant
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         var user      = authState.User;
         if (!int.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out currentUserId))
             return;
 
-        // 2) Charger les deux noms
+        // 2) Vérifier le match
+        bool hasMatch = await MatchRepository.HasMatchAsync(currentUserId, ReceiverId);
+        if (!hasMatch)
+        {
+            NavigationManager.NavigateTo("/login");
+            return;
+        }
+       
+        // 3) Charger les noms et supprimer la notification
         currentUsername  = (await UserService.GetUserProfileAsync(currentUserId))?.Username ?? "Moi";
         var receiverProfile = await UserService.GetUserProfileAsync(ReceiverId);
         receiverUsername = receiverProfile?.Username ?? "Utilisateur";
@@ -150,8 +161,8 @@
 
         // 4) S'abonner & charger historique
         receiverUsername = (await UserService.GetUserProfileAsync(ReceiverId))?.Username ?? "Lui";
-        await NotificationService.DeleteMessageNotificationAsync(currentUserId, ReceiverId);
-        // 3) S'abonner & charger historique
+        
+        // 4) S’abonner et charger l’historique
         ChatService.OnMessageReceived += OnMessageReceived;
         conversationMessages = (await ChatService.LoadConversationAsync(currentUserId, ReceiverId))
                                     .OrderBy(m => m.Timestamp)
@@ -180,9 +191,17 @@
             // Ignorer l'erreur si JS n'est pas injecté
         }
     }
-
-    private void OnMessageReceived(Message newMsg)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (firstRender)
+        {
+            await NotificationService.DeleteMessageNotificationAsync(currentUserId, ReceiverId);
+            _firstRender = false;
+        }
+    }
+    private async void OnMessageReceived(Message newMsg)
+    {
+        // On ne veut gérer que la discussion en cours
         if ((newMsg.SenderId == currentUserId && newMsg.ReceiverId == ReceiverId) ||
             (newMsg.SenderId == ReceiverId  && newMsg.ReceiverId == currentUserId))
         {
@@ -191,6 +210,7 @@
                 StateHasChanged();
                 await ScrollToBottomAsync();
             });
+            //await NotificationService.DeleteMessageNotificationAsync(currentUserId, newMsg.SenderId);
         }
     }
 

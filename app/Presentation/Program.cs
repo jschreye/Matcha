@@ -67,6 +67,7 @@ builder.Services.AddScoped<IVisitService, VisiteService>();
 builder.Services.AddScoped<ISearchService, SearchService>();
 builder.Services.AddScoped<IBlockReportService, BlockReportService>();
 builder.Services.AddSingleton<IChatService, ChatService>();
+
 builder.Services.AddSingleton<INotificationService, NotificationService>();
 
 // Ajouter les repository
