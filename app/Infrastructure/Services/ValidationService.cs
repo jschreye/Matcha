@@ -3,7 +3,7 @@ using Core.Interfaces.Services;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Components.Forms;
 using System.Text.RegularExpressions;
-
+using Core.Interfaces.Repository;
 namespace Infrastructure.Services
 {
     public class ValidationService : IValidationService
@@ -14,11 +14,20 @@ namespace Infrastructure.Services
 
         private readonly Regex _usernameRegex = new Regex(@"^[a-zA-Z0-9_]+$");
         private readonly Regex _nameRegex = new Regex(@"^[a-zA-ZÀ-ÿ\s\-]+$"); // Support for accented characters and spaces
-
-        public IEnumerable<string> ValidateUsername(string username)
+        private readonly IUserRepository UserRepository;
+        public ValidationService(IUserRepository userRepository)
+        {
+            UserRepository = userRepository;
+        }
+        public async Task<IEnumerable<string>> ValidateUsername(string username)
         {
             var errors = new List<string>();
-
+            var existe = await UserRepository.UsernameExistsAsync(username);
+            if(existe)
+            {
+                errors.Add("Le nom d'utilisateur existe déjà.");
+            }
+            
             if (string.IsNullOrWhiteSpace(username))
             {
                 errors.Add("Le nom d'utilisateur est requis.");
@@ -61,7 +70,7 @@ namespace Infrastructure.Services
             return errors;
         }
 
-        public IEnumerable<string> ValidateEmail(string email)
+        public async Task<IEnumerable<string>> ValidateEmail(string email)
         {
             var errors = new List<string>();
 
@@ -69,6 +78,13 @@ namespace Infrastructure.Services
             {
                 errors.Add("L'email est requis.");
                 return errors;
+            }
+
+            var existe = await UserRepository.EmailExistsAsync(email);
+            if(existe)
+            {
+                Console.WriteLine("email exists");
+                errors.Add("L'email existe déjà.");
             }
 
             var emailAttribute = new System.ComponentModel.DataAnnotations.EmailAddressAttribute();

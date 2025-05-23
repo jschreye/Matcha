@@ -189,10 +189,9 @@
         {
             await ScrollToBottomAsync();
             await NotificationService.DeleteMessageNotificationAsync(currentUserId, ReceiverId);
-            _firstRender = false;
         }
     }
-    private async void OnMessageReceived(Message newMsg)
+    private void OnMessageReceived(Message newMsg)
     {
         // On ne veut gérer que la discussion en cours
         if ((newMsg.SenderId == currentUserId && newMsg.ReceiverId == ReceiverId) ||

@@ -7,9 +7,9 @@ namespace Core.Interfaces.Services
 {
     public interface IValidationService
     {
-        IEnumerable<string> ValidateUsername(string username);
+        Task<IEnumerable<string>> ValidateUsername(string username);
         IEnumerable<string> ValidateName(string name, string fieldName);
-        IEnumerable<string> ValidateEmail(string email);
+        Task<IEnumerable<string>> ValidateEmail(string email);
         IEnumerable<string> ValidatePassword(string password);
         IEnumerable<string> ValidateLatitude(double? latitude);
         IEnumerable<string> ValidateLongitude(double? longitude);

@@ -386,5 +386,31 @@ namespace Infrastructure.Repository
                 ? null
                 : (DateTime?) Convert.ToDateTime(result);
         }
+
+        public async Task<bool> EmailExistsAsync(string email)
+        {
+            using var connection = new MySqlConnection(_connectionString);
+            await connection.OpenAsync();
+
+            var query = "SELECT COUNT(1) FROM users WHERE email = @Email";
+            using var command = new MySqlCommand(query, connection);
+            command.Parameters.AddWithValue("@Email", email);
+
+            var result = await command.ExecuteScalarAsync();
+            return Convert.ToInt32(result) > 0;
+        }
+        
+        public async Task<bool> UsernameExistsAsync(string username)
+        {
+            using var connection = new MySqlConnection(_connectionString);
+            await connection.OpenAsync();
+
+            var query = "SELECT COUNT(1) FROM users WHERE username = @Username";
+            using var command = new MySqlCommand(query, connection);
+            command.Parameters.AddWithValue("@Username", username);
+
+            var result = await command.ExecuteScalarAsync();
+            return Convert.ToInt32(result) > 0;
+        }
     }
 }
