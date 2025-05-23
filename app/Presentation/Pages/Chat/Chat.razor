@@ -56,7 +56,7 @@
     private string receiverUsername = "";
     private string message = string.Empty;
     private List<Message> conversationMessages = new();
-
+    private bool _firstRender = true;
     protected override async Task OnInitializedAsync()
     {
         // 1) Récupération de l’ID courant
@@ -69,30 +69,36 @@
         bool hasMatch = await MatchRepository.HasMatchAsync(currentUserId, ReceiverId);
         if (!hasMatch)
         {
-            // Vous pouvez rediriger vers le dashboard, une 404 ou montrer un message
-            NavigationManager.NavigateTo("/dashboard");
+            NavigationManager.NavigateTo("/login");
             return;
         }
-
+       
         // 3) Charger les noms et supprimer la notification
         currentUsername  = (await UserService.GetUserProfileAsync(currentUserId))?.Username ?? "Moi";
         receiverUsername = (await UserService.GetUserProfileAsync(ReceiverId))?.Username ?? "Lui";
-        await NotificationService.DeleteMessageNotificationAsync(currentUserId, ReceiverId);
-
+        
         // 4) S’abonner et charger l’historique
         ChatService.OnMessageReceived += OnMessageReceived;
         conversationMessages = (await ChatService.LoadConversationAsync(currentUserId, ReceiverId))
                                     .OrderBy(m => m.Timestamp)
                                     .ToList();
     }
-
-    private void OnMessageReceived(Message newMsg)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (firstRender)
+        {
+            await NotificationService.DeleteMessageNotificationAsync(currentUserId, ReceiverId);
+            _firstRender = false;
+        }
+    }
+    private async void OnMessageReceived(Message newMsg)
+    {
+        // On ne veut gérer que la discussion en cours
         if ((newMsg.SenderId == currentUserId && newMsg.ReceiverId == ReceiverId) ||
             (newMsg.SenderId == ReceiverId  && newMsg.ReceiverId == currentUserId))
         {
             conversationMessages.Add(newMsg);
-            InvokeAsync(StateHasChanged);
+            //await NotificationService.DeleteMessageNotificationAsync(currentUserId, newMsg.SenderId);
         }
     }
 

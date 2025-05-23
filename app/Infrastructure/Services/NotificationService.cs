@@ -145,5 +145,4 @@ public class NotificationService : INotificationService
         await _notificationRepository.DeleteNotificationsByTypeAsync(userId, typeLibelle);
         OnNotificationsUpdated?.Invoke(userId);
     }
-
 }
