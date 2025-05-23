@@ -23,4 +23,4 @@ FROM build AS development
 WORKDIR /app
 
 # watch create a error websocket in Console web
-CMD ["dotnet", "watch", "run", "--project", "Presentation/Presentation.csproj", "--urls", "http://0.0.0.0:5000", "--poll"]
+CMD ["dotnet", "run", "--project", "Presentation/Presentation.csproj", "--urls", "http://0.0.0.0:5000", "--poll"]

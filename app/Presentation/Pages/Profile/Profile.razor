@@ -156,7 +156,7 @@
         allErrors.AddRange(ValidationService.ValidateUsername(userProfile.Username));
         allErrors.AddRange(ValidationService.ValidateName(userProfile.Firstname, "Le prénom"));
         allErrors.AddRange(ValidationService.ValidateName(userProfile.Lastname, "Le nom"));
-        allErrors.AddRange(ValidationService.ValidateEmail(userProfile.Email));
+        allErrors.AddRange(await ValidationService.ValidateEmail(userProfile.Email));
         allErrors.AddRange(ValidationService.ValidateLatitude(userProfile.Latitude));
         allErrors.AddRange(ValidationService.ValidateLongitude(userProfile.Longitude));
         allErrors.AddRange(ValidationService.ValidateBiography(userProfile.Biography ?? string.Empty));
@@ -228,7 +228,7 @@
             
             if (refreshOk)
             {
-                NavigationManager.NavigateTo("/", forceLoad: true);
+                NavigationManager.NavigateTo("/profile", forceLoad: true);
                 AlertService.ShowMessage("Profil mis à jour.", true);
             }
             else

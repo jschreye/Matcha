@@ -56,7 +56,6 @@
     private string receiverUsername = "";
     private string message = string.Empty;
     private List<Message> conversationMessages = new();
-    private bool _firstRender = true;
     protected override async Task OnInitializedAsync()
     {
         // 1) Récupération de l’ID courant
@@ -88,10 +87,9 @@
         if (firstRender)
         {
             await NotificationService.DeleteMessageNotificationAsync(currentUserId, ReceiverId);
-            _firstRender = false;
         }
     }
-    private async void OnMessageReceived(Message newMsg)
+    private void OnMessageReceived(Message newMsg)
     {
         // On ne veut gérer que la discussion en cours
         if ((newMsg.SenderId == currentUserId && newMsg.ReceiverId == ReceiverId) ||
