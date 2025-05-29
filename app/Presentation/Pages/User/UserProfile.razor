@@ -16,6 +16,7 @@
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JS
+@inject IAlertService AlertService
 
 <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4">
     @if (_loading)
@@ -293,7 +294,13 @@
 
     private async Task ToggleLike()
     {
+        var profilePhoto = await PhotoService.GetProfilePhotoAsync(currentUserId);
         // éviter les clics en double
+        if (profilePhoto == null)
+        {
+            AlertService.ShowMessage("Vous ne pouvez pas layquer tant que votre photo de profile est vide", false);
+            return;
+        }
         if (_isHandlingLike) return;
         _isHandlingLike = true;
 
