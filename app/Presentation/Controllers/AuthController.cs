@@ -137,7 +137,7 @@ namespace Presentation.Controllers // Remplacez par votre espace de noms appropr
             var escapedEmail = Uri.EscapeDataString(user.Email!);
             var escapedToken = Uri.EscapeDataString(user.PasswordResetToken!);
 
-            var resetLink = $"http://localhost:80/reset-password?email={escapedEmail}&token={escapedToken}";
+            var resetLink = $"http://localhost:8080/reset-password?email={escapedEmail}&token={escapedToken}";
             var subject = "Réinitialisation de votre mot de passe";
             var body = $"<p>Bonjour {user.Username},</p>" +
                        $"<p>Pour réinitialiser votre mot de passe, cliquez sur le lien suivant :</p>" +

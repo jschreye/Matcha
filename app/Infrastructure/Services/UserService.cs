@@ -78,7 +78,7 @@ public class UserService : IUserService
         await _userRepository.Add(user);
 
         // Construire le lien de confirmation avec l'email et le token
-        var activationLink = $"http://localhost:80/auth/confirmation?email={Uri.EscapeDataString(user.Email)}&token={Uri.EscapeDataString(user.ActivationToken)}";
+        var activationLink = $"http://localhost:8080/auth/confirmation?email={Uri.EscapeDataString(user.Email)}&token={Uri.EscapeDataString(user.ActivationToken)}";
 
         var subject = "Confirmation de votre inscription";
         var body = $"<p>Bonjour {user.Username},</p>" +
